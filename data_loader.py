@@ -1,17 +1,18 @@
 """
 Módulo de carregamento e processamento de dados do PJe — TRE-CE.
 
-Responsável por ler os CSVs brutos do 1º e 2º Grau, aplicar filtros
-(ex: exclusão de processos da Corregedoria) e retornar DataFrames
-prontos para uso no dashboard.
+Se a pasta `data/` estiver vazia (caso típico ao rodar no Streamlit Cloud),
+o código baixa automaticamente os CSVs de uma pasta pública do Google Drive.
 """
 
 from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-# Pasta onde ficam os CSVs do PJe
 DATA_DIR = Path(__file__).parent / "data"
+
+# ID da pasta pública no Google Drive com os CSVs do PJe
+GDRIVE_FOLDER_ID = "1Qpe9AKs1UvC2cmiftBjt6ItAJ_7VgsFJ"
 
 # Classes processuais de competência do Corregedor (excluídas do 2G)
 CLASSES_CORREGEDOR = {
@@ -30,10 +31,40 @@ CLASSES_CORREGEDOR = {
 }
 
 
+def _baixar_csvs_do_drive() -> None:
+    """Baixa a pasta de CSVs do Google Drive para a pasta `data/`."""
+    import gdown
+
+    DATA_DIR.mkdir(exist_ok=True)
+    url = f"https://drive.google.com/drive/folders/{GDRIVE_FOLDER_ID}"
+
+    with st.spinner("Baixando CSVs do Google Drive (primeira execução, pode levar 1-2 minutos)..."):
+        gdown.download_folder(
+            url=url,
+            output=str(DATA_DIR),
+            quiet=False,
+            use_cookies=False,
+        )
+
+
+def _garantir_csvs_disponiveis() -> None:
+    """Verifica se há CSVs na pasta data/; se não, baixa do Google Drive."""
+    csvs_existentes = list(DATA_DIR.glob("pje-*.csv"))
+    if not csvs_existentes:
+        _baixar_csvs_do_drive()
+
+
 @st.cache_data
 def load_1g() -> pd.DataFrame:
     """Carrega todos os CSVs do 1º Grau e retorna um DataFrame único."""
+    _garantir_csvs_disponiveis()
+
     arquivos = sorted(DATA_DIR.glob("pje-1o-totalidade-de-processos-autuados*.csv"))
+    if not arquivos:
+        raise FileNotFoundError(
+            f"Nenhum CSV do 1º Grau encontrado em {DATA_DIR}. "
+            "Verifique se o download do Google Drive foi bem-sucedido."
+        )
     dfs = []
     for arq in arquivos:
         df = pd.read_csv(arq, sep=";", dtype=str, encoding="utf-8")
@@ -41,15 +72,11 @@ def load_1g() -> pd.DataFrame:
 
     df = pd.concat(dfs, ignore_index=True)
 
-    # Converter data de autuação para datetime e extrair ano/mês
     df["DT_AUTUACAO"] = pd.to_datetime(df["DT_AUTUACAO"], format="%d/%m/%Y %H:%M:%S", errors="coerce")
     df["ano"] = df["DT_AUTUACAO"].dt.year.astype("Int64")
     df["mes"] = df["DT_AUTUACAO"].dt.month.astype("Int64")
-
-    # Remover linhas sem data válida
     df = df.dropna(subset=["ano", "mes"])
 
-    # Padronizar nomes de colunas (mais amigável para uso)
     df = df.rename(columns={
         "NR_PROCESSO": "nr_processo",
         "CLASSE_JUDICIAL": "classe",
@@ -61,13 +88,15 @@ def load_1g() -> pd.DataFrame:
 
 @st.cache_data
 def load_2g(excluir_corregedoria: bool = True) -> pd.DataFrame:
-    """
-    Carrega todos os CSVs do 2º Grau.
+    """Carrega todos os CSVs do 2º Grau (exclui Corregedoria por padrão)."""
+    _garantir_csvs_disponiveis()
 
-    Por padrão exclui processos de competência do Corregedor,
-    tanto pelo órgão julgador quanto pelas classes processuais.
-    """
     arquivos = sorted(DATA_DIR.glob("pje-2o-processos-distribuidos-e-redistribuidos-por-periodo*.csv"))
+    if not arquivos:
+        raise FileNotFoundError(
+            f"Nenhum CSV do 2º Grau encontrado em {DATA_DIR}. "
+            "Verifique se o download do Google Drive foi bem-sucedido."
+        )
     dfs = []
     for arq in arquivos:
         df = pd.read_csv(arq, sep=";", dtype=str, encoding="utf-8")
@@ -75,13 +104,11 @@ def load_2g(excluir_corregedoria: bool = True) -> pd.DataFrame:
 
     df = pd.concat(dfs, ignore_index=True)
 
-    # Converter data de distribuição
     df["dt_distribuicao"] = pd.to_datetime(df["dt_distribuicao"], format="%d/%m/%Y %H:%M:%S", errors="coerce")
     df["ano"] = df["dt_distribuicao"].dt.year.astype("Int64")
     df["mes"] = df["dt_distribuicao"].dt.month.astype("Int64")
     df = df.dropna(subset=["ano", "mes"])
 
-    # Renomear para nomes mais curtos e consistentes com o 1G
     df = df.rename(columns={
         "ds_classe_judicial": "classe",
         "ds_orgao_julgador": "orgao",
@@ -90,12 +117,10 @@ def load_2g(excluir_corregedoria: bool = True) -> pd.DataFrame:
         "dt_transito_julgado": "dt_transito",
     })
 
-    # Preencher NaN em colunas de texto com string vazia (facilita filtros)
     for col in ["classe", "orgao", "tipo_decisao", "tarefas", "dt_transito"]:
         if col in df.columns:
             df[col] = df[col].fillna("")
 
-    # Filtro da Corregedoria
     if excluir_corregedoria:
         mask_orgao = ~df["orgao"].str.lower().str.contains("corregedor", na=False)
         mask_classe = ~df["classe"].isin(CLASSES_CORREGEDOR)
@@ -106,21 +131,18 @@ def load_2g(excluir_corregedoria: bool = True) -> pd.DataFrame:
 
 
 def classificar_situacao(tarefas: str) -> str:
-    """Classifica o processo em uma situação atual com base no campo 'tarefas'."""
     if not tarefas:
         return "Sem informação"
-    t = tarefas
-    if "Arquivado" in t or "arquivado" in t:
+    if "Arquivado" in tarefas or "arquivado" in tarefas:
         return "Arquivado"
-    if "Expedido" in t or "Devolvido" in t or "remetido" in t or "Origem" in t:
+    if "Expedido" in tarefas or "Devolvido" in tarefas or "remetido" in tarefas or "Origem" in tarefas:
         return "Expedido/Devolvido"
-    if "Aguardando" in t:
+    if "Aguardando" in tarefas:
         return "Aguardando"
     return "Em tramitação"
 
 
 def classificar_decisao(tipo: str) -> str:
-    """Classifica o tipo de decisão em categoria amigável."""
     if tipo == "DECISÃO COLEGIADA":
         return "Decisão Colegiada"
     if tipo == "DECISÃO MONOCRÁTICA":
@@ -128,10 +150,7 @@ def classificar_decisao(tipo: str) -> str:
     return "Sem decisão"
 
 
-# Mapeamento tarefa -> unidade organizacional (CPROC / ASSESSORIA / OUTRAS)
-# Baseado na classificação que já construímos no dashboard HTML
 REGRAS_UNIDADE = [
-    # CPROC — cartório
     ("Manter Processo Arquivado", "CPROC"),
     ("Manter Processos Expedidos", "CPROC"),
     ("Manter Processos Devolvidos a Origem", "CPROC"),
@@ -158,7 +177,6 @@ REGRAS_UNIDADE = [
     ("Desentranhar documentos", "CPROC"),
     ("Deslocar relator Vista", "CPROC"),
     ("Escolher tipo", "CPROC"),
-    # ASSESSORIA — gabinetes
     ("Minutar Relatório, Voto e Ementa", "ASSESSORIA"),
     ("Conferir Relatório, Voto e Ementa", "ASSESSORIA"),
     ("Revisar Relatório, Voto e Ementa", "ASSESSORIA"),
@@ -185,7 +203,6 @@ REGRAS_UNIDADE = [
     ("Petições descartadas", "ASSESSORIA"),
     ("Petições lidas", "ASSESSORIA"),
     ("Petições não lidas", "ASSESSORIA"),
-    # OUTRAS — ASEPA, Corregedoria residual
     ("Analisar Processo - ASEPA", "OUTRAS"),
     ("Analisar Processo - Corregedoria", "OUTRAS"),
     ("Processo Corregedoria", "OUTRAS"),
@@ -194,14 +211,11 @@ REGRAS_UNIDADE = [
 
 
 def classificar_unidade(tarefas: str) -> str:
-    """Classifica o processo na unidade organizacional responsável."""
     if not tarefas:
         return "SEM TAREFA"
-    # Verifica correspondência exata primeiro
     for chave, unidade in REGRAS_UNIDADE:
         if tarefas == chave:
             return unidade
-    # Depois correspondência parcial
     for chave, unidade in REGRAS_UNIDADE:
         if chave in tarefas:
             return unidade

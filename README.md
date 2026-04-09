@@ -3,28 +3,21 @@
 Dashboard interativo para análise de processos distribuídos no 1º e 2º Grau
 do Tribunal Regional Eleitoral do Ceará, construído em Python + Streamlit.
 
-## 📋 Pré-requisitos
+Os CSVs do PJe ficam hospedados numa pasta pública do Google Drive e são
+baixados automaticamente na primeira execução do app.
 
-- Python 3.10 ou superior (recomendado: 3.12)
-- VS Code (opcional, mas recomendado)
+## 🚀 Rodar localmente
 
-## 🚀 Primeira execução (setup completo)
-
-Abra um terminal na pasta do projeto (onde está o arquivo `app.py`) e siga
-os passos abaixo:
-
-### 1. Criar um ambiente virtual
-
-Um "ambiente virtual" é uma pasta isolada onde as bibliotecas do projeto
-ficam instaladas sem interferir no Python do sistema. É boa prática.
+### 1. Criar ambiente virtual e instalar dependências
 
 **Windows (PowerShell):**
 ```powershell
 python -m venv venv
 venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
-Se der erro de execução de script, rode antes:
+Se der erro de execução de script no Activate.ps1, rode antes:
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
@@ -33,70 +26,54 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```bash
 python -m venv venv
 source venv/bin/activate
-```
-
-Você saberá que o ambiente está ativo porque aparece `(venv)` no início do
-prompt do terminal.
-
-### 2. Instalar as dependências
-
-```bash
 pip install -r requirements.txt
 ```
 
-Isso instala Streamlit, Pandas e Plotly. Leva 1–2 minutos.
-
-### 3. Colocar os CSVs do PJe
-
-Copie todos os arquivos CSV do PJe para a pasta `data/` do projeto.
-Os nomes esperados são:
-
-- `pje-1o-totalidade-de-processos-autuados*.csv` (vários arquivos, um por ano)
-- `pje-2o-processos-distribuidos-e-redistribuidos-por-periodo*.csv`
-
-O código lê automaticamente todos os arquivos que seguem esse padrão.
-
-### 4. Rodar o dashboard
+### 2. Rodar o dashboard
 
 ```bash
 streamlit run app.py
 ```
 
-O Streamlit vai abrir automaticamente o dashboard no navegador, no endereço
-`http://localhost:8501`. Pronto!
+Na **primeira execução**, o app baixa automaticamente os CSVs do Google Drive
+para a pasta `data/` (leva 1–2 minutos, mostra um spinner).
 
-## 🔄 Execuções futuras
+Nas execuções seguintes, como os arquivos já estão em cache, o dashboard
+abre imediatamente.
 
-Toda vez que for usar o dashboard de novo, só precisa:
+O navegador abre automaticamente em `http://localhost:8501`.
 
-```bash
-# Ativar o venv (Windows)
-venv\Scripts\Activate.ps1
+## ☁️ Publicar no Streamlit Cloud
 
-# Ou Linux/macOS
-source venv/bin/activate
-
-# Rodar
-streamlit run app.py
-```
+1. Suba este projeto para um repositório no GitHub (o `.gitignore` já está
+   configurado para não incluir o `venv/` nem os CSVs).
+2. Acesse https://share.streamlit.io/ e conecte sua conta GitHub.
+3. Clique em "New app", selecione o repositório, e aponte para `app.py`.
+4. O Streamlit Cloud vai instalar as dependências, detectar o `runtime.txt`
+   (Python 3.12), e na primeira execução vai baixar os CSVs do Drive.
+5. Pronto — o dashboard fica disponível numa URL pública do Streamlit Cloud.
 
 ## 🔁 Atualizando os dados
 
-Quando receber CSVs novos do PJe, basta copiá-los para a pasta `data/`
-(substituindo os antigos se quiser) e reiniciar o Streamlit.
-O dashboard usa cache para não recarregar tudo a cada interação, mas
-detecta mudanças nos arquivos automaticamente.
+Quando tiver CSVs novos do PJe:
+
+1. Substitua os arquivos na pasta do Google Drive (mantendo os mesmos nomes)
+2. No dashboard rodando, clique em "Clear cache" no menu hambúrguer (canto
+   superior direito) e depois recarregue a página
+3. O app vai baixar os novos arquivos automaticamente
 
 ## 📁 Estrutura do projeto
 
 ```
 pje_dashboard/
 ├── app.py              # Dashboard principal (interface Streamlit)
-├── data_loader.py      # Funções de leitura e filtros dos CSVs
-├── requirements.txt    # Lista de bibliotecas Python
+├── data_loader.py      # Leitura dos CSVs + download do Google Drive
+├── requirements.txt    # Bibliotecas Python
+├── runtime.txt         # Fixa Python 3.12 no Streamlit Cloud
 ├── README.md           # Este arquivo
-└── data/               # Pasta para os CSVs do PJe
-    └── (seus CSVs aqui)
+├── .gitignore          # Arquivos que não vão para o git
+└── data/               # Vazia no repositório (CSVs são baixados em runtime)
+    └── .gitkeep
 ```
 
 ## 🎯 Funcionalidades
@@ -110,12 +87,5 @@ pje_dashboard/
 
 ## ✏️ Personalizando
 
-Quer mudar as regras de classificação, adicionar filtros, criar novos gráficos?
-Todo o código está em apenas dois arquivos:
-
-- `data_loader.py` — mexe nos filtros e na leitura dos dados
-- `app.py` — mexe na interface, nos KPIs e nos gráficos
-
-É bem mais simples do que parece. Dá para fazer mudanças grandes em
-minutos — ao contrário da versão HTML anterior, onde cada alteração
-exigia regenerar o arquivo inteiro.
+- `data_loader.py` — filtros, classificações, leitura dos dados
+- `app.py` — interface, KPIs, gráficos

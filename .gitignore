@@ -14,9 +14,6 @@ __pycache__/
 # VS Code
 .vscode/
 
-# Dados sensíveis (descomente se não quiser versionar os CSVs)
-# data/*.csv
-
 # Sistema
 .DS_Store
 Thumbs.db

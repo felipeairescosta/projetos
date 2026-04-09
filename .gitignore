@@ -1,0 +1,22 @@
+# Ambiente virtual
+venv/
+env/
+.venv/
+
+# Cache do Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Cache do Streamlit
+.streamlit/cache/
+
+# VS Code
+.vscode/
+
+# Dados sensíveis (descomente se não quiser versionar os CSVs)
+# data/*.csv
+
+# Sistema
+.DS_Store
+Thumbs.db

@@ -273,11 +273,16 @@ with tab2:
     st.caption("ℹ️ Processos de Corregedoria excluídos")
     # ========== KPIs ==========
     st.markdown("### 📊 Indicadores")
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     total = len(df_filtrado)
     arquivados = (df_filtrado["situacao"] == "Arquivado").sum()
     expedidos = (df_filtrado["situacao"] == "Expedido/Devolvido").sum()
     em_trami = (df_filtrado["situacao"] == "Em tramitação").sum()
+    
+    # Cálculo do IAD (Índice de Atendimento à Demanda)
+    processos_baixados = arquivados + expedidos
+    iad = (processos_baixados / total * 100) if total > 0 else 0
+    
     col1.metric("Total", f"{total:,}".replace(",", "."))
     col2.metric("Arquivados", f"{arquivados:,}".replace(",", "."),
                 f"{arquivados/total*100:.1f}%" if total else "0%")
@@ -285,6 +290,8 @@ with tab2:
                 f"{expedidos/total*100:.1f}%" if total else "0%")
     col4.metric("Em tramitação", f"{em_trami:,}".replace(",", "."),
                 f"{em_trami/total*100:.1f}%" if total else "0%")
+    col5.metric("IAD", f"{iad:.1f}%",
+                f"{processos_baixados:,} baixados".replace(",", "."))
     st.markdown("---")
     # ========== GRÁFICOS ==========
     # Gráfico 1: Distribuição temporal (ano ou mês)
@@ -387,6 +394,39 @@ with tab2:
     top_orgaos.columns = ["Órgão Julgador", "Quantidade"]
     top_orgaos.index = top_orgaos.index + 1
     st.dataframe(top_orgaos, use_container_width=True, height=400)
+    
+    # ========== RANKING IAD POR ÓRGÃO JULGADOR ==========
+    st.markdown("---")
+    st.markdown("#### 📊 Ranking IAD por Órgão Julgador")
+    
+    # Calcular IAD por órgão
+    iad_por_orgao = []
+    for orgao in df_filtrado["orgao"].unique():
+        df_orgao = df_filtrado[df_filtrado["orgao"] == orgao]
+        total_orgao = len(df_orgao)
+        if total_orgao > 0:
+            baixados_orgao = ((df_orgao["situacao"] == "Arquivado") | (df_orgao["situacao"] == "Expedido/Devolvido")).sum()
+            iad_orgao = (baixados_orgao / total_orgao) * 100
+            iad_por_orgao.append({
+                "Órgão Julgador": orgao,
+                "Total Processos": total_orgao,
+                "Processos Baixados": baixados_orgao,
+                "IAD (%)": round(iad_orgao, 1)
+            })
+    
+    # Ordenar por IAD decrescente
+    iad_por_orgao.sort(key=lambda x: x["IAD (%)"], reverse=True)
+    
+    # Criar DataFrame e exibir
+    df_iad_ranking = pd.DataFrame(iad_por_orgao)
+    df_iad_ranking.index = df_iad_ranking.index + 1
+    
+    # Formatar colunas
+    df_iad_ranking["Total Processos"] = df_iad_ranking["Total Processos"].apply(lambda x: f"{x:,}".replace(",", "."))
+    df_iad_ranking["Processos Baixados"] = df_iad_ranking["Processos Baixados"].apply(lambda x: f"{x:,}".replace(",", "."))
+    df_iad_ranking["IAD (%)"] = df_iad_ranking["IAD (%)"].apply(lambda x: f"{x:.1f}%")
+    
+    st.dataframe(df_iad_ranking, use_container_width=True, height=400)
 
 # ========== RODAPÉ ==========
 st.markdown("---")

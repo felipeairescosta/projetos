@@ -273,7 +273,7 @@ with tab2:
     st.caption("ℹ️ Processos de Corregedoria excluídos")
     # ========== KPIs ==========
     st.markdown("### 📊 Indicadores")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
     total = len(df_filtrado)
     arquivados = (df_filtrado["situacao"] == "Arquivado").sum()
     expedidos = (df_filtrado["situacao"] == "Expedido/Devolvido").sum()
@@ -282,6 +282,27 @@ with tab2:
     # Cálculo do IAD (Índice de Atendimento à Demanda)
     processos_baixados = arquivados + expedidos
     iad = (processos_baixados / total * 100) if total > 0 else 0
+    
+    # Cálculo do Tempo Médio de Tramitação
+    data_atual = datetime.now().date()
+    
+    def calcular_dias_tramitacao(dt):
+        if pd.isna(dt):
+            return 0
+        return (data_atual - dt.date()).days
+    
+    # Tempo médio para processos em tramitação
+    df_em_tramitacao = df_filtrado[df_filtrado["situacao"] == "Em tramitação"].copy()
+    if not df_em_tramitacao.empty:
+        df_em_tramitacao["dias_tramitacao"] = df_em_tramitacao["dt_distribuicao"].apply(calcular_dias_tramitacao)
+        tempo_medio_tramitacao = df_em_tramitacao["dias_tramitacao"].mean()
+    else:
+        tempo_medio_tramitacao = 0
+    
+    # Tempo médio geral (todos os processos)
+    df_filtrado_copy = df_filtrado.copy()
+    df_filtrado_copy["dias_tramitacao_geral"] = df_filtrado_copy["dt_distribuicao"].apply(calcular_dias_tramitacao)
+    tempo_medio_geral = df_filtrado_copy["dias_tramitacao_geral"].mean() if not df_filtrado_copy.empty else 0
     
     col1.metric("Total", f"{total:,}".replace(",", "."))
     col2.metric("Arquivados", f"{arquivados:,}".replace(",", "."),
@@ -292,6 +313,10 @@ with tab2:
                 f"{em_trami/total*100:.1f}%" if total else "0%")
     col5.metric("IAD", f"{iad:.1f}%",
                 f"{processos_baixados:,} baixados".replace(",", "."))
+    col6.metric("Tempo Médio Tramitação", f"{tempo_medio_tramitacao:.0f} dias",
+                f"{em_trami:,} processos".replace(",", "."))
+    col7.metric("Tempo Médio Geral", f"{tempo_medio_geral:.0f} dias",
+                f"{total:,} processos".replace(",", "."))
     st.markdown("---")
     # ========== GRÁFICOS ==========
     # Gráfico 1: Distribuição temporal (ano ou mês)
@@ -427,6 +452,53 @@ with tab2:
     df_iad_ranking["IAD (%)"] = df_iad_ranking["IAD (%)"].apply(lambda x: f"{x:.1f}%")
     
     st.dataframe(df_iad_ranking, use_container_width=True, height=400)
+    
+    # ========== RANKING TEMPO MÉDIO DE TRAMITAÇÃO POR ÓRGÃO JULGADOR ==========
+    st.markdown("---")
+    st.markdown("#### ⏱️ Ranking Tempo Médio de Tramitação por Órgão Julgador")
+    
+    # Calcular tempo médio de tramitação por órgão
+    tempo_por_orgao = []
+    data_atual = datetime.now().date()
+    
+    def calcular_dias_tramitacao(dt):
+        if pd.isna(dt):
+            return 0
+        return (data_atual - dt.date()).days
+    
+    for orgao in df_filtrado["orgao"].unique():
+        df_orgao = df_filtrado[df_filtrado["orgao"] == orgao].copy()
+        total_orgao = len(df_orgao)
+        
+        if total_orgao > 0:
+            # Calcular dias de tramitação para todos os processos do órgão
+            df_orgao_copy = df_orgao.copy()
+            df_orgao_copy["dias_tramitacao"] = df_orgao_copy["dt_distribuicao"].apply(calcular_dias_tramitacao)
+            tempo_medio_orgao = df_orgao_copy["dias_tramitacao"].mean()
+            
+            # Contar processos em tramitação
+            em_tramitacao_orgao = (df_orgao["situacao"] == "Em tramitação").sum()
+            
+            tempo_por_orgao.append({
+                "Órgão Julgador": orgao,
+                "Total Processos": total_orgao,
+                "Em Tramitação": em_tramitacao_orgao,
+                "Tempo Médio (dias)": round(tempo_medio_orgao, 1)
+            })
+    
+    # Ordenar por tempo médio crescente (menor para maior)
+    tempo_por_orgao.sort(key=lambda x: x["Tempo Médio (dias)"])
+    
+    # Criar DataFrame e exibir
+    df_tempo_ranking = pd.DataFrame(tempo_por_orgao)
+    df_tempo_ranking.index = df_tempo_ranking.index + 1
+    
+    # Formatar colunas
+    df_tempo_ranking["Total Processos"] = df_tempo_ranking["Total Processos"].apply(lambda x: f"{x:,}".replace(",", "."))
+    df_tempo_ranking["Em Tramitação"] = df_tempo_ranking["Em Tramitação"].apply(lambda x: f"{x:,}".replace(",", "."))
+    df_tempo_ranking["Tempo Médio (dias)"] = df_tempo_ranking["Tempo Médio (dias)"].apply(lambda x: f"{x:.1f}")
+    
+    st.dataframe(df_tempo_ranking, use_container_width=True, height=400)
 
 # ========== RODAPÉ ==========
 st.markdown("---")

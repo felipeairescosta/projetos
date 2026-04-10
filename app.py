@@ -89,12 +89,14 @@ with tab1:
             dt_inicial = st.date_input(
                 "Data inicial",
                 value=data_min,
+                format="DD/MM/YYYY",
                 key="dt_inicial_1g"
             )
         with col_filt4:
             dt_final = st.date_input(
                 "Data final",
                 value=data_max,
+                format="DD/MM/YYYY",
                 key="dt_final_1g"
             )
     
@@ -218,12 +220,14 @@ with tab2:
             dt_inicial = st.date_input(
                 "Data inicial",
                 value=data_min,
+                format="DD/MM/YYYY",
                 key="dt_inicial_2g"
             )
         with col_filt5:
             dt_final = st.date_input(
                 "Data final",
                 value=data_max,
+                format="DD/MM/YYYY",
                 key="dt_final_2g"
             )
     

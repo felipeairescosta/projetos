@@ -86,27 +86,17 @@ with tab1:
         data_min = df_ano["DT_AUTUACAO"].min().date()
         data_max = df_ano["DT_AUTUACAO"].max().date()
         with col_filt3:
-            dt_inicial_str = st.text_input(
-                "Data inicial (dd/mm/aaaa)",
-                value=data_min.strftime("%d/%m/%Y"),
+            dt_inicial = st.date_input(
+                "Data inicial",
+                value=data_min,
                 key="dt_inicial_1g"
             )
-            try:
-                dt_inicial = pd.to_datetime(dt_inicial_str, format="%d/%m/%Y").date()
-            except:
-                st.error("Formato de data inicial inválido. Use dd/mm/aaaa")
-                dt_inicial = data_min
         with col_filt4:
-            dt_final_str = st.text_input(
-                "Data final (dd/mm/aaaa)",
-                value=data_max.strftime("%d/%m/%Y"),
+            dt_final = st.date_input(
+                "Data final",
+                value=data_max,
                 key="dt_final_1g"
             )
-            try:
-                dt_final = pd.to_datetime(dt_final_str, format="%d/%m/%Y").date()
-            except:
-                st.error("Formato de data final inválido. Use dd/mm/aaaa")
-                dt_final = data_max
     
     if ano_selecionado != "Todos":
         df_filtrado = df[df["ano"] == int(ano_selecionado)].copy()
@@ -225,27 +215,17 @@ with tab2:
         data_min = df_ano["dt_distribuicao"].min().date()
         data_max = df_ano["dt_distribuicao"].max().date()
         with col_filt4:
-            dt_inicial_str = st.text_input(
-                "Data inicial (dd/mm/aaaa)",
-                value=data_min.strftime("%d/%m/%Y"),
+            dt_inicial = st.date_input(
+                "Data inicial",
+                value=data_min,
                 key="dt_inicial_2g"
             )
-            try:
-                dt_inicial = pd.to_datetime(dt_inicial_str, format="%d/%m/%Y").date()
-            except:
-                st.error("Formato de data inicial inválido. Use dd/mm/aaaa")
-                dt_inicial = data_min
         with col_filt5:
-            dt_final_str = st.text_input(
-                "Data final (dd/mm/aaaa)",
-                value=data_max.strftime("%d/%m/%Y"),
+            dt_final = st.date_input(
+                "Data final",
+                value=data_max,
                 key="dt_final_2g"
             )
-            try:
-                dt_final = pd.to_datetime(dt_final_str, format="%d/%m/%Y").date()
-            except:
-                st.error("Formato de data final inválido. Use dd/mm/aaaa")
-                dt_final = data_max
     
     if ano_selecionado != "Todos":
         df_filtrado = df[df["ano"] == int(ano_selecionado)].copy()

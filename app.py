@@ -85,10 +85,18 @@ with tab1:
         df_ano = df[df["ano"] == int(ano_selecionado)].copy()
         data_min = df_ano["DT_AUTUACAO"].min().date()
         data_max = df_ano["DT_AUTUACAO"].max().date()
+        
+        # Limitar calendário ao ano selecionado
+        ano_int = int(ano_selecionado)
+        min_date_ano = pd.to_datetime(f"{ano_int}-01-01").date()
+        max_date_ano = pd.to_datetime(f"{ano_int}-12-31").date()
+        
         with col_filt3:
             dt_inicial = st.date_input(
                 "Data inicial",
                 value=data_min,
+                min_value=min_date_ano,
+                max_value=max_date_ano,
                 format="DD/MM/YYYY",
                 key="dt_inicial_1g"
             )
@@ -96,6 +104,8 @@ with tab1:
             dt_final = st.date_input(
                 "Data final",
                 value=data_max,
+                min_value=min_date_ano,
+                max_value=max_date_ano,
                 format="DD/MM/YYYY",
                 key="dt_final_1g"
             )
@@ -216,10 +226,18 @@ with tab2:
         df_ano = df[df["ano"] == int(ano_selecionado)].copy()
         data_min = df_ano["dt_distribuicao"].min().date()
         data_max = df_ano["dt_distribuicao"].max().date()
+        
+        # Limitar calendário ao ano selecionado
+        ano_int = int(ano_selecionado)
+        min_date_ano = pd.to_datetime(f"{ano_int}-01-01").date()
+        max_date_ano = pd.to_datetime(f"{ano_int}-12-31").date()
+        
         with col_filt4:
             dt_inicial = st.date_input(
                 "Data inicial",
                 value=data_min,
+                min_value=min_date_ano,
+                max_value=max_date_ano,
                 format="DD/MM/YYYY",
                 key="dt_inicial_2g"
             )
@@ -227,6 +245,8 @@ with tab2:
             dt_final = st.date_input(
                 "Data final",
                 value=data_max,
+                min_value=min_date_ano,
+                max_value=max_date_ano,
                 format="DD/MM/YYYY",
                 key="dt_final_2g"
             )

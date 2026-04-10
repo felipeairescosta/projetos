@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from datetime import datetime
 
 from data_loader import (
     load_1g,
@@ -75,10 +76,41 @@ with tab1:
                 index=0,
                 key="orgao_1g"
             )
+    
+    # Filtros de data (aparecem apenas quando ano específico é selecionado)
+    dt_inicial = None
+    dt_final = None
+    if ano_selecionado != "Todos":
+        col_filt3, col_filt4 = st.columns(2)
+        df_ano = df[df["ano"] == int(ano_selecionado)].copy()
+        data_min = df_ano["DT_AUTUACAO"].min().date()
+        data_max = df_ano["DT_AUTUACAO"].max().date()
+        with col_filt3:
+            dt_inicial = st.date_input(
+                "Data inicial",
+                value=data_min,
+                min_value=data_min,
+                max_value=data_max,
+                key="dt_inicial_1g"
+            )
+        with col_filt4:
+            dt_final = st.date_input(
+                "Data final",
+                value=data_max,
+                min_value=data_min,
+                max_value=data_max,
+                key="dt_final_1g"
+            )
+    
     if ano_selecionado != "Todos":
         df_filtrado = df[df["ano"] == int(ano_selecionado)].copy()
         if orgao_selecionado != "Todos":
             df_filtrado = df_filtrado[df_filtrado["orgao"] == orgao_selecionado]
+        if dt_inicial and dt_final:
+            df_filtrado = df_filtrado[
+                (df_filtrado["DT_AUTUACAO"].dt.date >= dt_inicial) &
+                (df_filtrado["DT_AUTUACAO"].dt.date <= dt_final)
+            ]
     else:
         df_filtrado = df.copy()
     st.caption(
@@ -177,6 +209,32 @@ with tab2:
             index=0,
             key="classe_2g"
         )
+    
+    # Filtros de data (aparecem apenas quando ano específico é selecionado)
+    dt_inicial = None
+    dt_final = None
+    if ano_selecionado != "Todos":
+        col_filt4, col_filt5 = st.columns(2)
+        df_ano = df[df["ano"] == int(ano_selecionado)].copy()
+        data_min = df_ano["dt_distribuicao"].min().date()
+        data_max = df_ano["dt_distribuicao"].max().date()
+        with col_filt4:
+            dt_inicial = st.date_input(
+                "Data inicial",
+                value=data_min,
+                min_value=data_min,
+                max_value=data_max,
+                key="dt_inicial_2g"
+            )
+        with col_filt5:
+            dt_final = st.date_input(
+                "Data final",
+                value=data_max,
+                min_value=data_min,
+                max_value=data_max,
+                key="dt_final_2g"
+            )
+    
     if ano_selecionado != "Todos":
         df_filtrado = df[df["ano"] == int(ano_selecionado)].copy()
     else:
@@ -185,6 +243,11 @@ with tab2:
         df_filtrado = df_filtrado[df_filtrado["orgao"] == orgao_selecionado]
     if classe_selecionada != "Todos":
         df_filtrado = df_filtrado[df_filtrado["classe"] == classe_selecionada]
+    if dt_inicial and dt_final:
+        df_filtrado = df_filtrado[
+            (df_filtrado["dt_distribuicao"].dt.date >= dt_inicial) &
+            (df_filtrado["dt_distribuicao"].dt.date <= dt_final)
+        ]
     st.caption(
         f"**Total carregado:** {len(df):,} processos".replace(",", ".")
     )

@@ -9,9 +9,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
-from data_loader_v2 import (
+from data_loader import (
     load_1g,
-    load_2g,   
+    load_2g,
     classificar_situacao,
     classificar_decisao,
     classificar_unidade,

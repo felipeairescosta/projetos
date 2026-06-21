@@ -788,6 +788,47 @@ function findKOMatch(id){
 
 // Resolves placeholder strings to a team object or null.
 // Placeholder forms: "1°A", "2°B", "W49", "L77", "3°M", team code.
+// Time-based live estimation: marks today's matches as LIVE/period/minute
+// when the current BRT clock falls inside the match window.
+// ESPN API overrides these values when it returns real data.
+function estimateMatchStatuses(){
+  const utcNow = new Date();
+  const brt    = new Date(utcNow.getTime() - 3*3600*1000); // UTC-3 → BRT
+  const todayBRT = `${padNum(brt.getUTCDate())}/${padNum(brt.getUTCMonth()+1)}`;
+  const nowMin   = brt.getUTCHours()*60 + brt.getUTCMinutes(); // minutes since midnight BRT
+
+  const all = [];
+  Object.values(GROUPS).forEach(g=>all.push(...g.matches));
+  Object.values(KNOCKOUT).forEach(r=>all.push(...r.matches));
+
+  let changed = false;
+  all.forEach(m=>{
+    if(m.status==='FT') return;          // never downgrade a confirmed result
+    if(m.date!==todayBRT) return;        // only today
+
+    const kickMin = (parseInt(m.brt)||0)*60;
+    const elapsed = nowMin - kickMin;    // minutes since kick-off
+
+    if(elapsed < 0) { m.status='NS'; return; }
+    if(elapsed > 120) return;            // probably over, leave for ESPN to confirm
+
+    let periodLabel, minuteNum;
+    if(elapsed <= 45)       { periodLabel='1T';  minuteNum=elapsed; }
+    else if(elapsed <= 60)  { periodLabel='INT'; minuteNum=45; }
+    else if(elapsed <= 105) { periodLabel='2T';  minuteNum=45+(elapsed-60); }
+    else                    { periodLabel='2T';  minuteNum=90; }
+
+    m.status      = 'LIVE';
+    m.periodLabel = periodLabel;
+    m.minuteNum   = minuteNum;
+    m.minuteTs    = Date.now(); // start counting seconds from now
+    changed = true;
+  });
+
+  if(changed) recalcStandings();
+  return changed;
+}
+
 function resolveKOTeam(p){
   if(!p) return null;
   if(TEAMS_ALL[p]) return TEAMS_ALL[p];
@@ -881,8 +922,8 @@ function renderMatchCard(m, groupKey){
       <div class="team-col">
         <div class="t-flag">${ht.flag}</div>
         <div class="t-name">${ht.name}</div>
-        ${m.status!=='NS'?`<div class="t-score">${m.hs??''}</div>`:
-          `<div class="t-score pending">-</div>`}
+        ${m.hs!==null?`<div class="t-score">${m.hs}</div>`:
+          `<div class="t-score pending">–</div>`}
       </div>
       <div class="vs-col">
         <span class="vs">×</span>
@@ -891,8 +932,8 @@ function renderMatchCard(m, groupKey){
       <div class="team-col">
         <div class="t-flag">${at.flag}</div>
         <div class="t-name">${at.name}</div>
-        ${m.status!=='NS'?`<div class="t-score">${m.as??''}</div>`:
-          `<div class="t-score pending">-</div>`}
+        ${m.as!==null?`<div class="t-score">${m.as}</div>`:
+          `<div class="t-score pending">–</div>`}
       </div>
     </div>
   </div>`;
@@ -1374,6 +1415,7 @@ async function doRefresh(){
   const tx  = document.getElementById('refreshTxt');
   btn.disabled=true; sp.style.display='inline-block'; tx.textContent=' Buscando...';
 
+  estimateMatchStatuses();     // time-based fallback (overridden by ESPN below)
   const ok = await fetchLiveScores();
   renderCurrent();
   updateLiveBanner();
@@ -1433,9 +1475,13 @@ setInterval(()=>{
     el.textContent = base + ` | próxima em ${countdown}s`;
   }
   if(countdown<=0){ countdown=60; doRefresh(); }
+
+  // Re-estimate every minute in case a new match window opened
+  if(countdown % 60 === 0){ estimateMatchStatuses(); updateLiveBanner(); }
 },1000);
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
+estimateMatchStatuses(); // immediate estimate before first API call
 renderCurrent();
 updateLiveBanner();
 doRefresh();

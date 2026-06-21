@@ -9,10 +9,8 @@
       --bg: #080d18;
       --bg2: #0f1626;
       --card: #141e30;
-      --card2: #1a2540;
       --gold: #c9a227;
       --gold2: #e8c54e;
-      --blue: #1a4b8c;
       --text: #f0f4ff;
       --muted: #6b7fa3;
       --green: #22c55e;
@@ -25,7 +23,7 @@
 
     /* HEADER */
     header {
-      background: linear-gradient(160deg, #0a1020 0%, #162040 50%, #0a1020 100%);
+      background: linear-gradient(160deg,#0a1020 0%,#162040 50%,#0a1020 100%);
       border-bottom: 2px solid var(--gold);
       padding: 22px 20px 18px;
       text-align: center;
@@ -36,19 +34,15 @@
       border-radius:20px; margin-bottom:10px; text-transform:uppercase;
     }
     h1 {
-      font-size:2rem; font-weight:900; letter-spacing:-0.5px;
-      background:linear-gradient(90deg, var(--gold), var(--gold2), var(--gold));
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      background-clip:text;
+      font-size:2rem; font-weight:900;
+      background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
     .subtitle { color:var(--muted); font-size:13px; margin-top:4px; }
-    .header-row {
-      display:flex; align-items:center; justify-content:center;
-      gap:14px; margin-top:12px; flex-wrap:wrap;
-    }
+    .header-row { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:12px; flex-wrap:wrap; }
     .live-pill {
       display:inline-flex; align-items:center; gap:6px;
-      background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4);
+      background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.4);
       color:var(--red); padding:4px 12px; border-radius:20px;
       font-size:11px; font-weight:700; letter-spacing:1.5px;
     }
@@ -65,10 +59,7 @@
     @keyframes spin { to { transform:rotate(360deg); } }
 
     /* TABS */
-    .tabs-wrap {
-      background:var(--bg2); border-bottom:1px solid var(--border);
-      overflow-x:auto; scrollbar-width:none;
-    }
+    .tabs-wrap { background:var(--bg2); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; }
     .tabs-wrap::-webkit-scrollbar { display:none; }
     .tabs { display:flex; gap:3px; padding:10px 16px; min-width:max-content; }
     .tab {
@@ -76,13 +67,13 @@
       cursor:pointer; border:none; background:transparent; color:var(--muted);
       transition:all .2s; white-space:nowrap;
     }
-    .tab:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+    .tab:hover { color:var(--text); background:rgba(255,255,255,.05); }
     .tab.active { background:var(--gold); color:#000; }
 
     /* MAIN */
     main { max-width:1280px; margin:0 auto; padding:28px 20px 40px; }
 
-    /* SECTION TITLE */
+    /* SECTION */
     .sec-title {
       font-size:11px; font-weight:700; letter-spacing:2.5px; color:var(--gold);
       text-transform:uppercase; margin-bottom:16px;
@@ -90,29 +81,32 @@
     }
     .sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
 
-    /* TODAY'S MATCHES */
-    .today-grid {
-      display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
-      gap:12px; margin-bottom:36px;
-    }
+    /* MATCH CARD */
+    .today-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:12px; margin-bottom:36px; }
     .mcard {
       background:var(--card); border:1px solid var(--border2); border-radius:12px;
       padding:14px 16px; transition:all .2s;
     }
     .mcard:hover { border-color:var(--gold); transform:translateY(-2px); }
     .mcard.live-card { border-color:rgba(239,68,68,.4); background:rgba(239,68,68,.04); }
-    .mcard-head {
-      display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;
-    }
+    .mcard-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
     .mcard-group { font-size:11px; color:var(--muted); font-weight:600; }
+    .mcard-meta { display:flex; gap:8px; align-items:center; }
     .mcard-date { font-size:11px; color:var(--muted); }
-    .status-badge {
-      font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;
-      letter-spacing:.5px;
+
+    /* TIME BADGE */
+    .time-brt {
+      font-size:11px; font-weight:700; color:var(--gold2);
+      background:rgba(201,162,39,.12); border:1px solid rgba(201,162,39,.2);
+      padding:2px 7px; border-radius:4px; letter-spacing:.3px;
     }
+    .time-brt.live-time { color:var(--red); background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.3); }
+
+    .status-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
     .s-ft { background:rgba(34,197,94,.14); color:var(--green); }
     .s-ns { background:rgba(107,127,163,.12); color:var(--muted); }
     .s-live { background:rgba(239,68,68,.15); color:var(--red); animation:blink 1.4s infinite; }
+
     .mcard-body { display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .team-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center; }
     .t-flag { font-size:1.9rem; line-height:1; }
@@ -121,21 +115,18 @@
     .t-score.pending { color:var(--muted); font-size:1.2rem; }
     .vs-col { display:flex; flex-direction:column; align-items:center; gap:2px; }
     .vs { font-size:13px; color:var(--muted); font-weight:700; }
-    .vs-time { font-size:10px; color:var(--muted); }
+    .vs-venue { font-size:9px; color:var(--muted); text-align:center; max-width:80px; }
 
-    /* ALL GROUPS GRID */
-    .all-grid {
-      display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
-      gap:22px;
-    }
+    /* ALL GROUPS */
+    .all-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:22px; }
     .group-card { background:var(--card); border:1px solid var(--border2); border-radius:14px; overflow:hidden; }
     .group-card-hd {
       background:rgba(201,162,39,.08); padding:12px 16px;
       font-size:13px; font-weight:800; color:var(--gold);
-      border-bottom:1px solid var(--border); letter-spacing:.5px;
+      border-bottom:1px solid var(--border);
       display:flex; justify-content:space-between; align-items:center;
     }
-    .group-card-hd span { font-size:11px; font-weight:400; color:var(--muted); }
+    .group-card-hd span { font-size:10px; font-weight:400; color:var(--muted); }
 
     /* STANDINGS TABLE */
     .standings { width:100%; border-collapse:collapse; }
@@ -151,11 +142,7 @@
     .standings tr.q1 { background:rgba(34,197,94,.05); }
     .standings tr.q2 { background:rgba(34,197,94,.025); }
     .tc { display:flex; align-items:center; gap:8px; }
-    .pos-badge {
-      width:22px; height:22px; border-radius:5px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:11px; font-weight:800; flex-shrink:0;
-    }
+    .pos-badge { width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0; }
     .p1 { background:var(--gold); color:#000; }
     .p2 { background:rgba(34,197,94,.2); color:var(--green); }
     .p3 { background:rgba(107,127,163,.15); color:var(--muted); }
@@ -166,38 +153,19 @@
     .gd.neg { color:var(--red); }
     .gd.zero { color:var(--muted); }
 
-    /* SINGLE GROUP VIEW */
-    .single-group { display:none; }
-    .single-group.active { display:block; }
-    .sg-header {
-      display:flex; align-items:center; gap:16px; margin-bottom:24px;
-    }
+    /* SINGLE GROUP */
     .sg-title { font-size:2rem; font-weight:900; color:var(--gold); }
-    .sg-sub { color:var(--muted); font-size:13px; margin-top:4px; }
-
-    .sg-content {
-      display:grid; grid-template-columns:1fr 1fr;
-      gap:24px;
-    }
+    .sg-content { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
     @media(max-width:768px) { .sg-content { grid-template-columns:1fr; } }
 
-    .full-standings {
-      background:var(--card); border:1px solid var(--border2); border-radius:14px;
-      overflow:hidden;
-    }
-    .panel-title {
-      padding:12px 16px; font-size:11px; font-weight:700; letter-spacing:2px;
-      color:var(--gold); text-transform:uppercase; background:rgba(201,162,39,.06);
-      border-bottom:1px solid var(--border);
-    }
-
+    /* MATCH ITEM (single group view) */
     .matches-list { display:flex; flex-direction:column; gap:10px; }
     .match-item {
-      background:var(--card); border:1px solid var(--border2); border-radius:10px;
-      padding:12px 14px;
+      background:var(--card); border:1px solid var(--border2); border-radius:10px; padding:12px 14px;
     }
     .match-item.live-card { border-color:rgba(239,68,68,.4); }
-    .mi-top { display:flex; justify-content:space-between; margin-bottom:10px; }
+    .mi-top { display:flex; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:6px; }
+    .mi-left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .mi-round { font-size:10px; color:var(--muted); font-weight:600; }
     .mi-venue { font-size:10px; color:var(--muted); }
     .mi-body { display:flex; align-items:center; justify-content:space-between; gap:6px; }
@@ -209,12 +177,20 @@
     }
     .score-num { min-width:22px; text-align:center; }
     .score-sep { color:var(--muted); font-weight:400; }
-    .mi-date { font-size:10px; color:var(--muted); text-align:center; margin-top:4px; }
+    .mi-foot { display:flex; justify-content:space-between; margin-top:8px; }
+    .mi-date { font-size:10px; color:var(--muted); }
 
     /* LEGEND */
     .legend { display:flex; gap:18px; flex-wrap:wrap; margin-bottom:20px; }
     .legend-item { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--muted); }
     .leg-dot { width:10px; height:10px; border-radius:3px; }
+
+    /* RESULTS */
+    .results-day-hd {
+      font-size:12px; font-weight:700; letter-spacing:2px; color:var(--gold);
+      text-transform:uppercase; padding:8px 0; border-bottom:1px solid var(--border); margin-bottom:10px;
+    }
+    .results-day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; margin-bottom:20px; }
 
     /* FOOTER */
     footer {
@@ -223,26 +199,8 @@
     }
     footer strong { color:var(--gold); }
 
-    /* ALL RESULTS VIEW */
-    .results-timeline { display:flex; flex-direction:column; gap:14px; }
-    .results-day-hd {
-      font-size:12px; font-weight:700; letter-spacing:2px; color:var(--gold);
-      text-transform:uppercase; padding:8px 0; border-bottom:1px solid var(--border);
-      margin-bottom:10px;
-    }
-    .results-day-grid {
-      display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-      gap:10px; margin-bottom:20px;
-    }
-
     /* RESPONSIVE */
-    @media(max-width:640px) {
-      h1 { font-size:1.5rem; }
-      .all-grid { grid-template-columns:1fr; }
-      .sg-title { font-size:1.5rem; }
-    }
-
-    #spinner { display:none; }
+    @media(max-width:640px) { h1{font-size:1.5rem;} .all-grid{grid-template-columns:1fr;} .sg-title{font-size:1.5rem;} }
   </style>
 </head>
 <body>
@@ -255,14 +213,14 @@
     <div class="live-pill"><div class="dot"></div> AO VIVO</div>
     <span class="last-upd" id="lastUpd">Carregando...</span>
     <button class="btn-refresh" id="btnRefresh" onclick="doRefresh()">
-      <span id="spinner" class="spin">↻</span>
+      <span id="spinner" style="display:none" class="spin">↻</span>
       <span id="refreshTxt">↻ Atualizar</span>
     </button>
   </div>
 </header>
 
 <nav class="tabs-wrap">
-  <div class="tabs" id="tabBar">
+  <div class="tabs">
     <button class="tab active" onclick="showView('all',this)">Todos os Grupos</button>
     <button class="tab" onclick="showView('today',this)">Jogos de Hoje</button>
     <button class="tab" onclick="showView('results',this)">📋 Resultados</button>
@@ -281,23 +239,20 @@
   </div>
 </nav>
 
-<main>
-  <div id="content"></div>
-</main>
+<main><div id="content"></div></main>
 
 <footer>
-  <p>Atualização automática a cada 60 segundos &nbsp;•&nbsp; Dados: FIFA / ESPN</p>
-  <p style="margin-top:6px">
-    <strong>Copa do Mundo FIFA 2026™</strong> — 48 seleções, 12 grupos, 104 jogos
-  </p>
+  <p>Atualização automática a cada 60 segundos via ESPN API &nbsp;•&nbsp; Horários em <strong>BRT (Brasília)</strong></p>
+  <p style="margin-top:6px"><strong>Copa do Mundo FIFA 2026™</strong> — 48 seleções · 12 grupos · 104 jogos</p>
 </footer>
 
 <script>
-// ─── DATA ───────────────────────────────────────────────────────────────────
+// ─── DATA ────────────────────────────────────────────────────────────────────
+// Horários em BRT (UTC-3). Fonte: tabelas oficiais FIFA / CBS Sports / ESPN.
+// Slots fixos da fase de grupos: 13h · 16h · 19h · 22h (BRT)
 
 const GROUPS = {
-  A: {
-    name:"Grupo A",
+  A:{name:"Grupo A",
     teams:[
       {code:"MEX",name:"México",         flag:"🇲🇽",played:2,wins:2,draws:0,losses:0,gf:3,ga:0,pts:6},
       {code:"KOR",name:"Coreia do Sul",  flag:"🇰🇷",played:2,wins:1,draws:0,losses:1,gf:2,ga:2,pts:3},
@@ -305,16 +260,15 @@ const GROUPS = {
       {code:"RSA",name:"África do Sul",  flag:"🇿🇦",played:2,wins:0,draws:1,losses:1,gf:1,ga:3,pts:1},
     ],
     matches:[
-      {r:1,date:"11/06",home:"MEX",away:"RSA",hs:2,as:0,status:"FT",venue:"Los Angeles"},
-      {r:1,date:"12/06",home:"KOR",away:"CZE",hs:2,as:1,status:"FT",venue:"Houston"},
-      {r:2,date:"18/06",home:"CZE",away:"RSA",hs:1,as:1,status:"FT",venue:"Kansas City"},
-      {r:2,date:"18/06",home:"MEX",away:"KOR",hs:1,as:0,status:"FT",venue:"Dallas"},
-      {r:3,date:"24/06",home:"MEX",away:"CZE",hs:null,as:null,status:"NS",venue:"Cidade do México"},
-      {r:3,date:"24/06",home:"KOR",away:"RSA",hs:null,as:null,status:"NS",venue:"Monterrey"},
+      {r:1,date:"11/06",brt:"16h",home:"MEX",away:"RSA",hs:2,as:0,status:"FT",venue:"Los Angeles"},
+      {r:1,date:"11/06",brt:"22h",home:"KOR",away:"CZE",hs:2,as:1,status:"FT",venue:"Houston"},
+      {r:2,date:"18/06",brt:"13h",home:"CZE",away:"RSA",hs:1,as:1,status:"FT",venue:"Kansas City"},
+      {r:2,date:"18/06",brt:"16h",home:"MEX",away:"KOR",hs:1,as:0,status:"FT",venue:"Cidade do México"},
+      {r:3,date:"24/06",brt:"16h",home:"MEX",away:"CZE",hs:null,as:null,status:"NS",venue:"Cidade do México"},
+      {r:3,date:"24/06",brt:"16h",home:"KOR",away:"RSA",hs:null,as:null,status:"NS",venue:"Monterrey"},
     ]
   },
-  B: {
-    name:"Grupo B",
+  B:{name:"Grupo B",
     teams:[
       {code:"CAN",name:"Canadá",         flag:"🇨🇦",played:2,wins:1,draws:1,losses:0,gf:7,ga:1,pts:4},
       {code:"SUI",name:"Suíça",          flag:"🇨🇭",played:2,wins:1,draws:1,losses:0,gf:5,ga:2,pts:4},
@@ -322,16 +276,15 @@ const GROUPS = {
       {code:"QAT",name:"Qatar",          flag:"🇶🇦",played:2,wins:0,draws:1,losses:1,gf:1,ga:7,pts:1},
     ],
     matches:[
-      {r:1,date:"12/06",home:"CAN",away:"BIH",hs:1,as:1,status:"FT",venue:"Toronto"},
-      {r:1,date:"13/06",home:"SUI",away:"QAT",hs:1,as:1,status:"FT",venue:"San Francisco"},
-      {r:2,date:"18/06",home:"SUI",away:"BIH",hs:4,as:1,status:"FT",venue:"Boston"},
-      {r:2,date:"18/06",home:"CAN",away:"QAT",hs:6,as:0,status:"FT",venue:"Vancouver"},
-      {r:3,date:"25/06",home:"CAN",away:"SUI",hs:null,as:null,status:"NS",venue:"Toronto"},
-      {r:3,date:"25/06",home:"BIH",away:"QAT",hs:null,as:null,status:"NS",venue:"Seattle"},
+      {r:1,date:"12/06",brt:"16h",home:"CAN",away:"BIH",hs:1,as:1,status:"FT",venue:"Toronto"},
+      {r:1,date:"12/06",brt:"22h",home:"SUI",away:"QAT",hs:1,as:1,status:"FT",venue:"San Francisco"},
+      {r:2,date:"18/06",brt:"19h",home:"SUI",away:"BIH",hs:4,as:1,status:"FT",venue:"Boston"},
+      {r:2,date:"18/06",brt:"22h",home:"CAN",away:"QAT",hs:6,as:0,status:"FT",venue:"Vancouver"},
+      {r:3,date:"25/06",brt:"16h",home:"CAN",away:"SUI",hs:null,as:null,status:"NS",venue:"Toronto"},
+      {r:3,date:"25/06",brt:"16h",home:"BIH",away:"QAT",hs:null,as:null,status:"NS",venue:"Seattle"},
     ]
   },
-  C: {
-    name:"Grupo C",
+  C:{name:"Grupo C",
     teams:[
       {code:"BRA",name:"Brasil",         flag:"🇧🇷",played:2,wins:1,draws:1,losses:0,gf:4,ga:1,pts:4},
       {code:"MAR",name:"Marrocos",       flag:"🇲🇦",played:2,wins:1,draws:1,losses:0,gf:2,ga:1,pts:4},
@@ -339,16 +292,15 @@ const GROUPS = {
       {code:"HAI",name:"Haiti",          flag:"🇭🇹",played:2,wins:0,draws:0,losses:2,gf:0,ga:4,pts:0},
     ],
     matches:[
-      {r:1,date:"13/06",home:"BRA",away:"MAR",hs:1,as:1,status:"FT",venue:"Dallas"},
-      {r:1,date:"14/06",home:"SCO",away:"HAI",hs:1,as:0,status:"FT",venue:"Chicago"},
-      {r:2,date:"19/06",home:"SCO",away:"MAR",hs:0,as:1,status:"FT",venue:"Atlanta"},
-      {r:2,date:"19/06",home:"BRA",away:"HAI",hs:3,as:0,status:"FT",venue:"Miami"},
-      {r:3,date:"25/06",home:"BRA",away:"SCO",hs:null,as:null,status:"NS",venue:"Los Angeles"},
-      {r:3,date:"25/06",home:"MAR",away:"HAI",hs:null,as:null,status:"NS",venue:"Philadelphia"},
+      {r:1,date:"13/06",brt:"19h",home:"BRA",away:"MAR",hs:1,as:1,status:"FT",venue:"East Rutherford"},
+      {r:1,date:"13/06",brt:"22h",home:"SCO",away:"HAI",hs:1,as:0,status:"FT",venue:"Chicago"},
+      {r:2,date:"19/06",brt:"19h",home:"SCO",away:"MAR",hs:0,as:1,status:"FT",venue:"Atlanta"},
+      {r:2,date:"19/06",brt:"22h",home:"BRA",away:"HAI",hs:3,as:0,status:"FT",venue:"Miami"},
+      {r:3,date:"25/06",brt:"22h",home:"BRA",away:"SCO",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {r:3,date:"25/06",brt:"22h",home:"MAR",away:"HAI",hs:null,as:null,status:"NS",venue:"Filadélfia"},
     ]
   },
-  D: {
-    name:"Grupo D",
+  D:{name:"Grupo D",
     teams:[
       {code:"USA",name:"Estados Unidos", flag:"🇺🇸",played:2,wins:2,draws:0,losses:0,gf:6,ga:1,pts:6},
       {code:"PAR",name:"Paraguai",       flag:"🇵🇾",played:2,wins:1,draws:0,losses:1,gf:2,ga:4,pts:3},
@@ -356,33 +308,31 @@ const GROUPS = {
       {code:"TUR",name:"Turquia",        flag:"🇹🇷",played:2,wins:0,draws:0,losses:2,gf:0,ga:3,pts:0},
     ],
     matches:[
-      {r:1,date:"12/06",home:"USA",away:"PAR",hs:4,as:1,status:"FT",venue:"Los Angeles"},
-      {r:1,date:"13/06",home:"AUS",away:"TUR",hs:2,as:0,status:"FT",venue:"San Francisco"},
-      {r:2,date:"19/06",home:"USA",away:"AUS",hs:2,as:0,status:"FT",venue:"Kansas City"},
-      {r:2,date:"19/06",home:"TUR",away:"PAR",hs:0,as:1,status:"FT",venue:"Dallas"},
-      {r:3,date:"24/06",home:"USA",away:"TUR",hs:null,as:null,status:"NS",venue:"Filadélfia"},
-      {r:3,date:"24/06",home:"PAR",away:"AUS",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {r:1,date:"12/06",brt:"22h",home:"USA",away:"PAR",hs:4,as:1,status:"FT",venue:"Los Angeles"},
+      {r:1,date:"13/06",brt:"13h",home:"AUS",away:"TUR",hs:2,as:0,status:"FT",venue:"Houston"},
+      {r:2,date:"19/06",brt:"13h",home:"TUR",away:"PAR",hs:0,as:1,status:"FT",venue:"Dallas"},
+      {r:2,date:"19/06",brt:"16h",home:"USA",away:"AUS",hs:2,as:0,status:"FT",venue:"Seattle"},
+      {r:3,date:"24/06",brt:"22h",home:"USA",away:"TUR",hs:null,as:null,status:"NS",venue:"Filadélfia"},
+      {r:3,date:"24/06",brt:"22h",home:"PAR",away:"AUS",hs:null,as:null,status:"NS",venue:"Los Angeles"},
     ]
   },
-  E: {
-    name:"Grupo E",
+  E:{name:"Grupo E",
     teams:[
-      {code:"GER",name:"Alemanha",       flag:"🇩🇪",played:2,wins:2,draws:0,losses:0,gf:9,ga:2,pts:6},
-      {code:"CIV",name:"Costa do Marfim",flag:"🇨🇮",played:2,wins:1,draws:0,losses:1,gf:2,ga:2,pts:3},
-      {code:"ECU",name:"Equador",        flag:"🇪🇨",played:2,wins:0,draws:1,losses:1,gf:0,ga:1,pts:1},
-      {code:"CUW",name:"Curaçao",        flag:"🇨🇼",played:2,wins:0,draws:1,losses:1,gf:1,ga:7,pts:1},
+      {code:"GER",name:"Alemanha",        flag:"🇩🇪",played:2,wins:2,draws:0,losses:0,gf:9,ga:2,pts:6},
+      {code:"CIV",name:"Costa do Marfim", flag:"🇨🇮",played:2,wins:1,draws:0,losses:1,gf:2,ga:2,pts:3},
+      {code:"ECU",name:"Equador",         flag:"🇪🇨",played:2,wins:0,draws:1,losses:1,gf:0,ga:1,pts:1},
+      {code:"CUW",name:"Curaçao",         flag:"🇨🇼",played:2,wins:0,draws:1,losses:1,gf:1,ga:7,pts:1},
     ],
     matches:[
-      {r:1,date:"14/06",home:"GER",away:"CUW",hs:7,as:1,status:"FT",venue:"Toronto"},
-      {r:1,date:"14/06",home:"CIV",away:"ECU",hs:1,as:0,status:"FT",venue:"Chicago"},
-      {r:2,date:"20/06",home:"GER",away:"CIV",hs:2,as:1,status:"FT",venue:"Toronto"},
-      {r:2,date:"20/06",home:"ECU",away:"CUW",hs:0,as:0,status:"FT",venue:"Houston"},
-      {r:3,date:"25/06",home:"GER",away:"ECU",hs:null,as:null,status:"NS",venue:"Detroit"},
-      {r:3,date:"25/06",home:"CIV",away:"CUW",hs:null,as:null,status:"NS",venue:"Boston"},
+      {r:1,date:"14/06",brt:"13h",home:"GER",away:"CUW",hs:7,as:1,status:"FT",venue:"Toronto"},
+      {r:1,date:"14/06",brt:"16h",home:"CIV",away:"ECU",hs:1,as:0,status:"FT",venue:"Chicago"},
+      {r:2,date:"20/06",brt:"13h",home:"GER",away:"CIV",hs:2,as:1,status:"FT",venue:"Toronto"},
+      {r:2,date:"20/06",brt:"16h",home:"ECU",away:"CUW",hs:0,as:0,status:"FT",venue:"Houston"},
+      {r:3,date:"25/06",brt:"19h",home:"GER",away:"ECU",hs:null,as:null,status:"NS",venue:"Detroit"},
+      {r:3,date:"25/06",brt:"19h",home:"CIV",away:"CUW",hs:null,as:null,status:"NS",venue:"Boston"},
     ]
   },
-  F: {
-    name:"Grupo F",
+  F:{name:"Grupo F",
     teams:[
       {code:"NED",name:"Países Baixos",  flag:"🇳🇱",played:2,wins:1,draws:1,losses:0,gf:7,ga:3,pts:4},
       {code:"JPN",name:"Japão",          flag:"🇯🇵",played:2,wins:1,draws:1,losses:0,gf:6,ga:2,pts:4},
@@ -390,50 +340,49 @@ const GROUPS = {
       {code:"TUN",name:"Tunísia",        flag:"🇹🇳",played:2,wins:0,draws:0,losses:2,gf:1,ga:9,pts:0},
     ],
     matches:[
-      {r:1,date:"14/06",home:"NED",away:"JPN",hs:2,as:2,status:"FT",venue:"Vancouver"},
-      {r:1,date:"14/06",home:"SWE",away:"TUN",hs:5,as:1,status:"FT",venue:"Atlanta"},
-      {r:2,date:"20/06",home:"NED",away:"SWE",hs:5,as:1,status:"FT",venue:"Boston"},
-      {r:2,date:"20/06",home:"JPN",away:"TUN",hs:4,as:0,status:"FT",venue:"Dallas"},
-      {r:3,date:"24/06",home:"NED",away:"JPN",hs:null,as:null,status:"NS",venue:"Chicago"},
-      {r:3,date:"24/06",home:"SWE",away:"TUN",hs:null,as:null,status:"NS",venue:"Miami"},
+      {r:1,date:"14/06",brt:"19h",home:"NED",away:"JPN",hs:2,as:2,status:"FT",venue:"Vancouver"},
+      {r:1,date:"14/06",brt:"22h",home:"SWE",away:"TUN",hs:5,as:1,status:"FT",venue:"Atlanta"},
+      {r:2,date:"20/06",brt:"19h",home:"NED",away:"SWE",hs:5,as:1,status:"FT",venue:"Boston"},
+      {r:2,date:"20/06",brt:"22h",home:"JPN",away:"TUN",hs:4,as:0,status:"FT",venue:"Dallas"},
+      {r:3,date:"24/06",brt:"19h",home:"NED",away:"JPN",hs:null,as:null,status:"NS",venue:"Chicago"},
+      {r:3,date:"24/06",brt:"19h",home:"SWE",away:"TUN",hs:null,as:null,status:"NS",venue:"Miami"},
     ]
   },
-  G: {
-    name:"Grupo G",
+  G:{name:"Grupo G",
+    // Todos os quatro times empatados com 2 pts após R2 (21/jun)
     teams:[
-      {code:"BEL",name:"Bélgica",        flag:"🇧🇪",played:2,wins:0,draws:2,losses:0,gf:2,ga:2,pts:2},
-      {code:"IRN",name:"Irã",            flag:"🇮🇷",played:2,wins:0,draws:2,losses:0,gf:3,ga:3,pts:2},
-      {code:"EGY",name:"Egito",          flag:"🇪🇬",played:1,wins:0,draws:1,losses:0,gf:1,ga:1,pts:1},
-      {code:"NZL",name:"Nova Zelândia",  flag:"🇳🇿",played:1,wins:0,draws:1,losses:0,gf:2,ga:2,pts:1},
+      {code:"NZL",name:"Nova Zelândia",  flag:"🇳🇿",played:2,wins:0,draws:2,losses:0,gf:3,ga:3,pts:2},
+      {code:"IRN",name:"Irã",            flag:"🇮🇷",played:2,wins:0,draws:2,losses:0,gf:2,ga:2,pts:2},
+      {code:"EGY",name:"Egito",          flag:"🇪🇬",played:2,wins:0,draws:2,losses:0,gf:2,ga:2,pts:2},
+      {code:"BEL",name:"Bélgica",        flag:"🇧🇪",played:2,wins:0,draws:2,losses:0,gf:1,ga:1,pts:2},
     ],
     matches:[
-      {r:1,date:"15/06",home:"BEL",away:"EGY",hs:1,as:1,status:"FT",venue:"Miami"},
-      {r:1,date:"15/06",home:"IRN",away:"NZL",hs:2,as:2,status:"FT",venue:"San Francisco"},
-      {r:2,date:"21/06",home:"IRN",away:"BEL",hs:null,as:null,status:"LIVE",venue:"Vancouver"},
-      {r:2,date:"21/06",home:"EGY",away:"NZL",hs:null,as:null,status:"NS",venue:"Los Angeles"},
-      {r:3,date:"26/06",home:"BEL",away:"NZL",hs:null,as:null,status:"NS",venue:"Houston"},
-      {r:3,date:"26/06",home:"EGY",away:"IRN",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {r:1,date:"15/06",brt:"13h",home:"BEL",away:"EGY",hs:1,as:1,status:"FT",venue:"Miami"},
+      {r:1,date:"15/06",brt:"16h",home:"IRN",away:"NZL",hs:2,as:2,status:"FT",venue:"San Francisco"},
+      {r:2,date:"21/06",brt:"13h",home:"IRN",away:"BEL",hs:0,as:0,status:"FT",venue:"Los Angeles"},
+      {r:2,date:"21/06",brt:"16h",home:"EGY",away:"NZL",hs:1,as:1,status:"FT",venue:"Vancouver"},
+      {r:3,date:"26/06",brt:"16h",home:"BEL",away:"NZL",hs:null,as:null,status:"NS",venue:"Houston"},
+      {r:3,date:"26/06",brt:"16h",home:"EGY",away:"IRN",hs:null,as:null,status:"NS",venue:"Dallas"},
     ]
   },
-  H: {
-    name:"Grupo H",
+  H:{name:"Grupo H",
+    // ESP e URU 4 pts, KSA e CPV 1 pt
     teams:[
       {code:"ESP",name:"Espanha",        flag:"🇪🇸",played:2,wins:1,draws:1,losses:0,gf:4,ga:0,pts:4},
-      {code:"URU",name:"Uruguai",        flag:"🇺🇾",played:1,wins:0,draws:1,losses:0,gf:1,ga:1,pts:1},
-      {code:"CPV",name:"Cabo Verde",     flag:"🇨🇻",played:1,wins:0,draws:1,losses:0,gf:0,ga:0,pts:1},
+      {code:"URU",name:"Uruguai",        flag:"🇺🇾",played:2,wins:1,draws:1,losses:0,gf:2,ga:1,pts:4},
       {code:"KSA",name:"Arábia Saudita", flag:"🇸🇦",played:2,wins:0,draws:1,losses:1,gf:1,ga:5,pts:1},
+      {code:"CPV",name:"Cabo Verde",     flag:"🇨🇻",played:2,wins:0,draws:1,losses:1,gf:0,ga:1,pts:1},
     ],
     matches:[
-      {r:1,date:"15/06",home:"ESP",away:"CPV",hs:0,as:0,status:"FT",venue:"East Rutherford"},
-      {r:1,date:"15/06",home:"KSA",away:"URU",hs:1,as:1,status:"FT",venue:"Atlanta"},
-      {r:2,date:"21/06",home:"ESP",away:"KSA",hs:4,as:0,status:"FT",venue:"Dallas"},
-      {r:2,date:"21/06",home:"URU",away:"CPV",hs:null,as:null,status:"LIVE",venue:"Miami"},
-      {r:3,date:"26/06",home:"ESP",away:"URU",hs:null,as:null,status:"NS",venue:"East Rutherford"},
-      {r:3,date:"26/06",home:"CPV",away:"KSA",hs:null,as:null,status:"NS",venue:"San Francisco"},
+      {r:1,date:"15/06",brt:"19h",home:"ESP",away:"CPV",hs:0,as:0,status:"FT",venue:"East Rutherford"},
+      {r:1,date:"15/06",brt:"22h",home:"KSA",away:"URU",hs:1,as:1,status:"FT",venue:"Atlanta"},
+      {r:2,date:"21/06",brt:"19h",home:"ESP",away:"KSA",hs:4,as:0,status:"FT",venue:"Dallas"},
+      {r:2,date:"21/06",brt:"22h",home:"URU",away:"CPV",hs:1,as:0,status:"FT",venue:"Miami"},
+      {r:3,date:"26/06",brt:"22h",home:"ESP",away:"URU",hs:null,as:null,status:"NS",venue:"East Rutherford"},
+      {r:3,date:"26/06",brt:"22h",home:"CPV",away:"KSA",hs:null,as:null,status:"NS",venue:"San Francisco"},
     ]
   },
-  I: {
-    name:"Grupo I",
+  I:{name:"Grupo I",
     teams:[
       {code:"FRA",name:"França",         flag:"🇫🇷",played:1,wins:1,draws:0,losses:0,gf:3,ga:1,pts:3},
       {code:"NOR",name:"Noruega",        flag:"🇳🇴",played:1,wins:1,draws:0,losses:0,gf:4,ga:1,pts:3},
@@ -441,16 +390,15 @@ const GROUPS = {
       {code:"IRQ",name:"Iraque",         flag:"🇮🇶",played:1,wins:0,draws:0,losses:1,gf:1,ga:4,pts:0},
     ],
     matches:[
-      {r:1,date:"16/06",home:"FRA",away:"SEN",hs:3,as:1,status:"FT",venue:"East Rutherford"},
-      {r:1,date:"16/06",home:"NOR",away:"IRQ",hs:4,as:1,status:"FT",venue:"Foxborough"},
-      {r:2,date:"22/06",home:"FRA",away:"IRQ",hs:null,as:null,status:"NS",venue:"Chicago"},
-      {r:2,date:"22/06",home:"NOR",away:"SEN",hs:null,as:null,status:"NS",venue:"Seattle"},
-      {r:3,date:"26/06",home:"FRA",away:"NOR",hs:null,as:null,status:"NS",venue:"New York"},
-      {r:3,date:"26/06",home:"SEN",away:"IRQ",hs:null,as:null,status:"NS",venue:"Kansas City"},
+      {r:1,date:"16/06",brt:"13h",home:"FRA",away:"SEN",hs:3,as:1,status:"FT",venue:"East Rutherford"},
+      {r:1,date:"16/06",brt:"16h",home:"NOR",away:"IRQ",hs:4,as:1,status:"FT",venue:"Foxborough"},
+      {r:2,date:"22/06",brt:"13h",home:"FRA",away:"IRQ",hs:null,as:null,status:"NS",venue:"Chicago"},
+      {r:2,date:"22/06",brt:"16h",home:"NOR",away:"SEN",hs:null,as:null,status:"NS",venue:"Seattle"},
+      {r:3,date:"26/06",brt:"19h",home:"FRA",away:"NOR",hs:null,as:null,status:"NS",venue:"New York"},
+      {r:3,date:"26/06",brt:"19h",home:"SEN",away:"IRQ",hs:null,as:null,status:"NS",venue:"Kansas City"},
     ]
   },
-  J: {
-    name:"Grupo J",
+  J:{name:"Grupo J",
     teams:[
       {code:"ARG",name:"Argentina",      flag:"🇦🇷",played:1,wins:1,draws:0,losses:0,gf:3,ga:0,pts:3},
       {code:"AUT",name:"Áustria",        flag:"🇦🇹",played:1,wins:1,draws:0,losses:0,gf:3,ga:1,pts:3},
@@ -458,16 +406,15 @@ const GROUPS = {
       {code:"JOR",name:"Jordânia",       flag:"🇯🇴",played:1,wins:0,draws:0,losses:1,gf:1,ga:3,pts:0},
     ],
     matches:[
-      {r:1,date:"16/06",home:"ARG",away:"ALG",hs:3,as:0,status:"FT",venue:"Kansas City"},
-      {r:1,date:"16/06",home:"AUT",away:"JOR",hs:3,as:1,status:"FT",venue:"Santa Clara"},
-      {r:2,date:"22/06",home:"ARG",away:"JOR",hs:null,as:null,status:"NS",venue:"San Francisco"},
-      {r:2,date:"22/06",home:"AUT",away:"ALG",hs:null,as:null,status:"NS",venue:"Dallas"},
-      {r:3,date:"26/06",home:"ARG",away:"AUT",hs:null,as:null,status:"NS",venue:"Miami"},
-      {r:3,date:"26/06",home:"ALG",away:"JOR",hs:null,as:null,status:"NS",venue:"Houston"},
+      {r:1,date:"16/06",brt:"19h",home:"ARG",away:"ALG",hs:3,as:0,status:"FT",venue:"Kansas City"},
+      {r:1,date:"16/06",brt:"22h",home:"AUT",away:"JOR",hs:3,as:1,status:"FT",venue:"Santa Clara"},
+      {r:2,date:"22/06",brt:"19h",home:"ARG",away:"JOR",hs:null,as:null,status:"NS",venue:"San Francisco"},
+      {r:2,date:"22/06",brt:"22h",home:"AUT",away:"ALG",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {r:3,date:"26/06",brt:"22h",home:"ARG",away:"AUT",hs:null,as:null,status:"NS",venue:"Miami"},
+      {r:3,date:"26/06",brt:"22h",home:"ALG",away:"JOR",hs:null,as:null,status:"NS",venue:"Houston"},
     ]
   },
-  K: {
-    name:"Grupo K",
+  K:{name:"Grupo K",
     teams:[
       {code:"COL",name:"Colômbia",       flag:"🇨🇴",played:1,wins:1,draws:0,losses:0,gf:3,ga:1,pts:3},
       {code:"POR",name:"Portugal",       flag:"🇵🇹",played:1,wins:0,draws:1,losses:0,gf:1,ga:1,pts:1},
@@ -475,16 +422,15 @@ const GROUPS = {
       {code:"UZB",name:"Uzbequistão",    flag:"🇺🇿",played:1,wins:0,draws:0,losses:1,gf:1,ga:3,pts:0},
     ],
     matches:[
-      {r:1,date:"17/06",home:"POR",away:"COD",hs:1,as:1,status:"FT",venue:"Houston"},
-      {r:1,date:"17/06",home:"COL",away:"UZB",hs:3,as:1,status:"FT",venue:"Cidade do México"},
-      {r:2,date:"23/06",home:"POR",away:"UZB",hs:null,as:null,status:"NS",venue:"Los Angeles"},
-      {r:2,date:"23/06",home:"COL",away:"COD",hs:null,as:null,status:"NS",venue:"Dallas"},
-      {r:3,date:"27/06",home:"POR",away:"COL",hs:null,as:null,status:"NS",venue:"Houston"},
-      {r:3,date:"27/06",home:"COD",away:"UZB",hs:null,as:null,status:"NS",venue:"Miami"},
+      {r:1,date:"17/06",brt:"13h",home:"POR",away:"COD",hs:1,as:1,status:"FT",venue:"Houston"},
+      {r:1,date:"17/06",brt:"16h",home:"COL",away:"UZB",hs:3,as:1,status:"FT",venue:"Cidade do México"},
+      {r:2,date:"23/06",brt:"13h",home:"POR",away:"UZB",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {r:2,date:"23/06",brt:"16h",home:"COL",away:"COD",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {r:3,date:"27/06",brt:"16h",home:"POR",away:"COL",hs:null,as:null,status:"NS",venue:"Houston"},
+      {r:3,date:"27/06",brt:"16h",home:"COD",away:"UZB",hs:null,as:null,status:"NS",venue:"Miami"},
     ]
   },
-  L: {
-    name:"Grupo L",
+  L:{name:"Grupo L",
     teams:[
       {code:"ENG",name:"Inglaterra",     flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",played:1,wins:1,draws:0,losses:0,gf:4,ga:2,pts:3},
       {code:"GHA",name:"Gana",           flag:"🇬🇭",played:1,wins:1,draws:0,losses:0,gf:1,ga:0,pts:3},
@@ -492,21 +438,18 @@ const GROUPS = {
       {code:"PAN",name:"Panamá",         flag:"🇵🇦",played:1,wins:0,draws:0,losses:1,gf:0,ga:1,pts:0},
     ],
     matches:[
-      {r:1,date:"17/06",home:"ENG",away:"CRO",hs:4,as:2,status:"FT",venue:"Arlington"},
-      {r:1,date:"17/06",home:"GHA",away:"PAN",hs:1,as:0,status:"FT",venue:"Toronto"},
-      {r:2,date:"23/06",home:"ENG",away:"GHA",hs:null,as:null,status:"NS",venue:"East Rutherford"},
-      {r:2,date:"23/06",home:"CRO",away:"PAN",hs:null,as:null,status:"NS",venue:"Chicago"},
-      {r:3,date:"27/06",home:"ENG",away:"PAN",hs:null,as:null,status:"NS",venue:"Los Angeles"},
-      {r:3,date:"27/06",home:"GHA",away:"CRO",hs:null,as:null,status:"NS",venue:"San Francisco"},
+      {r:1,date:"17/06",brt:"19h",home:"ENG",away:"CRO",hs:4,as:2,status:"FT",venue:"Arlington"},
+      {r:1,date:"17/06",brt:"22h",home:"GHA",away:"PAN",hs:1,as:0,status:"FT",venue:"Toronto"},
+      {r:2,date:"23/06",brt:"19h",home:"ENG",away:"GHA",hs:null,as:null,status:"NS",venue:"East Rutherford"},
+      {r:2,date:"23/06",brt:"22h",home:"CRO",away:"PAN",hs:null,as:null,status:"NS",venue:"Chicago"},
+      {r:3,date:"27/06",brt:"22h",home:"ENG",away:"PAN",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {r:3,date:"27/06",brt:"22h",home:"GHA",away:"CRO",hs:null,as:null,status:"NS",venue:"San Francisco"},
     ]
   },
 };
 
-// Build team lookup for API matching
-const TEAM_LOOKUP = {};
-Object.values(GROUPS).forEach(g => g.teams.forEach(t => { TEAM_LOOKUP[t.code] = t; }));
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 
-// ESPN team code mapping (ESPN abbreviation → our code)
 const ESPN_MAP = {
   'MEX':'MEX','RSA':'RSA','KOR':'KOR','CZE':'CZE',
   'CAN':'CAN','BIH':'BIH','SUI':'SUI','QAT':'QAT',
@@ -520,12 +463,7 @@ const ESPN_MAP = {
   'ARG':'ARG','AUT':'AUT','ALG':'ALG','JOR':'JOR',
   'POR':'POR','COD':'COD','COL':'COL','UZB':'UZB',
   'ENG':'ENG','CRO':'CRO','GHA':'GHA','PAN':'PAN',
-  // Alternative ESPN codes
-  'SA':'KSA','CV':'CPV','NZ':'NZL','IR':'IRN',
-  'BOX':'CZE','SVK':'CZE',
 };
-
-// ─── HELPERS ────────────────────────────────────────────────────────────────
 
 function gd(t){ return t.gf - t.ga; }
 function gdStr(t){
@@ -534,16 +472,24 @@ function gdStr(t){
   if(d<0) return `<span class="gd neg">${d}</span>`;
   return `<span class="gd zero">0</span>`;
 }
+
 function statusBadge(s){
-  if(s==='FT') return `<span class="status-badge s-ft">FT</span>`;
+  if(s==='FT')   return `<span class="status-badge s-ft">FT</span>`;
   if(s==='LIVE') return `<span class="status-badge s-live">● AO VIVO</span>`;
   return `<span class="status-badge s-ns">Em breve</span>`;
 }
+
+function timeBadge(brt, status){
+  const cls = status==='LIVE' ? 'time-brt live-time' : 'time-brt';
+  return `<span class="${cls}">${brt} BRT</span>`;
+}
+
 function scoreDisplay(m){
   if(m.status==='NS') return `<span class="vs">-</span>`;
-  if(m.status==='LIVE' && m.hs===null) return `<span class="vs">● -</span>`;
+  if(m.status==='LIVE'&&m.hs===null) return `<span class="vs">● -</span>`;
   return `<span class="score-num">${m.hs}</span><span class="score-sep">×</span><span class="score-num">${m.as}</span>`;
 }
+
 function teamByCode(code){
   for(const g of Object.values(GROUPS)){
     const t = g.teams.find(t=>t.code===code);
@@ -551,19 +497,20 @@ function teamByCode(code){
   }
   return {name:code,flag:'🏳'};
 }
-function groupOfTeam(code){
-  for(const [k,g] of Object.entries(GROUPS)){
-    if(g.teams.some(t=>t.code===code)) return k;
-  }
-  return '?';
-}
+
 function padNum(n){ return n<10?'0'+n:String(n); }
+
 function nowStr(){
   const d = new Date();
   return `${padNum(d.getDate())}/${padNum(d.getMonth()+1)} ${padNum(d.getHours())}:${padNum(d.getMinutes())}`;
 }
 
-// ─── RENDER ─────────────────────────────────────────────────────────────────
+function todayStr(){
+  const d = new Date();
+  return `${padNum(d.getDate())}/${padNum(d.getMonth()+1)}`;
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
 
 function renderStandingsTable(teams, compact=false){
   const sorted = [...teams].sort((a,b)=> b.pts-a.pts || gd(b)-gd(a) || b.gf-a.gf);
@@ -588,14 +535,11 @@ function renderStandingsTable(teams, compact=false){
   }).join('');
   return `
   <table class="standings">
-    <thead>
-      <tr>
-        <th class="left">Seleção</th>
-        <th>J</th>
-        ${!compact?'<th>V</th><th>E</th><th>D</th>':''}
-        <th>GM</th><th>GS</th><th>SG</th><th>PTS</th>
-      </tr>
-    </thead>
+    <thead><tr>
+      <th class="left">Seleção</th><th>J</th>
+      ${!compact?'<th>V</th><th>E</th><th>D</th>':''}
+      <th>GM</th><th>GS</th><th>SG</th><th>PTS</th>
+    </tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -607,8 +551,9 @@ function renderMatchCard(m, groupKey){
   <div class="mcard ${liveClass}">
     <div class="mcard-head">
       <span class="mcard-group">Grupo ${groupKey} · R${m.r}</span>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div class="mcard-meta">
         <span class="mcard-date">${m.date}</span>
+        ${timeBadge(m.brt, m.status)}
         ${statusBadge(m.status)}
       </div>
     </div>
@@ -616,17 +561,17 @@ function renderMatchCard(m, groupKey){
       <div class="team-col">
         <div class="t-flag">${ht.flag}</div>
         <div class="t-name">${ht.name}</div>
-        ${m.status!=='NS'?`<div class="t-score">${m.hs}</div>`:
+        ${m.status!=='NS'?`<div class="t-score">${m.hs??''}</div>`:
           `<div class="t-score pending">-</div>`}
       </div>
       <div class="vs-col">
         <span class="vs">×</span>
-        ${m.venue?`<span class="vs-time" style="font-size:9px;text-align:center;max-width:80px">${m.venue}</span>`:''}
+        ${m.venue?`<span class="vs-venue">${m.venue}</span>`:''}
       </div>
       <div class="team-col">
         <div class="t-flag">${at.flag}</div>
         <div class="t-name">${at.name}</div>
-        ${m.status!=='NS'?`<div class="t-score">${m.as}</div>`:
+        ${m.status!=='NS'?`<div class="t-score">${m.as??''}</div>`:
           `<div class="t-score pending">-</div>`}
       </div>
     </div>
@@ -639,37 +584,41 @@ function renderMatchItem(m, groupKey){
   return `
   <div class="match-item ${liveClass}">
     <div class="mi-top">
-      <span class="mi-round">Rodada ${m.r} · Grupo ${groupKey}</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="mi-venue">${m.venue||''}</span>
+      <div class="mi-left">
+        <span class="mi-round">Rodada ${m.r} · Grupo ${groupKey}</span>
+        ${timeBadge(m.brt, m.status)}
         ${statusBadge(m.status)}
       </div>
+      <span class="mi-venue">${m.venue||''}</span>
     </div>
     <div class="mi-body">
       <div class="mi-team">${ht.flag} ${ht.name}</div>
       <div class="mi-score">${scoreDisplay(m)}</div>
       <div class="mi-team right">${at.name} ${at.flag}</div>
     </div>
-    <div class="mi-date">${m.date}</div>
+    <div class="mi-foot">
+      <span class="mi-date">${m.date}</span>
+    </div>
   </div>`;
 }
 
-// ─── VIEWS ──────────────────────────────────────────────────────────────────
+// ─── VIEWS ───────────────────────────────────────────────────────────────────
 
 function viewAll(){
   const legend = `
   <div class="legend">
-    <div class="legend-item"><div class="leg-dot" style="background:rgba(34,197,94,.4)"></div>1º Lugar — Classificado</div>
-    <div class="legend-item"><div class="leg-dot" style="background:rgba(34,197,94,.2)"></div>2º Lugar — Classificado</div>
-    <div class="legend-item"><div class="leg-dot" style="background:rgba(107,127,163,.15)"></div>3º Lugar — Possível classificado</div>
+    <div class="legend-item"><div class="leg-dot" style="background:rgba(34,197,94,.4)"></div>1º — Classificado</div>
+    <div class="legend-item"><div class="leg-dot" style="background:rgba(34,197,94,.2)"></div>2º — Classificado</div>
+    <div class="legend-item"><div class="leg-dot" style="background:rgba(107,127,163,.15)"></div>3º — Possível classificado</div>
     <div class="legend-item"><div class="leg-dot" style="background:rgba(239,68,68,.12)"></div>Eliminado</div>
+    <div class="legend-item">🕐 Horários em <strong style="color:var(--gold)">BRT (Brasília)</strong></div>
   </div>`;
 
   const cards = Object.entries(GROUPS).map(([k,g])=>`
   <div class="group-card">
     <div class="group-card-hd">
       ${g.name}
-      <span>${g.teams.map(t=>t.flag+' '+t.name.split(' ')[0]).join(' · ')}</span>
+      <span>${g.teams.map(t=>t.flag).join(' ')}</span>
     </div>
     ${renderStandingsTable(g.teams, true)}
   </div>`).join('');
@@ -678,34 +627,29 @@ function viewAll(){
 }
 
 function viewToday(){
-  const today = new Date();
-  const todayStr = `${padNum(today.getDate())}/${padNum(today.getMonth()+1)}`;
-  let html = `<div class="sec-title">Jogos de Hoje — ${todayStr}</div>`;
+  const td = todayStr();
+  let html = `<div class="sec-title">Jogos de Hoje — ${td}</div>`;
 
   const todayMatches = [];
   Object.entries(GROUPS).forEach(([k,g])=>{
-    g.matches.forEach(m=>{ if(m.date===todayStr) todayMatches.push({m,k}); });
+    g.matches.forEach(m=>{ if(m.date===td) todayMatches.push({m,k}); });
   });
 
-  // Live first
   const live = todayMatches.filter(x=>x.m.status==='LIVE');
   const done = todayMatches.filter(x=>x.m.status==='FT');
   const upcoming = todayMatches.filter(x=>x.m.status==='NS');
 
   if(live.length){
     html += `<div class="sec-title">● Ao Vivo</div><div class="today-grid">`;
-    html += live.map(x=>renderMatchCard(x.m,x.k)).join('');
-    html += `</div>`;
+    html += live.map(x=>renderMatchCard(x.m,x.k)).join(''); html += `</div>`;
   }
   if(done.length){
     html += `<div class="sec-title">Encerrados</div><div class="today-grid">`;
-    html += done.map(x=>renderMatchCard(x.m,x.k)).join('');
-    html += `</div>`;
+    html += done.map(x=>renderMatchCard(x.m,x.k)).join(''); html += `</div>`;
   }
   if(upcoming.length){
     html += `<div class="sec-title">Em breve</div><div class="today-grid">`;
-    html += upcoming.map(x=>renderMatchCard(x.m,x.k)).join('');
-    html += `</div>`;
+    html += upcoming.map(x=>renderMatchCard(x.m,x.k)).join(''); html += `</div>`;
   }
   if(!todayMatches.length){
     html += `<p style="color:var(--muted);text-align:center;padding:40px">Nenhum jogo programado para hoje.</p>`;
@@ -714,63 +658,56 @@ function viewToday(){
 }
 
 function viewResults(){
-  // Group all finished matches by date
   const byDate = {};
   Object.entries(GROUPS).forEach(([k,g])=>{
     g.matches.filter(m=>m.status==='FT'||m.status==='LIVE').forEach(m=>{
-      if(!byDate[m.date]) byDate[m.date] = [];
+      if(!byDate[m.date]) byDate[m.date]=[];
       byDate[m.date].push({m,k});
     });
   });
   const dates = Object.keys(byDate).sort((a,b)=>{
-    const [da,ma] = a.split('/').map(Number);
-    const [db,mb] = b.split('/').map(Number);
+    const [da,ma]=a.split('/').map(Number);
+    const [db,mb]=b.split('/').map(Number);
     return (ma-mb)||(da-db);
   });
-
   let html = '';
   dates.forEach(d=>{
+    // Sort by BRT time within the day
+    const sorted = byDate[d].sort((a,b)=>{
+      const ta = parseInt(a.m.brt)||0, tb = parseInt(b.m.brt)||0;
+      return ta-tb;
+    });
     html += `<div class="results-day-hd">📅 ${d}</div><div class="results-day-grid">`;
-    html += byDate[d].map(x=>renderMatchCard(x.m,x.k)).join('');
+    html += sorted.map(x=>renderMatchCard(x.m,x.k)).join('');
     html += `</div>`;
   });
-  return `<div class="results-timeline">${html||'<p style="color:var(--muted);padding:40px;text-align:center">Nenhum resultado disponível ainda.</p>'}</div>`;
+  return `<div>${html||'<p style="color:var(--muted);padding:40px;text-align:center">Nenhum resultado disponível.</p>'}</div>`;
 }
 
 function viewGroup(key){
   const g = GROUPS[key];
   if(!g) return '';
-  const sortedTeams = [...g.teams].sort((a,b)=> b.pts-a.pts || gd(b)-gd(a) || b.gf-a.gf);
-  const qualStatus = [
-    {label:'Classificado automaticamente', color:'rgba(34,197,94,.4)'},
-    {label:'Classificado automaticamente', color:'rgba(34,197,94,.2)'},
-    {label:'Possível 3º melhor', color:'rgba(107,127,163,.15)'},
-    {label:'Eliminado', color:'rgba(239,68,68,.12)'},
-  ];
+  const sortedTeams = [...g.teams].sort((a,b)=>b.pts-a.pts||gd(b)-gd(a)||b.gf-a.gf);
+  const qualLabel = ['Classificado (1º)','Classificado (2º)','Possível 3º melhor','Eliminado'];
+  const qualColor = ['rgba(34,197,94,.4)','rgba(34,197,94,.2)','rgba(107,127,163,.15)','rgba(239,68,68,.12)'];
 
   const qualBadges = sortedTeams.map((t,i)=>`
-  <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;
-       background:${qualStatus[i].color};border-radius:8px;font-size:12px;
-       font-weight:600;">
+  <div style="display:flex;align-items:center;gap:8px;padding:5px 12px;
+       background:${qualColor[i]};border-radius:8px;font-size:12px;font-weight:600;">
     ${t.flag} ${t.name}
-    <span style="color:var(--muted);font-weight:400;font-size:10px">
-      ${qualStatus[i].label}
-    </span>
+    <span style="color:var(--muted);font-weight:400;font-size:10px">${qualLabel[i]}</span>
   </div>`).join('');
 
   const matchItems = g.matches.map(m=>renderMatchItem(m,key)).join('');
 
   return `
   <div style="margin-bottom:24px">
-    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">
-      <div class="sg-title">${g.name}</div>
-    </div>
+    <div style="font-size:2rem;font-weight:900;color:var(--gold);margin-bottom:10px">${g.name}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${qualBadges}</div>
   </div>
   <div class="sg-content">
     <div>
-      <div class="panel-title" style="background:var(--card);border:1px solid var(--border2);
-           border-radius:14px;overflow:hidden;margin-bottom:0">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;overflow:hidden">
         <div style="padding:12px 16px;font-size:11px;font-weight:700;letter-spacing:2px;
              color:var(--gold);text-transform:uppercase;background:rgba(201,162,39,.06);
              border-bottom:1px solid var(--border2)">Classificação</div>
@@ -779,13 +716,13 @@ function viewGroup(key){
     </div>
     <div>
       <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gold);
-           text-transform:uppercase;margin-bottom:12px">Jogos</div>
+           text-transform:uppercase;margin-bottom:12px">Jogos · 🕐 BRT</div>
       <div class="matches-list">${matchItems}</div>
     </div>
   </div>`;
 }
 
-// ─── CONTROLLER ─────────────────────────────────────────────────────────────
+// ─── CONTROLLER ──────────────────────────────────────────────────────────────
 
 let currentView = 'all';
 
@@ -806,107 +743,103 @@ function renderCurrent(){
   }
 }
 
-// ─── ESPN API LIVE UPDATE ────────────────────────────────────────────────────
+// ─── ESPN API ────────────────────────────────────────────────────────────────
 
 async function fetchLiveScores(){
   try {
     const url = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
-    const resp = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const resp = await fetch(url,{signal:AbortSignal.timeout(6000)});
     if(!resp.ok) throw new Error('HTTP '+resp.status);
     const data = await resp.json();
     if(!data.events) return false;
 
     let updated = false;
     data.events.forEach(ev=>{
-      const comp = ev.competitions && ev.competitions[0];
+      const comp = ev.competitions&&ev.competitions[0];
       if(!comp) return;
       const home = comp.competitors.find(c=>c.homeAway==='home');
       const away = comp.competitors.find(c=>c.homeAway==='away');
       if(!home||!away) return;
-      const hCode = ESPN_MAP[home.team.abbreviation] || home.team.abbreviation;
-      const aCode = ESPN_MAP[away.team.abbreviation] || away.team.abbreviation;
-      const statusRaw = ev.status.type.shortDetail || '';
+      const hCode = ESPN_MAP[home.team.abbreviation]||home.team.abbreviation;
+      const aCode = ESPN_MAP[away.team.abbreviation]||away.team.abbreviation;
       let status = 'NS';
-      if(ev.status.type.completed) status = 'FT';
-      else if(ev.status.type.id==='2') status = 'LIVE';
+      if(ev.status.type.completed) status='FT';
+      else if(ev.status.type.id==='2') status='LIVE';
 
-      // Find matching match in GROUPS
       for(const g of Object.values(GROUPS)){
         for(const m of g.matches){
           if((m.home===hCode&&m.away===aCode)||(m.home===aCode&&m.away===hCode)){
-            const hs = parseInt(home.score)||0;
-            const as = parseInt(away.score)||0;
             const isReversed = m.home===aCode;
-            m.hs = isReversed ? as : hs;
-            m.as = isReversed ? hs : as;
+            const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
+            m.hs = isReversed?rawAs:rawHs;
+            m.as = isReversed?rawHs:rawAs;
             m.status = status;
+            // Update BRT time from ESPN UTC date if available
+            if(ev.date){
+              const d = new Date(ev.date);
+              // convert to BRT = UTC-3
+              const brtH = (d.getUTCHours()-3+24)%24;
+              m.brt = `${padNum(brtH)}h`;
+            }
             updated = true;
           }
         }
       }
     });
-
-    // Recalculate standings from matches
     if(updated) recalcStandings();
     return updated;
   } catch(e){
-    console.log('ESPN API unavailable:', e.message);
+    console.log('ESPN API:', e.message);
     return false;
   }
 }
 
 function recalcStandings(){
   Object.values(GROUPS).forEach(g=>{
-    g.teams.forEach(t=>{ t.played=0;t.wins=0;t.draws=0;t.losses=0;t.gf=0;t.ga=0;t.pts=0; });
+    g.teams.forEach(t=>{t.played=0;t.wins=0;t.draws=0;t.losses=0;t.gf=0;t.ga=0;t.pts=0;});
     g.matches.forEach(m=>{
-      if(m.status!=='FT'||m.hs===null) return;
-      const ht = g.teams.find(t=>t.code===m.home);
-      const at = g.teams.find(t=>t.code===m.away);
+      if(m.status!=='FT'||m.hs===null||m.as===null) return;
+      const ht=g.teams.find(t=>t.code===m.home);
+      const at=g.teams.find(t=>t.code===m.away);
       if(!ht||!at) return;
-      ht.played++; at.played++;
-      ht.gf+=m.hs; ht.ga+=m.as;
-      at.gf+=m.as; at.ga+=m.hs;
-      if(m.hs>m.as){ ht.wins++;at.losses++;ht.pts+=3; }
-      else if(m.hs<m.as){ at.wins++;ht.losses++;at.pts+=3; }
-      else { ht.draws++;at.draws++;ht.pts++;at.pts++; }
+      ht.played++;at.played++;
+      ht.gf+=m.hs;ht.ga+=m.as;
+      at.gf+=m.as;at.ga+=m.hs;
+      if(m.hs>m.as){ht.wins++;at.losses++;ht.pts+=3;}
+      else if(m.hs<m.as){at.wins++;ht.losses++;at.pts+=3;}
+      else{ht.draws++;at.draws++;ht.pts++;at.pts++;}
     });
   });
 }
 
-// ─── REFRESH CYCLE ───────────────────────────────────────────────────────────
+// ─── AUTO-REFRESH ────────────────────────────────────────────────────────────
 
 async function doRefresh(){
   const btn = document.getElementById('btnRefresh');
-  const sp = document.getElementById('spinner');
-  const tx = document.getElementById('refreshTxt');
-  btn.disabled = true; sp.style.display='inline-block'; tx.textContent=' Buscando...';
+  const sp  = document.getElementById('spinner');
+  const tx  = document.getElementById('refreshTxt');
+  btn.disabled=true; sp.style.display='inline-block'; tx.textContent=' Buscando...';
 
   const ok = await fetchLiveScores();
   renderCurrent();
 
-  const msg = ok ? '✓ Atualizado via API' : 'Dados locais';
-  document.getElementById('lastUpd').textContent = `Última atualização: ${nowStr()} — ${msg}`;
-
+  const msg = ok ? '✓ via API ESPN' : '📦 dados locais';
+  document.getElementById('lastUpd').textContent = `Atualizado: ${nowStr()} — ${msg}`;
   sp.style.display='none'; tx.textContent='↻ Atualizar'; btn.disabled=false;
 }
 
-// Auto-refresh every 60 seconds
 let countdown = 60;
-setInterval(async ()=>{
+setInterval(()=>{
   countdown--;
-  const upd = document.getElementById('lastUpd');
-  if(upd && countdown > 0){
-    const base = upd.textContent.split(' | ')[0];
-    upd.textContent = base + ` | próxima em ${countdown}s`;
+  const el = document.getElementById('lastUpd');
+  if(el && countdown>0){
+    const base = el.textContent.split(' | ')[0];
+    el.textContent = base + ` | próxima em ${countdown}s`;
   }
-  if(countdown<=0){
-    countdown=60;
-    await doRefresh();
-  }
-}, 1000);
+  if(countdown<=0){ countdown=60; doRefresh(); }
+},1000);
 
-// ─── INIT ────────────────────────────────────────────────────────────────────
-
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 renderCurrent();
 doRefresh();
 </script>

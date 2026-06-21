@@ -105,7 +105,9 @@
     .status-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
     .s-ft { background:rgba(34,197,94,.14); color:var(--green); }
     .s-ns { background:rgba(107,127,163,.12); color:var(--muted); }
-    .s-live { background:rgba(239,68,68,.15); color:var(--red); animation:blink 1.4s infinite; }
+    .s-live { background:rgba(239,68,68,.15); color:var(--red); font-variant-numeric:tabular-nums; }
+    .s-live .blk { animation:blink 1.2s ease-in-out infinite; }
+    .s-halftime { background:rgba(239,68,68,.10); color:rgba(239,68,68,.7); }
 
     .mcard-body { display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .team-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center; }
@@ -237,7 +239,7 @@
     .live-mini-min {
       font-size:10px; font-weight:800; color:var(--red);
       background:rgba(239,68,68,.14); border-radius:4px;
-      padding:2px 6px; animation:blink 1.4s ease-in-out infinite;
+      padding:2px 6px; font-variant-numeric:tabular-nums; min-width:42px; text-align:center;
     }
     .tab-live-dot {
       display:inline-block; width:6px; height:6px;
@@ -700,9 +702,44 @@ function gdStr(t){
   return `<span class="gd zero">0</span>`;
 }
 
-function statusBadge(s){
-  if(s==='FT')   return `<span class="status-badge s-ft">Encerrado</span>`;
-  if(s==='LIVE') return `<span class="status-badge s-live">● Em andamento</span>`;
+// Compute display text for a live clock from stored period + minute + capture timestamp.
+// Returns {label, time} or null when period is unknown.
+function computeLiveClock(period, minuteNum, ts){
+  const elapsed = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  const minOff  = Math.floor(elapsed / 60);
+  const secOff  = elapsed % 60;
+  const sec     = String(secOff).padStart(2, '0');
+  let min = minuteNum + minOff;
+  let label;
+  if(period === '1T')    { min = Math.min(min, 49); label = '1° Tempo'; }
+  else if(period === '2T'){ min = Math.min(min, 94); label = '2° Tempo'; }
+  else if(period === 'P1'){ min = Math.min(min, 105+5); label = 'Prorr. 1°'; }
+  else if(period === 'P2'){ min = Math.min(min, 120+5); label = 'Prorr. 2°'; }
+  else return null;
+  return { label, time: `${min}:${sec}` };
+}
+
+function statusBadge(s, m){
+  if(s==='FT') return `<span class="status-badge s-ft">Encerrado</span>`;
+  if(s==='LIVE'){
+    const period = m?.periodLabel || '';
+    const min    = m?.minuteNum  || 0;
+    const ts     = m?.minuteTs   || Date.now();
+    if(period === 'INT'){
+      return `<span class="status-badge s-halftime live-clock-badge"
+        data-period="INT" data-minute="${min}" data-ts="${ts}">
+        ⏸ Intervalo</span>`;
+    }
+    const clk = computeLiveClock(period, min, ts);
+    if(clk){
+      return `<span class="status-badge s-live live-clock-badge"
+        data-period="${period}" data-minute="${min}" data-ts="${ts}">
+        <span class="blk">●</span> ${clk.label} <strong>${clk.time}</strong></span>`;
+    }
+    return `<span class="status-badge s-live live-clock-badge"
+      data-period="" data-minute="${min}" data-ts="${ts}">
+      <span class="blk">●</span> Em andamento</span>`;
+  }
   return `<span class="status-badge s-ns">Em breve</span>`;
 }
 
@@ -837,7 +874,7 @@ function renderMatchCard(m, groupKey){
       <div class="mcard-meta">
         <span class="mcard-date">${m.date}</span>
         ${timeBadge(m.brt, m.status)}
-        ${statusBadge(m.status)}
+        ${statusBadge(m.status, m)}
       </div>
     </div>
     <div class="mcard-body">
@@ -870,7 +907,7 @@ function renderMatchItem(m, groupKey){
       <div class="mi-left">
         <span class="mi-round">Rodada ${m.r} · Grupo ${groupKey}</span>
         ${timeBadge(m.brt, m.status)}
-        ${statusBadge(m.status)}
+        ${statusBadge(m.status, m)}
       </div>
       <span class="mi-venue">${m.venue||''}</span>
     </div>
@@ -908,7 +945,7 @@ function renderKOCard(m, roundShort, extra=''){
       <div class="ko-meta">
         <span class="mcard-date">${m.date}</span>
         ${timeBadge(m.brt, m.status)}
-        ${statusBadge(m.status)}
+        ${statusBadge(m.status, m)}
       </div>
     </div>
     <div class="ko-body">
@@ -1186,14 +1223,30 @@ async function fetchLiveScores(){
       if(ev.status.type.completed) status='FT';
       else if(ev.status.type.id==='2') status='LIVE';
 
+      // Extract period and clock for real-time timer
       const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
-      const minute = ev.status?.displayClock || '';
+      const clockStr  = ev.status?.displayClock || '';
+      const detail    = ev.status?.type?.shortDetail || '';
+      const apiPeriod = ev.status?.period || 0;
+      const minute    = clockStr; // backward compat for banner
+      const minuteNum = parseInt(clockStr) || 0; // "23:45" → 23
+      const captureTs = Date.now();
+      let periodLabel = '';
+      if(status==='LIVE'){
+        if(/halftime|half\s*time/i.test(detail)) periodLabel='INT';
+        else if(apiPeriod===1) periodLabel='1T';
+        else if(apiPeriod===2) periodLabel='2T';
+        else if(apiPeriod===3) periodLabel='P1';
+        else if(apiPeriod===4) periodLabel='P2';
+        else periodLabel='1T'; // fallback
+      }
       let matched = false;
       for(const g of Object.values(GROUPS)){
         for(const m of g.matches){
           if((m.home===hCode&&m.away===aCode)||(m.home===aCode&&m.away===hCode)){
             const rev = m.home===aCode;
-            m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status; m.minute=minute;
+            m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+            m.minute=minute; m.minuteNum=minuteNum; m.minuteTs=captureTs; m.periodLabel=periodLabel;
             if(ev.date){ const d=new Date(ev.date); m.brt=`${padNum((d.getUTCHours()-3+24)%24)}h`; }
             matched=true; updated=true;
           }
@@ -1207,7 +1260,8 @@ async function fetchLiveScores(){
             if(!rh||!ra) continue;
             if((rh.code===hCode&&ra.code===aCode)||(rh.code===aCode&&ra.code===hCode)){
               const rev=rh.code===aCode;
-              m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status; m.minute=minute;
+              m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+            m.minute=minute; m.minuteNum=minuteNum; m.minuteTs=captureTs; m.periodLabel=periodLabel;
               if(status==='FT'){ m.home=rh.code; m.away=ra.code; }
               if(ev.date){ const d=new Date(ev.date); m.brt=`${padNum((d.getUTCHours()-3+24)%24)}h`; }
               updated=true;
@@ -1286,7 +1340,19 @@ function updateLiveBanner(){
     const at = ko ? resolveKOTeam(m.away) : teamByCode(m.away);
     const hf = ht?.flag || '🏳', hname = ht?.name || (ko?placeholderLabel(m.home):m.home);
     const af = at?.flag || '🏳', aname = at?.name || (ko?placeholderLabel(m.away):m.away);
-    const minTag = m.minute ? `<span class="live-mini-min">${m.minute}</span>` : '';
+    const period  = m.periodLabel || '';
+    const minNum  = m.minuteNum   || 0;
+    const capTs   = m.minuteTs    || Date.now();
+    let minTag;
+    if(period === 'INT'){
+      minTag = `<span class="live-mini-min live-clock-badge" data-period="INT" data-minute="${minNum}" data-ts="${capTs}">⏸ Intervalo</span>`;
+    } else if(period){
+      const clk = computeLiveClock(period, minNum, capTs);
+      const txt  = clk ? clk.time : (m.minute||'');
+      minTag = `<span class="live-mini-min live-clock-badge" data-period="${period}" data-minute="${minNum}" data-ts="${capTs}">${txt}</span>`;
+    } else {
+      minTag = m.minute ? `<span class="live-mini-min">${m.minute}</span>` : '';
+    }
     const label  = ko ? k : `Gr.${k}`;
     return `<div class="live-mini" onclick="showView('today',null)" title="${label}">
       <span class="live-mini-flag">${hf}</span>
@@ -1316,6 +1382,47 @@ async function doRefresh(){
   document.getElementById('lastUpd').textContent = `Atualizado: ${nowStr()} — ${msg}`;
   sp.style.display='none'; tx.textContent='↻ Atualizar'; btn.disabled=false;
 }
+
+// ─── LIVE CLOCK TICK (every second) ─────────────────────────────────────────
+setInterval(()=>{
+  document.querySelectorAll('.live-clock-badge').forEach(el=>{
+    const period = el.dataset.period;
+    const min    = parseInt(el.dataset.minute) || 0;
+    const ts     = parseInt(el.dataset.ts)     || Date.now();
+
+    if(period === 'INT'){
+      // Keep static halftime text — no update needed
+      return;
+    }
+    const clk = computeLiveClock(period, min, ts);
+    if(clk){
+      // In-place update: keep the blinking dot span, replace only the text node after it
+      const dot = el.querySelector('.blk');
+      if(dot){
+        // Clear all text nodes after the dot span
+        [...el.childNodes].forEach(n=>{ if(n.nodeType===3||n.nodeName==='STRONG') n.remove?.() || el.removeChild(n); });
+        dot.after(` ${clk.label} `);
+        const strong = document.createElement('strong');
+        strong.textContent = clk.time;
+        el.appendChild(strong);
+      } else {
+        el.textContent = `● ${clk.label} ${clk.time}`;
+      }
+    }
+
+    // Also update live-mini-min clocks (banner)
+  });
+
+  // Update live banner mini clocks separately (no .blk span inside)
+  document.querySelectorAll('.live-mini-min.live-clock-badge').forEach(el=>{
+    const period = el.dataset.period;
+    const min    = parseInt(el.dataset.minute) || 0;
+    const ts     = parseInt(el.dataset.ts)     || Date.now();
+    if(period === 'INT'){ el.textContent = '⏸ Int.'; return; }
+    const clk = computeLiveClock(period, min, ts);
+    if(clk) el.textContent = clk.time;
+  });
+}, 1000);
 
 let countdown = 60;
 setInterval(()=>{

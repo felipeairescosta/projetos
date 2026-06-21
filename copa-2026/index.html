@@ -526,16 +526,16 @@ const GROUPS = {
   H:{name:"Grupo H",
     // ESP e URU 4 pts, KSA e CPV 1 pt
     teams:[
-      {code:"ESP",name:"Espanha",        flag:"🇪🇸",played:2,wins:1,draws:1,losses:0,gf:4,ga:0,pts:4},
-      {code:"URU",name:"Uruguai",        flag:"🇺🇾",played:2,wins:1,draws:1,losses:0,gf:2,ga:1,pts:4},
-      {code:"KSA",name:"Arábia Saudita", flag:"🇸🇦",played:2,wins:0,draws:1,losses:1,gf:1,ga:5,pts:1},
-      {code:"CPV",name:"Cabo Verde",     flag:"🇨🇻",played:2,wins:0,draws:1,losses:1,gf:0,ga:1,pts:1},
+      {code:"ESP",name:"Espanha",        flag:"🇪🇸",played:0,wins:0,draws:0,losses:0,gf:0,ga:0,pts:0},
+      {code:"URU",name:"Uruguai",        flag:"🇺🇾",played:0,wins:0,draws:0,losses:0,gf:0,ga:0,pts:0},
+      {code:"KSA",name:"Arábia Saudita", flag:"🇸🇦",played:0,wins:0,draws:0,losses:0,gf:0,ga:0,pts:0},
+      {code:"CPV",name:"Cabo Verde",     flag:"🇨🇻",played:0,wins:0,draws:0,losses:0,gf:0,ga:0,pts:0},
     ],
     matches:[
       {r:1,date:"15/06",brt:"19h",home:"ESP",away:"CPV",hs:0,as:0,status:"FT",venue:"East Rutherford"},
       {r:1,date:"15/06",brt:"22h",home:"KSA",away:"URU",hs:1,as:1,status:"FT",venue:"Atlanta"},
-      {r:2,date:"21/06",brt:"19h",home:"ESP",away:"KSA",hs:4,as:0,status:"FT",venue:"Dallas"},
-      {r:2,date:"21/06",brt:"22h",home:"URU",away:"CPV",hs:1,as:0,status:"FT",venue:"Miami"},
+      {r:2,date:"21/06",brt:"19h",home:"ESP",away:"KSA",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {r:2,date:"21/06",brt:"19h",home:"URU",away:"CPV",hs:null,as:null,status:"NS",venue:"Miami"},
       {r:3,date:"26/06",brt:"22h",home:"ESP",away:"URU",hs:null,as:null,status:"NS",venue:"East Rutherford"},
       {r:3,date:"26/06",brt:"22h",home:"CPV",away:"KSA",hs:null,as:null,status:"NS",venue:"San Francisco"},
     ]
@@ -803,14 +803,19 @@ function estimateMatchStatuses(){
 
   let changed = false;
   all.forEach(m=>{
-    if(m.status==='FT') return;          // never downgrade a confirmed result
     if(m.date!==todayBRT) return;        // only today
 
     const kickMin = (parseInt(m.brt)||0)*60;
     const elapsed = nowMin - kickMin;    // minutes since kick-off
 
-    if(elapsed < 0) { m.status='NS'; return; }
+    if(elapsed < 0) {
+      // Before kick-off: don't downgrade a pre-set FT result
+      if(m.status !== 'FT') m.status = 'NS';
+      return;
+    }
     if(elapsed > 120) return;            // probably over, leave for ESPN to confirm
+    // In the live window (0–120 min): estimate LIVE, overriding even hardcoded FT.
+    // ESPN will immediately correct this with real data after this fallback runs.
 
     let periodLabel, minuteNum;
     if(elapsed <= 45)       { periodLabel='1T';  minuteNum=elapsed; }
@@ -1261,8 +1266,14 @@ async function fetchLiveScores(){
       const hCode = ESPN_MAP[home.team.abbreviation]||home.team.abbreviation;
       const aCode = ESPN_MAP[away.team.abbreviation]||away.team.abbreviation;
       let status = 'NS';
-      if(ev.status.type.completed) status='FT';
-      else if(ev.status.type.id==='2') status='LIVE';
+      if(ev.status?.type?.completed) {
+        status = 'FT';
+      } else {
+        const typeId = String(ev.status?.type?.id ?? '');
+        const typeSt = ev.status?.type?.state  || '';
+        const period = ev.status?.period        || 0;
+        if(typeId === '2' || typeSt === 'in' || period >= 1) status = 'LIVE';
+      }
 
       // Extract period and clock for real-time timer
       const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
@@ -1442,7 +1453,7 @@ setInterval(()=>{
       const dot = el.querySelector('.blk');
       if(dot){
         // Clear all text nodes after the dot span
-        [...el.childNodes].forEach(n=>{ if(n.nodeType===3||n.nodeName==='STRONG') n.remove?.() || el.removeChild(n); });
+        [...el.childNodes].forEach(n=>{ if(n.nodeType===3||n.nodeName==='STRONG') n.remove(); });
         dot.after(` ${clk.label} `);
         const strong = document.createElement('strong');
         strong.textContent = clk.time;
@@ -1481,7 +1492,8 @@ setInterval(()=>{
 },1000);
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-estimateMatchStatuses(); // immediate estimate before first API call
+estimateMatchStatuses(); // time-based live estimate before first API call
+recalcStandings();       // ensure standings match the FT match results
 renderCurrent();
 updateLiveBanner();
 doRefresh();

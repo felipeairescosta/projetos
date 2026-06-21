@@ -201,6 +201,105 @@
 
     /* RESPONSIVE */
     @media(max-width:640px) { h1{font-size:1.5rem;} .all-grid{grid-template-columns:1fr;} .sg-title{font-size:1.5rem;} }
+
+    /* KNOCKOUT CARDS */
+    .ko-round { margin-bottom:40px; }
+    .ko-round-hd {
+      display:flex; align-items:center; gap:14px;
+      font-size:11px; font-weight:800; letter-spacing:2.5px;
+      color:var(--gold); text-transform:uppercase; margin-bottom:16px;
+    }
+    .ko-round-hd::after { content:''; flex:1; height:1px; background:var(--border); }
+    .ko-round-hd .rnd-badge {
+      background:rgba(201,162,39,.14); border:1px solid rgba(201,162,39,.25);
+      padding:3px 10px; border-radius:6px; font-size:10px;
+    }
+    .ko-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+    .ko-grid.wide { grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); }
+
+    .ko-card {
+      background:var(--card); border:1px solid var(--border2); border-radius:14px;
+      padding:16px 18px; transition:all .2s;
+    }
+    .ko-card:hover { border-color:var(--gold); transform:translateY(-2px); }
+    .ko-card.live-card { border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.03); }
+    .ko-card.final-card {
+      background:linear-gradient(135deg,rgba(201,162,39,.09),rgba(20,30,48,1));
+      border:2px solid var(--gold); box-shadow:0 0 32px rgba(201,162,39,.16);
+    }
+    .ko-card.tplace-card { border-color:rgba(180,180,180,.3); }
+
+    .ko-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:6px; }
+    .ko-label { font-size:11px; color:var(--muted); font-weight:600; }
+    .ko-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+    .ko-body { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .ko-team { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; min-width:0; }
+    .ko-flag { font-size:2.2rem; line-height:1; }
+    .ko-flag.tbd-flag { font-size:2rem; opacity:.25; }
+    .ko-name { font-size:12px; color:var(--text); font-weight:700; }
+    .ko-name.tbd-name { color:var(--muted); font-size:10px; font-weight:600; font-style:italic;
+      background:rgba(107,127,163,.12); border:1px solid rgba(107,127,163,.2);
+      padding:2px 8px; border-radius:4px; white-space:nowrap; }
+    .ko-score-box { display:flex; flex-direction:column; align-items:center; gap:3px; }
+    .ko-score-nums {
+      font-size:2rem; font-weight:900; color:var(--text);
+      display:flex; align-items:center; gap:6px;
+    }
+    .ko-sep { font-size:1.1rem; color:var(--muted); font-weight:400; }
+    .ko-venue-lbl { font-size:9px; color:var(--muted); text-align:center; max-width:90px; }
+    .ko-pending { font-size:1.4rem; color:var(--muted); font-weight:700; }
+
+    /* BRACKET VIEW */
+    .bracket-outer { overflow-x:auto; padding-bottom:12px; -webkit-overflow-scrolling:touch; }
+    .bracket {
+      display:flex; gap:0; align-items:stretch;
+      min-width:max-content; padding:8px 0;
+    }
+    .bracket-col { display:flex; flex-direction:column; width:200px; flex-shrink:0; }
+    .bracket-col-hd {
+      text-align:center; font-size:9px; font-weight:800; letter-spacing:2px;
+      color:var(--gold); text-transform:uppercase; padding:6px 4px 10px;
+      border-bottom:1px solid var(--border); margin-bottom:0; flex-shrink:0;
+    }
+    .bracket-matches { flex:1; display:flex; flex-direction:column; }
+    .bracket-slot {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding:4px 6px; position:relative;
+    }
+    .bracket-slot::after {
+      content:''; position:absolute; right:0; top:50%;
+      width:10px; height:1px; background:rgba(201,162,39,.25);
+    }
+    .bracket-col:last-child .bracket-slot::after { display:none; }
+    .bm {
+      background:var(--card); border:1px solid var(--border2);
+      border-radius:8px; padding:7px 9px; width:184px;
+      cursor:default; transition:border-color .2s;
+    }
+    .bm:hover { border-color:var(--gold); }
+    .bm.bm-final { border-color:var(--gold); background:rgba(201,162,39,.06); }
+    .bm-team {
+      display:flex; align-items:center; gap:6px;
+      padding:3px 0; font-size:11px; font-weight:600;
+    }
+    .bm-team + .bm-team { border-top:1px solid var(--border2); }
+    .bm-sc { margin-left:auto; font-weight:900; color:var(--gold); font-size:12px; }
+    .bm-tbd { color:var(--muted); font-size:10px; font-style:italic; }
+    .bm-date { font-size:8px; color:var(--muted); margin-top:5px; }
+    .bm-winner { background:rgba(34,197,94,.08); }
+
+    /* KNOCKOUT TABS */
+    .ko-view-toggle {
+      display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap;
+    }
+    .ko-tog-btn {
+      padding:6px 14px; border-radius:8px; font-size:12px; font-weight:600;
+      cursor:pointer; border:1px solid var(--border); background:transparent;
+      color:var(--muted); transition:all .2s;
+    }
+    .ko-tog-btn:hover { color:var(--text); border-color:rgba(255,255,255,.2); }
+    .ko-tog-btn.active { background:var(--gold); color:#000; border-color:var(--gold); }
   </style>
 </head>
 <body>
@@ -224,6 +323,7 @@
     <button class="tab active" onclick="showView('all',this)">Todos os Grupos</button>
     <button class="tab" onclick="showView('today',this)">Jogos de Hoje</button>
     <button class="tab" onclick="showView('results',this)">📋 Resultados</button>
+    <button class="tab" onclick="showView('knockout-lista',this)">⚡ Mata-Mata</button>
     <button class="tab" onclick="showView('A',this)">Grupo A</button>
     <button class="tab" onclick="showView('B',this)">Grupo B</button>
     <button class="tab" onclick="showView('C',this)">Grupo C</button>
@@ -243,7 +343,7 @@
 
 <footer>
   <p>Atualização automática a cada 60 segundos via ESPN API &nbsp;•&nbsp; Horários em <strong>BRT (Brasília)</strong></p>
-  <p style="margin-top:6px"><strong>Copa do Mundo FIFA 2026™</strong> — 48 seleções · 12 grupos · 104 jogos</p>
+  <p style="margin-top:6px"><strong>Copa do Mundo FIFA 2026™</strong> — 48 seleções · 12 grupos · 104 jogos · Fase Final: R32 → Oitavas → Quartas → Semis → Final</p>
 </footer>
 
 <script>
@@ -448,6 +548,77 @@ const GROUPS = {
   },
 };
 
+// ─── KNOCKOUT STAGE ──────────────────────────────────────────────────────────
+// Estrutura do chaveamento FIFA 2026 (48 seleções → 32 classificados)
+// Grupos A-B, C-D, E-F, G-H, I-J, K-L são cruzados entre si.
+// Partidas 61-64: 4 jogos com os 8 melhores 3os colocados.
+// Horários BRT aproximados (a confirmar pela FIFA/ESPN).
+
+const KNOCKOUT = {
+  r32:{
+    label:"Rodada de 32", short:"R32",
+    matches:[
+      {id:49,date:"28/06",brt:"13h",home:"1°A",away:"2°C",hs:null,as:null,status:"NS",venue:"Kansas City"},
+      {id:50,date:"28/06",brt:"16h",home:"1°C",away:"2°A",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {id:61,date:"28/06",brt:"19h",home:"3°M",away:"3°M",hs:null,as:null,status:"NS",venue:"Miami"},
+      {id:62,date:"28/06",brt:"22h",home:"3°M",away:"3°M",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {id:51,date:"29/06",brt:"13h",home:"1°B",away:"2°D",hs:null,as:null,status:"NS",venue:"Seattle"},
+      {id:52,date:"29/06",brt:"16h",home:"1°D",away:"2°B",hs:null,as:null,status:"NS",venue:"Houston"},
+      {id:63,date:"29/06",brt:"19h",home:"3°M",away:"3°M",hs:null,as:null,status:"NS",venue:"East Rutherford"},
+      {id:64,date:"29/06",brt:"22h",home:"3°M",away:"3°M",hs:null,as:null,status:"NS",venue:"Atlanta"},
+      {id:53,date:"30/06",brt:"13h",home:"1°E",away:"2°G",hs:null,as:null,status:"NS",venue:"Chicago"},
+      {id:54,date:"30/06",brt:"16h",home:"1°G",away:"2°E",hs:null,as:null,status:"NS",venue:"San Francisco"},
+      {id:55,date:"01/07",brt:"13h",home:"1°F",away:"2°H",hs:null,as:null,status:"NS",venue:"Boston"},
+      {id:56,date:"01/07",brt:"16h",home:"1°H",away:"2°F",hs:null,as:null,status:"NS",venue:"Toronto"},
+      {id:57,date:"02/07",brt:"13h",home:"1°I",away:"2°K",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {id:58,date:"02/07",brt:"16h",home:"1°K",away:"2°I",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {id:59,date:"03/07",brt:"13h",home:"1°J",away:"2°L",hs:null,as:null,status:"NS",venue:"Arlington"},
+      {id:60,date:"03/07",brt:"16h",home:"1°L",away:"2°J",hs:null,as:null,status:"NS",venue:"Vancouver"},
+    ]
+  },
+  r16:{
+    label:"Oitavas de Final", short:"Oitavas",
+    matches:[
+      {id:65,date:"06/07",brt:"16h",home:"W49",away:"W51",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {id:66,date:"06/07",brt:"22h",home:"W50",away:"W52",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {id:67,date:"07/07",brt:"16h",home:"W61",away:"W63",hs:null,as:null,status:"NS",venue:"East Rutherford"},
+      {id:68,date:"07/07",brt:"22h",home:"W62",away:"W64",hs:null,as:null,status:"NS",venue:"Miami"},
+      {id:69,date:"08/07",brt:"16h",home:"W53",away:"W55",hs:null,as:null,status:"NS",venue:"San Francisco"},
+      {id:70,date:"08/07",brt:"22h",home:"W54",away:"W56",hs:null,as:null,status:"NS",venue:"Houston"},
+      {id:71,date:"09/07",brt:"16h",home:"W57",away:"W59",hs:null,as:null,status:"NS",venue:"Kansas City"},
+      {id:72,date:"09/07",brt:"22h",home:"W58",away:"W60",hs:null,as:null,status:"NS",venue:"Seattle"},
+    ]
+  },
+  qf:{
+    label:"Quartas de Final", short:"QF",
+    matches:[
+      {id:73,date:"11/07",brt:"16h",home:"W65",away:"W67",hs:null,as:null,status:"NS",venue:"Los Angeles"},
+      {id:74,date:"11/07",brt:"22h",home:"W66",away:"W68",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {id:75,date:"12/07",brt:"16h",home:"W69",away:"W71",hs:null,as:null,status:"NS",venue:"East Rutherford"},
+      {id:76,date:"12/07",brt:"22h",home:"W70",away:"W72",hs:null,as:null,status:"NS",venue:"Atlanta"},
+    ]
+  },
+  sf:{
+    label:"Semifinais", short:"SF",
+    matches:[
+      {id:77,date:"15/07",brt:"22h",home:"W73",away:"W74",hs:null,as:null,status:"NS",venue:"Dallas"},
+      {id:78,date:"16/07",brt:"22h",home:"W75",away:"W76",hs:null,as:null,status:"NS",venue:"East Rutherford"},
+    ]
+  },
+  tp:{
+    label:"Disputa de 3° Lugar", short:"3° Lugar",
+    matches:[
+      {id:79,date:"18/07",brt:"22h",home:"L77",away:"L78",hs:null,as:null,status:"NS",venue:"Miami"},
+    ]
+  },
+  final:{
+    label:"FINAL", short:"FINAL",
+    matches:[
+      {id:80,date:"19/07",brt:"22h",home:"W77",away:"W78",hs:null,as:null,status:"NS",venue:"East Rutherford"},
+    ]
+  }
+};
+
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 const ESPN_MAP = {
@@ -508,6 +679,62 @@ function nowStr(){
 function todayStr(){
   const d = new Date();
   return `${padNum(d.getDate())}/${padNum(d.getMonth()+1)}`;
+}
+
+// Flat lookup: team code → team object
+const TEAMS_ALL = {};
+Object.values(GROUPS).forEach(g=>g.teams.forEach(t=>{ TEAMS_ALL[t.code]=t; }));
+
+function findKOMatch(id){
+  for(const r of Object.values(KNOCKOUT)){
+    const m = r.matches.find(m=>m.id===id);
+    if(m) return m;
+  }
+  return null;
+}
+
+// Resolves placeholder strings to a team object or null.
+// Placeholder forms: "1°A", "2°B", "W49", "L77", "3°M", team code.
+function resolveKOTeam(p){
+  if(!p) return null;
+  if(TEAMS_ALL[p]) return TEAMS_ALL[p];
+  // Group position: "1°A" "2°B"
+  const gp = p.match(/^([123])°([A-L])$/);
+  if(gp){
+    const pos=parseInt(gp[1])-1, grp=GROUPS[gp[2]];
+    if(grp){
+      const s=[...grp.teams].sort((a,b)=>b.pts-a.pts||gd(b)-gd(a)||b.gf-a.gf);
+      return s[pos]||null;
+    }
+  }
+  // Winner of knockout match
+  const wm = p.match(/^W(\d+)$/);
+  if(wm){
+    const km = findKOMatch(parseInt(wm[1]));
+    if(km && km.status==='FT' && km.hs!==null && km.as!==null){
+      const wc = km.hs>km.as ? km.home : km.hs<km.as ? km.away : null;
+      return wc ? resolveKOTeam(wc) : null;
+    }
+  }
+  // Loser of knockout match
+  const lm = p.match(/^L(\d+)$/);
+  if(lm){
+    const km = findKOMatch(parseInt(lm[1]));
+    if(km && km.status==='FT' && km.hs!==null && km.as!==null){
+      const lc = km.hs<km.as ? km.home : km.hs>km.as ? km.away : null;
+      return lc ? resolveKOTeam(lc) : null;
+    }
+  }
+  return null;
+}
+
+function placeholderLabel(p){
+  if(!p||p==='3°M') return '3° Melhor';
+  const gp=p.match(/^([123])°([A-L])$/);
+  if(gp) return `${gp[1]}º Gr.${gp[2]}`;
+  const wm=p.match(/^W(\d+)$/); if(wm) return `Venc. #${wm[1]}`;
+  const lm=p.match(/^L(\d+)$/); if(lm) return `Perd. #${lm[1]}`;
+  return p;
 }
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
@@ -602,6 +829,46 @@ function renderMatchItem(m, groupKey){
   </div>`;
 }
 
+function renderKOTeamCol(placeholder){
+  const t = resolveKOTeam(placeholder);
+  if(t){
+    return `<div class="ko-team">
+      <div class="ko-flag">${t.flag}</div>
+      <div class="ko-name">${t.name}</div>
+    </div>`;
+  }
+  return `<div class="ko-team">
+    <div class="ko-flag tbd-flag">🏳</div>
+    <div class="ko-name tbd-name">${placeholderLabel(placeholder)}</div>
+  </div>`;
+}
+
+function renderKOCard(m, roundShort, extra=''){
+  const liveC = m.status==='LIVE'?'live-card':'';
+  return `
+  <div class="ko-card ${extra} ${liveC}">
+    <div class="ko-head">
+      <span class="ko-label">${roundShort} · Jogo #${m.id}</span>
+      <div class="ko-meta">
+        <span class="mcard-date">${m.date}</span>
+        ${timeBadge(m.brt, m.status)}
+        ${statusBadge(m.status)}
+      </div>
+    </div>
+    <div class="ko-body">
+      ${renderKOTeamCol(m.home)}
+      <div class="ko-score-box">
+        ${m.status!=='NS'&&m.hs!==null
+          ? `<div class="ko-score-nums"><span>${m.hs}</span><span class="ko-sep">×</span><span>${m.as}</span></div>`
+          : `<div class="ko-pending">× × ×</div>`
+        }
+        ${m.venue?`<div class="ko-venue-lbl">${m.venue}</div>`:''}
+      </div>
+      ${renderKOTeamCol(m.away)}
+    </div>
+  </div>`;
+}
+
 // ─── VIEWS ───────────────────────────────────────────────────────────────────
 
 function viewAll(){
@@ -630,26 +897,33 @@ function viewToday(){
   const td = todayStr();
   let html = `<div class="sec-title">Jogos de Hoje — ${td}</div>`;
 
-  const todayMatches = [];
+  const grpMatches = [];
   Object.entries(GROUPS).forEach(([k,g])=>{
-    g.matches.forEach(m=>{ if(m.date===td) todayMatches.push({m,k}); });
+    g.matches.forEach(m=>{ if(m.date===td) grpMatches.push({m,k,ko:false}); });
   });
+  const koMatches = [];
+  Object.values(KNOCKOUT).forEach(r=>{
+    r.matches.forEach(m=>{ if(m.date===td) koMatches.push({m,k:r.short,ko:true}); });
+  });
+  const todayMatches = [...grpMatches, ...koMatches];
 
-  const live = todayMatches.filter(x=>x.m.status==='LIVE');
-  const done = todayMatches.filter(x=>x.m.status==='FT');
+  const live     = todayMatches.filter(x=>x.m.status==='LIVE');
+  const done     = todayMatches.filter(x=>x.m.status==='FT');
   const upcoming = todayMatches.filter(x=>x.m.status==='NS');
+
+  const renderItem = x => x.ko ? renderKOCard(x.m, x.k) : renderMatchCard(x.m, x.k);
 
   if(live.length){
     html += `<div class="sec-title">● Ao Vivo</div><div class="today-grid">`;
-    html += live.map(x=>renderMatchCard(x.m,x.k)).join(''); html += `</div>`;
+    html += live.map(renderItem).join(''); html += `</div>`;
   }
   if(done.length){
     html += `<div class="sec-title">Encerrados</div><div class="today-grid">`;
-    html += done.map(x=>renderMatchCard(x.m,x.k)).join(''); html += `</div>`;
+    html += done.map(renderItem).join(''); html += `</div>`;
   }
   if(upcoming.length){
     html += `<div class="sec-title">Em breve</div><div class="today-grid">`;
-    html += upcoming.map(x=>renderMatchCard(x.m,x.k)).join(''); html += `</div>`;
+    html += upcoming.map(renderItem).join(''); html += `</div>`;
   }
   if(!todayMatches.length){
     html += `<p style="color:var(--muted);text-align:center;padding:40px">Nenhum jogo programado para hoje.</p>`;
@@ -662,7 +936,13 @@ function viewResults(){
   Object.entries(GROUPS).forEach(([k,g])=>{
     g.matches.filter(m=>m.status==='FT'||m.status==='LIVE').forEach(m=>{
       if(!byDate[m.date]) byDate[m.date]=[];
-      byDate[m.date].push({m,k});
+      byDate[m.date].push({m,k,ko:false});
+    });
+  });
+  Object.values(KNOCKOUT).forEach(r=>{
+    r.matches.filter(m=>m.status==='FT'||m.status==='LIVE').forEach(m=>{
+      if(!byDate[m.date]) byDate[m.date]=[];
+      byDate[m.date].push({m,k:r.short,ko:true});
     });
   });
   const dates = Object.keys(byDate).sort((a,b)=>{
@@ -672,13 +952,9 @@ function viewResults(){
   });
   let html = '';
   dates.forEach(d=>{
-    // Sort by BRT time within the day
-    const sorted = byDate[d].sort((a,b)=>{
-      const ta = parseInt(a.m.brt)||0, tb = parseInt(b.m.brt)||0;
-      return ta-tb;
-    });
+    const sorted = byDate[d].sort((a,b)=>(parseInt(a.m.brt)||0)-(parseInt(b.m.brt)||0));
     html += `<div class="results-day-hd">📅 ${d}</div><div class="results-day-grid">`;
-    html += sorted.map(x=>renderMatchCard(x.m,x.k)).join('');
+    html += sorted.map(x=>x.ko ? renderKOCard(x.m,x.k) : renderMatchCard(x.m,x.k)).join('');
     html += `</div>`;
   });
   return `<div>${html||'<p style="color:var(--muted);padding:40px;text-align:center">Nenhum resultado disponível.</p>'}</div>`;
@@ -722,6 +998,92 @@ function viewGroup(key){
   </div>`;
 }
 
+function viewKnockout(mode){
+  mode = mode || 'lista';
+
+  const toggleHtml = `
+  <div class="ko-view-toggle">
+    <button class="ko-tog-btn ${mode==='lista'?'active':''}" onclick="showView('knockout-lista',null)">📋 Lista</button>
+    <button class="ko-tog-btn ${mode==='chave'?'active':''}" onclick="showView('knockout-chave',null)">🔗 Chaveamento</button>
+  </div>`;
+
+  if(mode==='chave') return toggleHtml + viewBracket();
+
+  // Lista: round-by-round
+  let html = toggleHtml;
+  const rounds=[
+    ['r32',  '',           'ko-grid'],
+    ['r16',  '',           'ko-grid'],
+    ['qf',   '',           'ko-grid wide'],
+    ['sf',   '',           'ko-grid wide'],
+    ['tp',   'tplace-card','ko-grid wide'],
+    ['final','final-card', 'ko-grid wide'],
+  ];
+  for(const [key,extra,gridClass] of rounds){
+    const rnd = KNOCKOUT[key];
+    html += `<div class="ko-round">
+      <div class="ko-round-hd"><span class="rnd-badge">${rnd.short}</span>${rnd.label}</div>
+      <div class="${gridClass}">
+        ${rnd.matches.map(m=>renderKOCard(m,rnd.short,extra)).join('')}
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
+function viewBracket(){
+  // Columns: R32 (16), R16 (8), QF (4), SF (2), FINAL (1)
+  // Split bracket into left (matches 49,50,61,62,51,52,63,64) and right (53,54,55,56,57,58,59,60)
+  const mkBM = (m) => {
+    if(!m) return '<div class="bm" style="visibility:hidden"><div class="bm-team bm-tbd">–</div><div class="bm-team bm-tbd">–</div></div>';
+    const ht = resolveKOTeam(m.home), at = resolveKOTeam(m.away);
+    const hWin = m.status==='FT'&&m.hs>m.as, aWin = m.status==='FT'&&m.as>m.hs;
+    const hRow = ht
+      ? `<span>${ht.flag} ${ht.name}</span>${m.status!=='NS'&&m.hs!==null?`<span class="bm-sc">${m.hs}</span>`:''}`
+      : `<span class="bm-tbd">${placeholderLabel(m.home)}</span>`;
+    const aRow = at
+      ? `<span>${at.flag} ${at.name}</span>${m.status!=='NS'&&m.as!==null?`<span class="bm-sc">${m.as}</span>`:''}`
+      : `<span class="bm-tbd">${placeholderLabel(m.away)}</span>`;
+    const fin = KNOCKOUT.final.matches[0]===m;
+    return `<div class="bm ${fin?'bm-final':''}">
+      <div class="bm-team${hWin?' bm-winner':''}">${hRow}</div>
+      <div class="bm-team${aWin?' bm-winner':''}">${aRow}</div>
+      <div class="bm-date">${m.date} · ${m.brt} BRT</div>
+    </div>`;
+  };
+
+  // Build columns for left half of bracket
+  const r32L = KNOCKOUT.r32.matches.slice(0,8);
+  const r32R = KNOCKOUT.r32.matches.slice(8);
+  const r16L = KNOCKOUT.r16.matches.slice(0,4);
+  const r16R = KNOCKOUT.r16.matches.slice(4);
+  const qfL  = KNOCKOUT.qf.matches.slice(0,2);
+  const qfR  = KNOCKOUT.qf.matches.slice(2);
+  const sfL  = [KNOCKOUT.sf.matches[0]];
+  const sfR  = [KNOCKOUT.sf.matches[1]];
+
+  const mkCol = (label, matches, slots) => {
+    const cards = Array.from({length:slots}, (_,i) => mkBM(matches[i]||null));
+    return `<div class="bracket-col">
+      <div class="bracket-col-hd">${label}</div>
+      <div class="bracket-matches">${cards.map(c=>`<div class="bracket-slot">${c}</div>`).join('')}</div>
+    </div>`;
+  };
+
+  return `<div class="bracket-outer"><div class="bracket">
+    ${mkCol('R32', r32L, 8)}
+    ${mkCol('Oitavas', r16L, 4)}
+    ${mkCol('Quartas', qfL, 2)}
+    ${mkCol('Semis', sfL, 1)}
+    ${mkCol('FINAL', KNOCKOUT.final.matches, 1)}
+    ${mkCol('3° Lugar', KNOCKOUT.tp.matches, 1)}
+    ${mkCol('Semis', sfR, 1)}
+    ${mkCol('Quartas', qfR, 2)}
+    ${mkCol('Oitavas', r16R, 4)}
+    ${mkCol('R32', r32R, 8)}
+  </div></div>`;
+}
+
 // ─── CONTROLLER ──────────────────────────────────────────────────────────────
 
 let currentView = 'all';
@@ -736,10 +1098,12 @@ function showView(view, btn){
 function renderCurrent(){
   const el = document.getElementById('content');
   switch(currentView){
-    case 'all':     el.innerHTML = viewAll(); break;
-    case 'today':   el.innerHTML = viewToday(); break;
-    case 'results': el.innerHTML = viewResults(); break;
-    default:        el.innerHTML = viewGroup(currentView); break;
+    case 'all':              el.innerHTML = viewAll(); break;
+    case 'today':            el.innerHTML = viewToday(); break;
+    case 'results':          el.innerHTML = viewResults(); break;
+    case 'knockout-lista':   el.innerHTML = viewKnockout('lista'); break;
+    case 'knockout-chave':   el.innerHTML = viewKnockout('chave'); break;
+    default:                 el.innerHTML = viewGroup(currentView); break;
   }
 }
 
@@ -766,22 +1130,31 @@ async function fetchLiveScores(){
       if(ev.status.type.completed) status='FT';
       else if(ev.status.type.id==='2') status='LIVE';
 
+      const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
+      let matched = false;
       for(const g of Object.values(GROUPS)){
         for(const m of g.matches){
           if((m.home===hCode&&m.away===aCode)||(m.home===aCode&&m.away===hCode)){
-            const isReversed = m.home===aCode;
-            const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
-            m.hs = isReversed?rawAs:rawHs;
-            m.as = isReversed?rawHs:rawAs;
-            m.status = status;
-            // Update BRT time from ESPN UTC date if available
-            if(ev.date){
-              const d = new Date(ev.date);
-              // convert to BRT = UTC-3
-              const brtH = (d.getUTCHours()-3+24)%24;
-              m.brt = `${padNum(brtH)}h`;
+            const rev = m.home===aCode;
+            m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+            if(ev.date){ const d=new Date(ev.date); m.brt=`${padNum((d.getUTCHours()-3+24)%24)}h`; }
+            matched=true; updated=true;
+          }
+        }
+      }
+      if(!matched){
+        // Try knockout matches (compare resolved teams)
+        for(const r of Object.values(KNOCKOUT)){
+          for(const m of r.matches){
+            const rh=resolveKOTeam(m.home), ra=resolveKOTeam(m.away);
+            if(!rh||!ra) continue;
+            if((rh.code===hCode&&ra.code===aCode)||(rh.code===aCode&&ra.code===hCode)){
+              const rev=rh.code===aCode;
+              m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+              if(status==='FT'){ m.home=rh.code; m.away=ra.code; }
+              if(ev.date){ const d=new Date(ev.date); m.brt=`${padNum((d.getUTCHours()-3+24)%24)}h`; }
+              updated=true;
             }
-            updated = true;
           }
         }
       }

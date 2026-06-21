@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PJe na Justiça Eleitoral — Implantação e Evolução</title>
+
+  <!-- Reveal.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reset.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/white.min.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Brand palette ─────────────────────────────────────── */
+    :root {
+      --verde:   #006341;
+      --verde2:  #008f57;
+      --amarelo: #FFCC00;
+      --azul:    #003F8A;
+      --azul2:   #1565C0;
+      --cinza:   #f4f6f9;
+      --texto:   #1a1a2e;
+      --branco:  #ffffff;
+    }
+
+    /* ─── Base ──────────────────────────────────────────────── */
+    .reveal {
+      font-family: 'Inter', sans-serif;
+      font-size: 36px;
+      color: var(--texto);
+    }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: -0.5px;
+    }
+    .reveal .slides section {
+      height: 100%;
+    }
+    .reveal ul { list-style: none; padding: 0; margin: 0; }
+    .reveal ul li { margin-bottom: .45em; }
+    .reveal ul li::before {
+      content: '▸';
+      color: var(--verde2);
+      margin-right: .45em;
+      font-size: .9em;
+    }
+
+    /* ─── Utility ───────────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      padding: .18em .7em;
+      border-radius: 20px;
+      font-size: .52em;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+    .tag-verde  { background: var(--verde);  color: #fff; }
+    .tag-azul   { background: var(--azul);   color: #fff; }
+    .tag-amarelo{ background: var(--amarelo);color: #333; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1em; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: .9em; }
+
+    /* ─── Cards ─────────────────────────────────────────────── */
+    .card {
+      background: var(--branco);
+      border-radius: 14px;
+      padding: 1em 1.1em;
+      box-shadow: 0 3px 18px rgba(0,0,0,.10);
+      border-top: 4px solid var(--verde2);
+    }
+    .card.azul  { border-top-color: var(--azul2); }
+    .card.amarelo { border-top-color: var(--amarelo); }
+    .card-icon {
+      font-size: 1.8em;
+      margin-bottom: .3em;
+    }
+    .card h3 {
+      font-size: .7em;
+      margin: 0 0 .4em 0;
+      color: var(--verde);
+    }
+    .card.azul h3 { color: var(--azul); }
+    .card p, .card ul { font-size: .56em; line-height: 1.5; }
+
+    /* ─── KPI boxes ─────────────────────────────────────────── */
+    .kpi {
+      background: linear-gradient(135deg, var(--verde) 0%, var(--verde2) 100%);
+      color: #fff;
+      border-radius: 14px;
+      padding: .9em .8em;
+      text-align: center;
+    }
+    .kpi.azul {
+      background: linear-gradient(135deg, var(--azul) 0%, var(--azul2) 100%);
+    }
+    .kpi.amarelo {
+      background: linear-gradient(135deg, #e6a800 0%, var(--amarelo) 100%);
+      color: #333;
+    }
+    .kpi-num {
+      font-size: 1.5em;
+      font-weight: 800;
+      line-height: 1;
+      display: block;
+    }
+    .kpi-label { font-size: .5em; margin-top: .3em; opacity: .92; }
+
+    /* ─── Timeline ──────────────────────────────────────────── */
+    .timeline {
+      position: relative;
+      padding-left: 2.4em;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: .8em;
+      top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, var(--verde), var(--azul));
+      border-radius: 3px;
+    }
+    .tl-item {
+      position: relative;
+      margin-bottom: 1em;
+    }
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -1.72em;
+      top: .35em;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--verde2);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 2px var(--verde2);
+    }
+    .tl-item.azul::before { background: var(--azul2); box-shadow: 0 0 0 2px var(--azul2); }
+    .tl-year {
+      font-size: .55em;
+      font-weight: 700;
+      color: var(--verde);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .tl-item.azul .tl-year { color: var(--azul2); }
+    .tl-text { font-size: .6em; line-height: 1.45; margin-top: .1em; }
+
+    /* ─── Slide: Capa ───────────────────────────────────────── */
+    .slide-capa {
+      background: linear-gradient(160deg, var(--verde) 0%, #004d30 55%, var(--azul) 100%);
+      color: #fff !important;
+      padding: 2em !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: flex-start !important;
+      box-sizing: border-box;
+    }
+    .slide-capa .kicker {
+      font-size: .45em;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--amarelo);
+      margin-bottom: .6em;
+    }
+    .slide-capa h1 {
+      font-size: 1.2em;
+      color: #fff;
+      line-height: 1.2;
+      margin: 0 0 .5em 0;
+    }
+    .slide-capa .subtitle {
+      font-size: .52em;
+      opacity: .85;
+      margin-bottom: 1.6em;
+      max-width: 680px;
+    }
+    .slide-capa .meta {
+      font-size: .4em;
+      opacity: .7;
+      border-top: 1px solid rgba(255,255,255,.25);
+      padding-top: .8em;
+      margin-top: auto;
+      width: 100%;
+    }
+    .brasao {
+      width: 80px;
+      margin-bottom: 1em;
+      filter: brightness(0) invert(1) opacity(.8);
+    }
+
+    /* ─── Slide: Agenda ─────────────────────────────────────── */
+    .agenda-item {
+      display: flex;
+      align-items: center;
+      background: var(--cinza);
+      border-radius: 10px;
+      padding: .55em .9em;
+      margin-bottom: .5em;
+      font-size: .6em;
+    }
+    .agenda-num {
+      background: var(--verde);
+      color: #fff;
+      border-radius: 50%;
+      width: 1.8em; height: 1.8em;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 1em;
+      flex-shrink: 0;
+      margin-right: .8em;
+    }
+    .agenda-item.azul .agenda-num { background: var(--azul); }
+
+    /* ─── Slide: Secção ─────────────────────────────────────── */
+    .slide-secao {
+      background: linear-gradient(135deg, var(--verde) 0%, var(--verde2) 100%);
+      color: #fff !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      height: 100% !important;
+      text-align: center;
+    }
+    .slide-secao.azul {
+      background: linear-gradient(135deg, var(--azul) 0%, var(--azul2) 100%);
+    }
+    .slide-secao .secao-num {
+      font-size: .45em;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--amarelo);
+      margin-bottom: .4em;
+    }
+    .slide-secao h2 { color: #fff; font-size: 1em; }
+    .slide-secao p { font-size: .5em; opacity: .85; max-width: 540px; margin-top: .5em; }
+
+    /* ─── Progress bar ──────────────────────────────────────── */
+    .reveal .progress { color: var(--verde2); }
+
+    /* ─── Highlights ────────────────────────────────────────── */
+    .highlight-box {
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-left: 5px solid var(--verde2);
+      border-radius: 8px;
+      padding: .7em 1em;
+      font-size: .6em;
+      margin-top: .8em;
+    }
+    .highlight-box.azul {
+      background: linear-gradient(135deg, #e3f2fd, #e8eaf6);
+      border-left-color: var(--azul2);
+    }
+    .highlight-box.amarelo {
+      background: linear-gradient(135deg, #fffde7, #fff8e1);
+      border-left-color: #f9a825;
+    }
+
+    /* ─── Icon row ──────────────────────────────────────────── */
+    .icon-row {
+      display: flex;
+      gap: .8em;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: .8em;
+    }
+    .icon-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--cinza);
+      border-radius: 12px;
+      padding: .6em .8em;
+      font-size: .48em;
+      width: 5.5em;
+      text-align: center;
+    }
+    .icon-pill i { font-size: 1.6em; color: var(--verde2); margin-bottom: .3em; }
+    .icon-pill.azul i { color: var(--azul2); }
+
+    /* ─── Table ─────────────────────────────────────────────── */
+    .reveal table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .55em;
+    }
+    .reveal table th {
+      background: var(--verde);
+      color: #fff;
+      padding: .5em .7em;
+      text-align: left;
+    }
+    .reveal table td {
+      padding: .45em .7em;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .reveal table tr:nth-child(even) td { background: var(--cinza); }
+
+    /* ─── Quote ─────────────────────────────────────────────── */
+    .big-quote {
+      border-left: 6px solid var(--amarelo);
+      padding-left: .8em;
+      font-style: italic;
+      color: #333;
+      font-size: .7em;
+      line-height: 1.5;
+    }
+    .big-quote cite {
+      display: block;
+      margin-top: .5em;
+      font-style: normal;
+      font-size: .75em;
+      font-weight: 600;
+      color: var(--verde);
+    }
+
+    /* ─── Overrides ─────────────────────────────────────────── */
+    .reveal .slides { text-align: left; }
+    .reveal h2 { font-size: .82em; margin-bottom: .6em; color: var(--verde); }
+    .reveal h2.azul { color: var(--azul); }
+    .reveal .controls { color: var(--verde2); }
+
+    /* slide background colors via data-background */
+    section[data-background-color="cinza"] {
+      background: var(--cinza) !important;
+    }
+    .slide-footer {
+      position: absolute;
+      bottom: .6em;
+      right: 1em;
+      font-size: .32em;
+      color: #aaa;
+      font-weight: 400;
+    }
+
+    /* Fase pill */
+    .fase {
+      display: inline-flex;
+      align-items: center;
+      gap: .4em;
+      background: var(--verde);
+      color: #fff;
+      border-radius: 20px;
+      padding: .2em .8em;
+      font-size: .52em;
+      font-weight: 700;
+    }
+    .fase.azul { background: var(--azul); }
+    .fase.amarelo { background: #e6a800; color: #333; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+  <!-- ══════════════════════════════════════════════════════
+       SLIDE 1 — CAPA
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-capa">
+      <!-- Brasão (SVG inline simplificado da Justiça Eleitoral) -->
+      <svg class="brasao" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="50" cy="55" rx="46" ry="52" fill="none" stroke="#fff" stroke-width="4"/>
+        <text x="50" y="48" text-anchor="middle" font-size="26" font-weight="bold" fill="#fff">JE</text>
+        <text x="50" y="68" text-anchor="middle" font-size="8" fill="#fff">JUSTIÇA</text>
+        <text x="50" y="78" text-anchor="middle" font-size="8" fill="#fff">ELEITORAL</text>
+        <line x1="20" y1="90" x2="80" y2="90" stroke="#FFCC00" stroke-width="2.5"/>
+        <text x="50" y="102" text-anchor="middle" font-size="7" fill="#FFCC00">BRASIL</text>
+      </svg>
+
+      <div class="kicker">Processo Judicial Eletrônico</div>
+      <h1>Implantação e Evolução do PJe<br>na Justiça Eleitoral</h1>
+      <p class="subtitle">
+        Da tramitação em papel ao processo 100% digital — um percurso de transformação
+        tecnológica, jurídica e institucional no âmbito da Justiça Eleitoral brasileira.
+      </p>
+
+      <div style="display:flex;gap:.8em;flex-wrap:wrap;margin-top:.5em;">
+        <span class="tag tag-amarelo"><i class="fa fa-calendar"></i> &nbsp;2026</span>
+        <span class="tag tag-verde" style="background:rgba(255,255,255,.18);color:#fff;">
+          <i class="fa fa-scale-balanced"></i> &nbsp;Justiça Eleitoral
+        </span>
+        <span class="tag" style="background:rgba(255,255,255,.12);color:#fff;">
+          <i class="fa fa-computer"></i> &nbsp;Tecnologia &amp; Inovação
+        </span>
+      </div>
+
+      <div class="meta">
+        <i class="fa fa-landmark"></i> &nbsp;Tribunal Superior Eleitoral &nbsp;|&nbsp;
+        Tribunais Regionais Eleitorais &nbsp;|&nbsp; Zonas Eleitorais
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SLIDE 2 — AGENDA
+  ══════════════════════════════════════════════════════════ -->
+  <section data-background-color="#f4f6f9">
+    <h2 style="color:var(--verde)"><i class="fa fa-list-check"></i> &nbsp;Roteiro da Apresentação</h2>
+
+    <div class="agenda-item"><div class="agenda-num">1</div><div><strong>Contexto</strong> — A Justiça Eleitoral antes da digitalização</div></div>
+    <div class="agenda-item"><div class="agenda-num">2</div><div><strong>O que é o PJe</strong> — Conceito, base legal e arquitetura</div></div>
+    <div class="agenda-item azul"><div class="agenda-num azul" style="background:var(--azul)">3</div><div><strong>Implantação</strong> — Fases, cronograma e desafios iniciais</div></div>
+    <div class="agenda-item azul"><div class="agenda-num" style="background:var(--azul)">4</div><div><strong>Funcionalidades</strong> — Módulos e recursos do sistema</div></div>
+    <div class="agenda-item azul"><div class="agenda-num" style="background:var(--azul)">5</div><div><strong>Evolução</strong> — Marcos, versões e integrações</div></div>
+    <div class="agenda-item"><div class="agenda-num">6</div><div><strong>Resultados</strong> — Impacto, indicadores e ganhos</div></div>
+    <div class="agenda-item"><div class="agenda-num">7</div><div><strong>Desafios &amp; Perspectivas</strong> — Lições aprendidas e futuro</div></div>
+
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SEÇÃO 1
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-secao">
+      <div class="secao-num">Seção 1</div>
+      <h2>Contexto Histórico</h2>
+      <p>A Justiça Eleitoral antes da revolução digital</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 — CONTEXTO HISTÓRICO -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-clock-rotate-left"></i> &nbsp;O Cenário Pré-PJe</h2>
+
+    <div class="grid-2" style="margin-top:.5em;">
+      <div>
+        <div class="card">
+          <div class="card-icon" style="color:#c0392b;"><i class="fa fa-file-lines"></i></div>
+          <h3>Processo Físico em Papel</h3>
+          <ul>
+            <li>Autos volumosos, às vezes centenas de páginas</li>
+            <li>Transporte físico entre instâncias e cartórios</li>
+            <li>Risco de extravio e deterioração</li>
+            <li>Acesso limitado a advogados e partes</li>
+          </ul>
+        </div>
+        <div class="card amarelo" style="margin-top:.8em;">
+          <div class="card-icon" style="color:#e6a800;"><i class="fa fa-hourglass-half"></i></div>
+          <h3 style="color:#996600;">Lentidão Processual</h3>
+          <ul>
+            <li>Prazos eleitorais curtos &amp; processos lentos</li>
+            <li>Filas de espera em cartórios</li>
+            <li>Dificuldade de celeridade em época eleitoral</li>
+            <li>Custo operacional elevado</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card azul">
+          <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-chart-line"></i></div>
+          <h3 style="color:var(--azul);">Demanda Crescente</h3>
+          <ul>
+            <li>Aumento do número de ações eleitorais</li>
+            <li>Maior participação da sociedade civil</li>
+            <li>Eleições municipais, estaduais e federais a cada 2 anos</li>
+            <li>Pressão por celeridade e transparência</li>
+          </ul>
+        </div>
+        <div class="highlight-box" style="margin-top:.8em;">
+          <strong><i class="fa fa-lightbulb" style="color:#f9a825;"></i> &nbsp;O ponto de virada</strong><br>
+          A Emenda Constitucional nº 45/2004 (Reforma do Judiciário) e a Lei
+          nº 11.419/2006 (Lei do Processo Eletrônico) abriram o caminho legal
+          para a digitalização total dos processos judiciais no Brasil.
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SEÇÃO 2
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-secao azul">
+      <div class="secao-num">Seção 2</div>
+      <h2>O que é o PJe?</h2>
+      <p>Conceito, base legal e arquitetura do sistema</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 — O QUE É O PJe -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-laptop-code"></i> &nbsp;PJe — Processo Judicial Eletrônico</h2>
+
+    <div class="grid-2">
+      <div>
+        <p style="font-size:.6em;line-height:1.6;">
+          O <strong>PJe</strong> é o sistema de informação desenvolvido pelo
+          <strong>Conselho Nacional de Justiça (CNJ)</strong> com o apoio dos
+          tribunais brasileiros para <em>tramitação eletrônica de processos judiciais</em>.
+          Na Justiça Eleitoral, é adotado como sistema único de gerenciamento de
+          processos no TSE e nos 27 TREs.
+        </p>
+        <div class="highlight-box" style="margin-top:.8em;">
+          <strong>Base legal principal</strong>
+          <ul style="margin-top:.4em;">
+            <li>Lei nº 11.419/2006 — Processo eletrônico</li>
+            <li>Resolução CNJ nº 185/2013 — Institui o PJe</li>
+            <li>Resolução TSE nº 23.440/2015 — PJe na JE</li>
+            <li>Código Eleitoral e legislação correlata</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="icon-row" style="justify-content:flex-start;">
+          <div class="icon-pill">
+            <i class="fa fa-cloud" style="color:var(--verde2);"></i>
+            Plataforma<br>Web
+          </div>
+          <div class="icon-pill azul">
+            <i class="fa fa-shield-halved"></i>
+            Certificado<br>Digital
+          </div>
+          <div class="icon-pill">
+            <i class="fa fa-network-wired" style="color:var(--verde2);"></i>
+            Integração<br>Nacional
+          </div>
+          <div class="icon-pill azul">
+            <i class="fa fa-mobile-screen"></i>
+            Acesso<br>Remoto
+          </div>
+          <div class="icon-pill">
+            <i class="fa fa-database" style="color:var(--verde2);"></i>
+            Big Data<br>Processual
+          </div>
+          <div class="icon-pill azul">
+            <i class="fa fa-robot"></i>
+            Automação<br>IA
+          </div>
+        </div>
+        <div class="highlight-box azul" style="margin-top:.9em;">
+          <strong><i class="fa fa-trophy" style="color:var(--azul2);"></i> &nbsp;Diferencial na JE</strong><br>
+          A Justiça Eleitoral tem especificidades únicas: prazos curtíssimos,
+          competências exclusivas e calendário eleitoral biênio. O PJe foi
+          adaptado para atender essas demandas com módulos específicos.
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 5 — ARQUITETURA -->
+  <section data-background-color="#f4f6f9">
+    <h2 class="azul"><i class="fa fa-sitemap"></i> &nbsp;Arquitetura e Componentes</h2>
+
+    <div class="grid-3" style="margin-top:.5em;">
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-display"></i></div>
+        <h3>Front-end</h3>
+        <ul>
+          <li>Interface web responsiva</li>
+          <li>Portal do Advogado</li>
+          <li>Portal de Serviços ao Cidadão</li>
+          <li>Painel do Magistrado</li>
+          <li>Módulo da Assessoria</li>
+        </ul>
+      </div>
+      <div class="card azul">
+        <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-server"></i></div>
+        <h3 style="color:var(--azul);">Back-end / Middleware</h3>
+        <ul>
+          <li>JBoss / WildFly Application Server</li>
+          <li>Java EE (Jakarta EE)</li>
+          <li>Barramento de serviços (ESB)</li>
+          <li>Fila de mensagens (MQ)</li>
+          <li>Motor de workflow (jBPM)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-database"></i></div>
+        <h3>Persistência &amp; Integração</h3>
+        <ul>
+          <li>PostgreSQL (banco principal)</li>
+          <li>Elasticsearch (busca)</li>
+          <li>Integração com sistemas TSE</li>
+          <li>Webservices (SOAP/REST)</li>
+          <li>Interoperabilidade CNJ</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:.9em;">
+      <strong><i class="fa fa-key" style="color:var(--verde2);"></i> &nbsp;Segurança e Autenticidade</strong> &nbsp;—&nbsp;
+      Toda movimentação processual é assinada digitalmente com certificado ICP-Brasil,
+      garantindo autenticidade, integridade e validade jurídica aos atos eletrônicos.
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SEÇÃO 3
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-secao">
+      <div class="secao-num">Seção 3</div>
+      <h2>Implantação</h2>
+      <p>Fases, cronograma e desafios da entrada em produção</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 6 — CRONOGRAMA -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-calendar-days"></i> &nbsp;Cronograma de Implantação</h2>
+
+    <div class="timeline" style="margin-top:.5em;">
+      <div class="tl-item">
+        <div class="tl-year">2006–2011 &nbsp;<span class="fase">Fase Preparatória</span></div>
+        <div class="tl-text">
+          Lei nº 11.419/2006 — marco legal do processo eletrônico.
+          O CNJ inicia estudos e projetos-piloto em tribunais estaduais.
+          A JE acompanha experiências e começa planejamento interno.
+        </div>
+      </div>
+      <div class="tl-item azul">
+        <div class="tl-year">2012–2013 &nbsp;<span class="fase azul">Fase Piloto JE</span></div>
+        <div class="tl-text">
+          Resolução CNJ nº 185/2013 institui o PJe como sistema único.
+          O TSE assina termo de adesão. Primeiros testes em zonas eleitorais
+          selecionadas dos estados pioneiros (MG, BA e SP).
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2014–2015 &nbsp;<span class="fase">Expansão Regional</span></div>
+        <div class="tl-text">
+          Resolução TSE nº 23.440/2015 regulamenta o PJe na Justiça Eleitoral.
+          Implantação gradual nos 27 TREs. Treinamento massivo de servidores,
+          magistrados e operadores do direito.
+        </div>
+      </div>
+      <div class="tl-item azul">
+        <div class="tl-year">2016–2018 &nbsp;<span class="fase azul">Consolidação</span></div>
+        <div class="tl-text">
+          100% das zonas eleitorais integradas ao PJe. Eleições municipais 2016
+          e eleições gerais 2018 processadas integralmente no sistema.
+          Criação do módulo de ações eleitorais (AIJE, AIME, RCED…).
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2019–Atual &nbsp;<span class="fase">Maturidade &amp; IA</span></div>
+        <div class="tl-text">
+          Versões PJe 2.x e migrações para microsserviços. Integração com IA
+          (Victor/SIGMA). Audiências virtuais, peticionamento mobile,
+          acervo histórico digitalizado e interoperabilidade plena.
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 7 — ESTRATÉGIA DE IMPLANTAÇÃO -->
+  <section data-background-color="#f4f6f9">
+    <h2><i class="fa fa-chess"></i> &nbsp;Estratégia de Implantação</h2>
+
+    <div class="grid-2" style="margin-top:.5em;">
+      <div>
+        <div class="card">
+          <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-people-group"></i></div>
+          <h3>Gestão de Mudança</h3>
+          <ul>
+            <li>Grupo de trabalho nacional (TSE + TREs)</li>
+            <li>Capacitação escalonada: gestores → servidores → advogados</li>
+            <li>Manuais e tutoriais em vídeo</li>
+            <li>Central de atendimento 0800 dedicada</li>
+            <li>Período de coexistência papel/digital</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card azul">
+          <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-route"></i></div>
+          <h3 style="color:var(--azul);">Rollout por Ondas</h3>
+          <ul>
+            <li><strong>Onda 1:</strong> TREs com infraestrutura robusta</li>
+            <li><strong>Onda 2:</strong> TREs médios com suporte intensivo</li>
+            <li><strong>Onda 3:</strong> TREs remotos + capacitação especial</li>
+            <li>Critérios: conectividade, volume processual, equipe TI</li>
+          </ul>
+        </div>
+        <div class="highlight-box amarelo" style="margin-top:.8em;">
+          <strong><i class="fa fa-triangle-exclamation" style="color:#e6a800;"></i> &nbsp;Lição aprendida</strong><br>
+          A resistência cultural foi o maior obstáculo — maior do que
+          os desafios técnicos. Envolver magistrados e advogados desde
+          o início foi fundamental para o sucesso.
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SEÇÃO 4
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-secao azul">
+      <div class="secao-num">Seção 4</div>
+      <h2>Funcionalidades</h2>
+      <p>Módulos, recursos e ferramentas do PJe eleitoral</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 8 — FUNCIONALIDADES PRINCIPAIS -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-puzzle-piece"></i> &nbsp;Funcionalidades Principais</h2>
+
+    <div class="grid-3" style="margin-top:.4em;">
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-file-arrow-up"></i></div>
+        <h3>Peticionamento</h3>
+        <ul>
+          <li>Petição inicial eletrônica</li>
+          <li>Upload de documentos PDF/A</li>
+          <li>Assinatura digital integrada</li>
+          <li>Protocolo automático 24/7</li>
+          <li>Peticionamento intercorrente</li>
+        </ul>
+      </div>
+      <div class="card azul">
+        <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-gavel"></i></div>
+        <h3 style="color:var(--azul);">Decisão Judicial</h3>
+        <ul>
+          <li>Editor de decisões e sentenças</li>
+          <li>Modelos padronizados (minutas)</li>
+          <li>Painel do magistrado</li>
+          <li>Cálculo automático de prazos</li>
+          <li>Publicação automática no DJe</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-bell"></i></div>
+        <h3>Citações &amp; Intimações</h3>
+        <ul>
+          <li>Intimação eletrônica automática</li>
+          <li>Integração com OAB</li>
+          <li>Notificações por e-mail/SMS</li>
+          <li>Comunicações entre instâncias</li>
+          <li>Carta precatória eletrônica</li>
+        </ul>
+      </div>
+      <div class="card amarelo" style="margin-top:.6em;">
+        <div class="card-icon" style="color:#e6a800;"><i class="fa fa-balance-scale"></i></div>
+        <h3 style="color:#996600;">Ações Eleitorais</h3>
+        <ul>
+          <li>AIJE, AIME, RCED, RO, DRAP</li>
+          <li>Registro de candidatura</li>
+          <li>Ações de propaganda eleitoral</li>
+          <li>Prestação de contas partidárias</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:.6em;">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-chart-bar"></i></div>
+        <h3>Estatísticas &amp; BI</h3>
+        <ul>
+          <li>Painel gerencial em tempo real</li>
+          <li>Metas CNJ automatizadas</li>
+          <li>Exportação para DW/BI</li>
+          <li>DataJud (CNJ) integrado</li>
+        </ul>
+      </div>
+      <div class="card azul" style="margin-top:.6em;">
+        <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-video"></i></div>
+        <h3 style="color:var(--azul);">Audiências Virtuais</h3>
+        <ul>
+          <li>Videoconferência integrada</li>
+          <li>Ata eletrônica automatizada</li>
+          <li>Gravação e armazenamento</li>
+          <li>Plenário virtual (TSE)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 9 — MÓDULO ELEITORAL ESPECÍFICO -->
+  <section data-background-color="#f4f6f9">
+    <h2><i class="fa fa-star"></i> &nbsp;Diferenciais do Módulo Eleitoral</h2>
+
+    <div class="grid-2" style="margin-top:.5em;">
+      <div>
+        <div class="card">
+          <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-stopwatch"></i></div>
+          <h3>Gestão de Prazos Eleitorais</h3>
+          <ul>
+            <li>Calendário eleitoral integrado ao sistema</li>
+            <li>Alertas automáticos de prazos fatais</li>
+            <li>Suspensão automática em recesso</li>
+            <li>Contagem em horas (não só dias)</li>
+            <li>Plantão judicial eletrônico</li>
+          </ul>
+        </div>
+        <div class="card amarelo" style="margin-top:.8em;">
+          <div class="card-icon" style="color:#e6a800;"><i class="fa fa-user-check"></i></div>
+          <h3 style="color:#996600;">Registro de Candidatura</h3>
+          <ul>
+            <li>Pedido de registro eletrônico (DRAP/RRC)</li>
+            <li>Documentos exigidos por checklist</li>
+            <li>Integração com sistemas TSE (CAND)</li>
+            <li>Consulta pública em tempo real</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card azul">
+          <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-money-bill-trend-up"></i></div>
+          <h3 style="color:var(--azul);">Prestação de Contas</h3>
+          <ul>
+            <li>Envio eletrônico das PCCE/PCPE</li>
+            <li>Integração com o SPCE e SADP</li>
+            <li>Vinculação automática ao processo</li>
+            <li>Relatório de auditoria integrado</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:.8em;">
+          <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-scale-unbalanced-flip"></i></div>
+          <h3>Recursos e Recursos</h3>
+          <ul>
+            <li>Remessa automática ao TSE</li>
+            <li>Pauta eletrônica do Pleno</li>
+            <li>Transmissão ao vivo integrada</li>
+            <li>Acordão eletrônico publicado</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SEÇÃO 5
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-secao">
+      <div class="secao-num">Seção 5</div>
+      <h2>Evolução do Sistema</h2>
+      <p>Marcos tecnológicos, versões e integrações estratégicas</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 10 — EVOLUÇÃO TECNOLÓGICA -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-code-branch"></i> &nbsp;Evolução Tecnológica do PJe</h2>
+
+    <table style="margin-top:.4em;">
+      <thead>
+        <tr>
+          <th>Período</th>
+          <th>Versão / Marco</th>
+          <th>Principais Avanços</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="fase" style="font-size:.85em;">2012–2014</span></td>
+          <td><strong>PJe 1.0</strong></td>
+          <td>Tramitação eletrônica básica, assinatura digital, intimação eletrônica</td>
+        </tr>
+        <tr>
+          <td><span class="fase azul" style="font-size:.85em;">2015–2017</span></td>
+          <td><strong>PJe 1.x</strong></td>
+          <td>Módulo eleitoral específico, integração com DJe, painel gerencial</td>
+        </tr>
+        <tr>
+          <td><span class="fase" style="font-size:.85em;">2018–2020</span></td>
+          <td><strong>PJe 2.0</strong></td>
+          <td>Nova arquitetura Java EE 7, interface modernizada, performance aprimorada</td>
+        </tr>
+        <tr>
+          <td><span class="fase azul" style="font-size:.85em;">2020–2022</span></td>
+          <td><strong>PJe 2.x + COVID</strong></td>
+          <td>Audiências virtuais (pandemia), peticionamento mobile, DataJud, microsserviços</td>
+        </tr>
+        <tr>
+          <td><span class="fase amarelo" style="font-size:.85em;">2022–Atual</span></td>
+          <td><strong>PJe IA &amp; Cloud</strong></td>
+          <td>Inteligência artificial (Victor/SIGMA), migração cloud, API REST, NLP</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box" style="margin-top:.8em;">
+      <strong><i class="fa fa-robot" style="color:var(--verde2);"></i> &nbsp;Destaque — Inteligência Artificial no PJe:</strong> &nbsp;
+      O projeto <strong>Victor</strong> (STF) e o <strong>SIGMA/SIRA</strong> (TSE) aplicam
+      machine learning para classificar peças processuais, identificar padrões de
+      desinformação eleitoral e priorizar processos urgentes.
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 11 — INTEGRAÇÕES -->
+  <section data-background-color="#f4f6f9">
+    <h2 class="azul"><i class="fa fa-plug"></i> &nbsp;Ecossistema de Integrações</h2>
+
+    <div class="grid-2" style="margin-top:.5em;">
+      <div>
+        <div class="card azul">
+          <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-network-wired"></i></div>
+          <h3 style="color:var(--azul);">Internas — Sistemas TSE</h3>
+          <ul>
+            <li><strong>CAND</strong> — Sistema de candidaturas</li>
+            <li><strong>SPCE/SADP</strong> — Prestação de contas</li>
+            <li><strong>DJe-JE</strong> — Diário da Justiça Eletrônico</li>
+            <li><strong>SIRE</strong> — Registro eleitoral</li>
+            <li><strong>e-Título</strong> — Dados do eleitor</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-arrows-left-right-to-line"></i></div>
+          <h3>Externas — Órgãos Parceiros</h3>
+          <ul>
+            <li><strong>OAB Nacional</strong> — Autenticação e intimação</li>
+            <li><strong>CNJ / DataJud</strong> — Estatísticas nacionais</li>
+            <li><strong>RFB</strong> — Validação CPF/CNPJ</li>
+            <li><strong>TCU/TCEs</strong> — Inelegibilidades (LC 64/90)</li>
+            <li><strong>ICP-Brasil / ITI</strong> — Certificados digitais</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-box amarelo" style="margin-top:.8em;">
+      <strong><i class="fa fa-arrow-trend-up" style="color:#e6a800;"></i> &nbsp;Interoperabilidade</strong><br>
+      O PJe na JE opera como hub central: alimenta o DataJud (estatísticas para o CNJ),
+      recebe dados das Receitas Federal e Estaduais, e se comunica com todos os sistemas
+      eleitorais, formando um ecossistema integrado e auditável.
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SEÇÃO 6
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-secao azul">
+      <div class="secao-num">Seção 6</div>
+      <h2>Resultados e Impacto</h2>
+      <p>Indicadores, ganhos e transformação institucional</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 12 — KPIs -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-chart-column"></i> &nbsp;Impacto em Números</h2>
+
+    <div class="grid-4" style="margin-top:.5em;">
+      <div class="kpi">
+        <span class="kpi-num">100%</span>
+        <div class="kpi-label">processos eleitorais<br>tramitando digitalmente</div>
+      </div>
+      <div class="kpi azul">
+        <span class="kpi-num">27</span>
+        <div class="kpi-label">TREs integrados<br>ao mesmo sistema</div>
+      </div>
+      <div class="kpi amarelo">
+        <span class="kpi-num">-80%</span>
+        <div class="kpi-label">redução no uso<br>de papel (estimativa)</div>
+      </div>
+      <div class="kpi">
+        <span class="kpi-num">24/7</span>
+        <div class="kpi-label">peticionamento<br>disponível</div>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:.9em;">
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-leaf"></i></div>
+        <h3>Sustentabilidade</h3>
+        <ul>
+          <li>Eliminação de toneladas de papel por ano</li>
+          <li>Redução de deslocamentos físicos</li>
+          <li>Menor consumo de espaço físico (cartórios)</li>
+          <li>Logística de transporte reduzida</li>
+        </ul>
+      </div>
+      <div class="card azul">
+        <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-bolt"></i></div>
+        <h3 style="color:var(--azul);">Celeridade</h3>
+        <ul>
+          <li>Intimações em segundos (antes: dias)</li>
+          <li>Remessa entre instâncias imediata</li>
+          <li>Acesso ao processo a qualquer hora</li>
+          <li>Julgamentos sem deslocamento físico</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-magnifying-glass-dollar"></i></div>
+        <h3>Economia</h3>
+        <ul>
+          <li>Redução de custos cartorários</li>
+          <li>Menos despesas com carga e transporte</li>
+          <li>Armazenamento físico eliminado</li>
+          <li>ROI estimado positivo em 3 anos</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 13 — IMPACTO NAS ELEIÇÕES -->
+  <section data-background-color="#f4f6f9">
+    <h2><i class="fa fa-check-to-slot"></i> &nbsp;PJe nas Eleições Gerais</h2>
+
+    <div class="grid-2" style="margin-top:.4em;">
+      <div>
+        <div class="card azul">
+          <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-calendar-check"></i></div>
+          <h3 style="color:var(--azul);">Eleições 2018 — Consolidação</h3>
+          <ul>
+            <li>Primeira eleição geral 100% no PJe</li>
+            <li>Centenas de ações eleitorais processadas</li>
+            <li>Expedição de diplomas eletrônicas</li>
+            <li>Prazos cumpridos com segurança jurídica</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:.8em;">
+          <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-virus-covid"></i></div>
+          <h3>Eleições 2020 — Pandemia</h3>
+          <ul>
+            <li>Pandemia COVID-19: PJe garantiu continuidade</li>
+            <li>Sessões do Pleno dos TREs por videoconferência</li>
+            <li>Peticionamento e sustentações orais virtuais</li>
+            <li>Zero interrupção dos processos eleitorais</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-trophy"></i></div>
+          <h3>Eleições 2022 — Maturidade</h3>
+          <ul>
+            <li>Maior volume de ações já processado no PJe-JE</li>
+            <li>Monitoramento de desinformação eleitoral via SIRA</li>
+            <li>Transmissão ao vivo dos julgamentos integrada</li>
+            <li>Diplomação eletrônica plena</li>
+          </ul>
+        </div>
+        <div class="highlight-box" style="margin-top:.8em;">
+          <strong><i class="fa fa-quote-left" style="color:var(--verde2);"></i></strong>
+          &nbsp;O PJe se tornou o espinho dorsal da Justiça Eleitoral nas eleições.
+          Sem ele, seria impossível cumprir os prazos constitucionais do processo
+          eleitoral com a celeridade e transparência exigidas.
+          <br><em style="font-size:.85em;color:var(--verde);">— Gestores da Tecnologia da Informação — TSE</em>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SEÇÃO 7
+  ══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="slide-secao">
+      <div class="secao-num">Seção 7</div>
+      <h2>Desafios &amp; Perspectivas</h2>
+      <p>Lições aprendidas e o futuro do PJe na Justiça Eleitoral</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 14 — DESAFIOS -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-triangle-exclamation"></i> &nbsp;Desafios Enfrentados</h2>
+
+    <div class="grid-2" style="margin-top:.5em;">
+      <div>
+        <div class="card">
+          <div class="card-icon" style="color:#c0392b;"><i class="fa fa-wifi"></i></div>
+          <h3>Infraestrutura</h3>
+          <ul>
+            <li>Conectividade deficiente em zonas remotas</li>
+            <li>Disparidade tecnológica entre TREs</li>
+            <li>Capacidade de servidores em picos eleitorais</li>
+            <li>Disponibilidade 24/7 em período eleitoral</li>
+          </ul>
+        </div>
+        <div class="card azul" style="margin-top:.8em;">
+          <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-users-gear"></i></div>
+          <h3 style="color:var(--azul);">Humanos &amp; Organizacionais</h3>
+          <ul>
+            <li>Resistência de magistrados e servidores</li>
+            <li>Turnover elevado em época de eleições</li>
+            <li>Capacitação contínua necessária</li>
+            <li>Advogados sem certificado digital</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card amarelo">
+          <div class="card-icon" style="color:#e6a800;"><i class="fa fa-code"></i></div>
+          <h3 style="color:#996600;">Técnicos</h3>
+          <ul>
+            <li>Legado de sistemas distintos por TRE</li>
+            <li>Customizações locais vs. sistema único</li>
+            <li>Performance em volumes eleitorais</li>
+            <li>Atualização de versão sincronizada nos 27 TREs</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:.8em;">
+          <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-scale-balanced"></i></div>
+          <h3>Jurídicos</h3>
+          <ul>
+            <li>Validade jurídica dos atos eletrônicos</li>
+            <li>LGPD e dados dos processos</li>
+            <li>Sigilo x transparência em ações eleitorais</li>
+            <li>Admissibilidade de provas digitais</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 15 — PERSPECTIVAS FUTURAS -->
+  <section data-background-color="#f4f6f9">
+    <h2 class="azul"><i class="fa fa-rocket"></i> &nbsp;Perspectivas e Tendências</h2>
+
+    <div class="grid-3" style="margin-top:.5em;">
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-brain"></i></div>
+        <h3>IA Generativa</h3>
+        <ul>
+          <li>Minutas automáticas de decisões</li>
+          <li>Análise semântica de petições</li>
+          <li>Detecção de fake news eleitoral</li>
+          <li>Chatbot de triagem processual</li>
+        </ul>
+      </div>
+      <div class="card azul">
+        <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-cloud-arrow-up"></i></div>
+        <h3 style="color:var(--azul);">Cloud &amp; Microsserviços</h3>
+        <ul>
+          <li>Migração para cloud pública/híbrida</li>
+          <li>Escalabilidade elástica em eleições</li>
+          <li>DevSecOps contínuo</li>
+          <li>Contêineres (Docker/Kubernetes)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-mobile-screen-button"></i></div>
+        <h3>Mobile First</h3>
+        <ul>
+          <li>App PJe Mobile completo</li>
+          <li>Peticionamento por smartphone</li>
+          <li>Notificações push processuais</li>
+          <li>Assinatura biométrica</li>
+        </ul>
+      </div>
+      <div class="card azul" style="margin-top:.6em;">
+        <div class="card-icon" style="color:var(--azul2);"><i class="fa fa-link"></i></div>
+        <h3 style="color:var(--azul);">Blockchain</h3>
+        <ul>
+          <li>Registro imutável de atos processuais</li>
+          <li>Cadeia de custódia de provas digitais</li>
+          <li>Smart contracts eleitorais</li>
+        </ul>
+      </div>
+      <div class="card amarelo" style="margin-top:.6em;">
+        <div class="card-icon" style="color:#e6a800;"><i class="fa fa-universal-access"></i></div>
+        <h3 style="color:#996600;">Acessibilidade</h3>
+        <ul>
+          <li>Interfaces para pessoas com deficiência</li>
+          <li>Libras e audiodescrição</li>
+          <li>Alto contraste e leitores de tela</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:.6em;">
+        <div class="card-icon" style="color:var(--verde2);"><i class="fa fa-earth-americas"></i></div>
+        <h3>Open Justice</h3>
+        <ul>
+          <li>Dados abertos processuais</li>
+          <li>API pública de consulta</li>
+          <li>Transparência ativa ampliada</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 16 — CONCLUSÃO -->
+  <section data-background-color="#ffffff">
+    <h2><i class="fa fa-flag-checkered"></i> &nbsp;Síntese Final</h2>
+
+    <div class="grid-2" style="margin-top:.4em;">
+      <div>
+        <div class="big-quote">
+          O PJe na Justiça Eleitoral representa uma das maiores transformações
+          institucionais do Judiciário brasileiro, convertendo décadas de
+          processo em papel em um fluxo 100% digital, célere e auditável —
+          garantindo a lisura do processo democrático no país.
+        </div>
+
+        <div class="highlight-box" style="margin-top:1em;">
+          <strong>O que o PJe entregou à Justiça Eleitoral:</strong>
+          <ul style="margin-top:.4em;">
+            <li>Celeridade compatível com os prazos eleitorais</li>
+            <li>Segurança jurídica e rastreabilidade dos atos</li>
+            <li>Acesso democrático à justiça em todo o Brasil</li>
+            <li>Base para inovação contínua com IA e dados</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="kpi" style="padding:1.2em;margin-bottom:.8em;">
+          <i class="fa fa-scale-balanced" style="font-size:2em;margin-bottom:.3em;opacity:.85;"></i>
+          <span class="kpi-num" style="font-size:1.1em;">+ de 10 anos</span>
+          <div class="kpi-label" style="font-size:.55em;">de evolução contínua<br>do PJe na Justiça Eleitoral</div>
+        </div>
+        <div class="kpi azul" style="padding:1.2em;">
+          <i class="fa fa-check-double" style="font-size:2em;margin-bottom:.3em;opacity:.85;"></i>
+          <span class="kpi-num" style="font-size:1.1em;">Consolidado</span>
+          <div class="kpi-label" style="font-size:.55em;">Sistema único nacional<br>TSE + 27 TREs integrados</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">PJe — Justiça Eleitoral</div>
+  </section>
+
+  <!-- SLIDE 17 — ENCERRAMENTO -->
+  <section>
+    <div class="slide-capa" style="align-items:center;text-align:center;">
+      <svg class="brasao" style="margin-bottom:.6em;" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="50" cy="55" rx="46" ry="52" fill="none" stroke="#fff" stroke-width="4"/>
+        <text x="50" y="48" text-anchor="middle" font-size="26" font-weight="bold" fill="#fff">JE</text>
+        <text x="50" y="68" text-anchor="middle" font-size="8" fill="#fff">JUSTIÇA</text>
+        <text x="50" y="78" text-anchor="middle" font-size="8" fill="#fff">ELEITORAL</text>
+        <line x1="20" y1="90" x2="80" y2="90" stroke="#FFCC00" stroke-width="2.5"/>
+        <text x="50" y="102" text-anchor="middle" font-size="7" fill="#FFCC00">BRASIL</text>
+      </svg>
+
+      <h1 style="text-align:center;font-size:1em;">Obrigado!</h1>
+      <p class="subtitle" style="text-align:center;max-width:100%;">
+        PJe — Processo Judicial Eletrônico<br>
+        <strong style="color:var(--amarelo);">Justiça Eleitoral Brasileira</strong>
+      </p>
+
+      <div style="display:flex;gap:1.5em;margin-top:1em;flex-wrap:wrap;justify-content:center;">
+        <div style="font-size:.42em;opacity:.85;text-align:center;">
+          <i class="fa fa-globe fa-lg" style="color:var(--amarelo);display:block;margin-bottom:.3em;"></i>
+          www.tse.jus.br
+        </div>
+        <div style="font-size:.42em;opacity:.85;text-align:center;">
+          <i class="fa fa-laptop fa-lg" style="color:var(--amarelo);display:block;margin-bottom:.3em;"></i>
+          pje.jus.br
+        </div>
+        <div style="font-size:.42em;opacity:.85;text-align:center;">
+          <i class="fa fa-book fa-lg" style="color:var(--amarelo);display:block;margin-bottom:.3em;"></i>
+          Resolução TSE nº 23.440/2015
+        </div>
+      </div>
+
+      <div class="meta" style="text-align:center;border-top:1px solid rgba(255,255,255,.2);padding-top:.8em;margin-top:1.5em;">
+        Apresentação gerada em 2026 &nbsp;|&nbsp; Uso interno &amp; institucional
+      </div>
+    </div>
+  </section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    progress: true,
+    controls: true,
+    center: false,
+    transition: 'slide',
+    transitionSpeed: 'default',
+    backgroundTransition: 'fade',
+    width: 1280,
+    height: 720,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    plugins: []
+  });
+</script>
+</body>
+</html>

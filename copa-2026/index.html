@@ -199,6 +199,53 @@
     }
     footer strong { color:var(--gold); }
 
+    /* LIVE BANNER */
+    #liveBanner {
+      display:none;
+      background:rgba(239,68,68,.07);
+      border-bottom:2px solid rgba(239,68,68,.3);
+      padding:10px 20px;
+    }
+    .live-banner-inner {
+      max-width:1280px; margin:0 auto;
+      display:flex; align-items:center; gap:16px;
+    }
+    .live-banner-label {
+      display:flex; align-items:center; gap:6px;
+      font-size:11px; font-weight:800; letter-spacing:1.5px;
+      color:var(--red); white-space:nowrap;
+    }
+    .live-banner-scroll {
+      display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; flex:1;
+    }
+    .live-banner-scroll::-webkit-scrollbar { display:none; }
+    .live-mini {
+      background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.28);
+      border-radius:10px; padding:7px 14px;
+      display:flex; align-items:center; gap:10px;
+      white-space:nowrap; cursor:pointer; flex-shrink:0;
+      transition:background .2s, transform .15s;
+    }
+    .live-mini:hover { background:rgba(239,68,68,.18); transform:translateY(-1px); }
+    .live-mini-flag { font-size:1.4rem; line-height:1; }
+    .live-mini-name { font-size:12px; font-weight:700; color:var(--text); }
+    .live-mini-score {
+      font-size:1.1rem; font-weight:900; color:var(--red);
+      padding:0 6px; min-width:44px; text-align:center;
+    }
+    .live-mini-sep { width:1px; height:24px; background:rgba(239,68,68,.2); }
+    .live-mini-min {
+      font-size:10px; font-weight:800; color:var(--red);
+      background:rgba(239,68,68,.14); border-radius:4px;
+      padding:2px 6px; animation:blink 1.4s ease-in-out infinite;
+    }
+    .tab-live-dot {
+      display:inline-block; width:6px; height:6px;
+      background:var(--red); border-radius:50%;
+      margin-left:5px; animation:blink 1.4s ease-in-out infinite;
+      vertical-align:middle;
+    }
+
     /* RESPONSIVE */
     @media(max-width:640px) { h1{font-size:1.5rem;} .all-grid{grid-template-columns:1fr;} .sg-title{font-size:1.5rem;} }
 
@@ -309,7 +356,7 @@
   <h1>⚽ Copa do Mundo 2026</h1>
   <p class="subtitle">Canadá &bull; México &bull; Estados Unidos &nbsp;|&nbsp; 11 Jun – 19 Jul 2026</p>
   <div class="header-row">
-    <div class="live-pill"><div class="dot"></div> AO VIVO</div>
+    <div class="live-pill" id="headerLivePill" style="display:none"><div class="dot"></div> AO VIVO</div>
     <span class="last-upd" id="lastUpd">Carregando...</span>
     <button class="btn-refresh" id="btnRefresh" onclick="doRefresh()">
       <span id="spinner" style="display:none" class="spin">↻</span>
@@ -338,6 +385,15 @@
     <button class="tab" onclick="showView('L',this)">Grupo L</button>
   </div>
 </nav>
+
+<div id="liveBanner">
+  <div class="live-banner-inner">
+    <div class="live-banner-label">
+      <div class="dot"></div> AO VIVO
+    </div>
+    <div class="live-banner-scroll" id="liveMatchesScroll"></div>
+  </div>
+</div>
 
 <main><div id="content"></div></main>
 
@@ -1131,12 +1187,13 @@ async function fetchLiveScores(){
       else if(ev.status.type.id==='2') status='LIVE';
 
       const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
+      const minute = ev.status?.displayClock || '';
       let matched = false;
       for(const g of Object.values(GROUPS)){
         for(const m of g.matches){
           if((m.home===hCode&&m.away===aCode)||(m.home===aCode&&m.away===hCode)){
             const rev = m.home===aCode;
-            m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+            m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status; m.minute=minute;
             if(ev.date){ const d=new Date(ev.date); m.brt=`${padNum((d.getUTCHours()-3+24)%24)}h`; }
             matched=true; updated=true;
           }
@@ -1150,7 +1207,7 @@ async function fetchLiveScores(){
             if(!rh||!ra) continue;
             if((rh.code===hCode&&ra.code===aCode)||(rh.code===aCode&&ra.code===hCode)){
               const rev=rh.code===aCode;
-              m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+              m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status; m.minute=minute;
               if(status==='FT'){ m.home=rh.code; m.away=ra.code; }
               if(ev.date){ const d=new Date(ev.date); m.brt=`${padNum((d.getUTCHours()-3+24)%24)}h`; }
               updated=true;
@@ -1185,6 +1242,64 @@ function recalcStandings(){
   });
 }
 
+// ─── LIVE BANNER ─────────────────────────────────────────────────────────────
+
+function getAllLiveMatches(){
+  const live = [];
+  Object.entries(GROUPS).forEach(([k,g])=>{
+    g.matches.filter(m=>m.status==='LIVE').forEach(m=>live.push({m,k,ko:false}));
+  });
+  Object.values(KNOCKOUT).forEach(r=>{
+    r.matches.filter(m=>m.status==='LIVE').forEach(m=>live.push({m,k:r.short,ko:true}));
+  });
+  return live;
+}
+
+function updateLiveBanner(){
+  const live = getAllLiveMatches();
+  const banner  = document.getElementById('liveBanner');
+  const pill    = document.getElementById('headerLivePill');
+  const scroll  = document.getElementById('liveMatchesScroll');
+  const todayTab= document.querySelector('.tabs .tab:nth-child(2)');
+
+  // Show/hide the "Jogos de Hoje" tab dot
+  if(todayTab){
+    const existing = todayTab.querySelector('.tab-live-dot');
+    if(live.length && !existing){
+      todayTab.insertAdjacentHTML('beforeend','<span class="tab-live-dot"></span>');
+    } else if(!live.length && existing){
+      existing.remove();
+    }
+  }
+
+  if(!live.length){
+    banner.style.display = 'none';
+    if(pill) pill.style.display = 'none';
+    return;
+  }
+
+  banner.style.display = 'block';
+  if(pill) pill.style.display = 'inline-flex';
+
+  scroll.innerHTML = live.map(({m,k,ko})=>{
+    const ht = ko ? resolveKOTeam(m.home) : teamByCode(m.home);
+    const at = ko ? resolveKOTeam(m.away) : teamByCode(m.away);
+    const hf = ht?.flag || '🏳', hname = ht?.name || (ko?placeholderLabel(m.home):m.home);
+    const af = at?.flag || '🏳', aname = at?.name || (ko?placeholderLabel(m.away):m.away);
+    const minTag = m.minute ? `<span class="live-mini-min">${m.minute}</span>` : '';
+    const label  = ko ? k : `Gr.${k}`;
+    return `<div class="live-mini" onclick="showView('today',null)" title="${label}">
+      <span class="live-mini-flag">${hf}</span>
+      <span class="live-mini-name">${hname}</span>
+      <span class="live-mini-score">${m.hs??'-'} × ${m.as??'-'}</span>
+      <span class="live-mini-name">${aname}</span>
+      <span class="live-mini-flag">${af}</span>
+      <span class="live-mini-sep"></span>
+      ${minTag}
+    </div>`;
+  }).join('');
+}
+
 // ─── AUTO-REFRESH ────────────────────────────────────────────────────────────
 
 async function doRefresh(){
@@ -1195,6 +1310,7 @@ async function doRefresh(){
 
   const ok = await fetchLiveScores();
   renderCurrent();
+  updateLiveBanner();
 
   const msg = ok ? '✓ via API ESPN' : '📦 dados locais';
   document.getElementById('lastUpd').textContent = `Atualizado: ${nowStr()} — ${msg}`;
@@ -1214,6 +1330,7 @@ setInterval(()=>{
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderCurrent();
+updateLiveBanner();
 doRefresh();
 </script>
 </body>

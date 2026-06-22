@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal de Notícias – Justiça Eleitoral</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>⚖️</text></svg>" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/portal.css') }}" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="portal-header">
+  <div class="container-xl">
+    <div class="d-flex align-items-center gap-3">
+      <span class="portal-logo">⚖️</span>
+      <div>
+        <h1 class="portal-title mb-0">Portal de Notícias</h1>
+        <p class="portal-subtitle mb-0">Justiça Eleitoral – TSE e TREs</p>
+      </div>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <span id="scraping-badge"
+              class="badge {% if scraping %}bg-warning text-dark{% else %}bg-success{% endif %} d-flex align-items-center gap-1">
+          <span id="scraping-spinner"
+                class="spinner-border spinner-border-sm {% if not scraping %}d-none{% endif %}"
+                role="status"></span>
+          <span id="scraping-text">{% if scraping %}Coletando…{% else %}Atualizado{% endif %}</span>
+        </span>
+        <button id="btn-refresh" class="btn btn-outline-light btn-sm" onclick="triggerScrape()">
+          <i class="bi bi-arrow-repeat"></i> Atualizar
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="container-xl">
+    <div class="d-flex flex-wrap gap-4 align-items-center py-2">
+      <span class="stat-item"><i class="bi bi-newspaper"></i> <strong>{{ stats.total }}</strong> notícias</span>
+      <span class="stat-item"><i class="bi bi-buildings"></i> <strong>28</strong> fontes</span>
+      {% if stats.last_scrape %}
+      <span class="stat-item">
+        <i class="bi bi-clock"></i> Última coleta:
+        <strong>{{ stats.last_scrape[:16]|replace("T"," ") }}</strong>
+      </span>
+      {% endif %}
+      <span class="stat-item ms-auto text-muted small">Atualizado automaticamente a cada 2h</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="container-xl py-4">
+  <div class="row g-4">
+
+    <!-- SIDEBAR -->
+    <aside class="col-lg-3">
+      <!-- Search -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header fw-semibold"><i class="bi bi-search"></i> Buscar</div>
+        <div class="card-body">
+          <form method="GET" action="/">
+            <input type="hidden" name="source" value="{{ source }}" />
+            <div class="input-group">
+              <input type="text" name="q" class="form-control" placeholder="Palavra-chave…"
+                     value="{{ search }}" />
+              <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            </div>
+            {% if search or source %}
+            <a href="/" class="btn btn-outline-secondary btn-sm mt-2 w-100">
+              <i class="bi bi-x-circle"></i> Limpar filtros
+            </a>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+
+      <!-- Sources filter -->
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold"><i class="bi bi-funnel"></i> Filtrar por fonte</div>
+        <div class="card-body p-0">
+          <div class="source-list">
+            <a href="/?q={{ search }}" class="source-item {% if not source %}active{% endif %}">
+              <i class="bi bi-globe2"></i> Todas as fontes
+              <span class="badge bg-secondary ms-auto">{{ stats.total }}</span>
+            </a>
+            {% for s in sources_list %}
+            {% set src_count = namespace(value=0) %}
+            {% for row in stats.by_source %}
+              {% if row.sigla == s.sigla %}{% set src_count.value = row.c %}{% endif %}
+            {% endfor %}
+            <a href="/?source={{ s.sigla }}&q={{ search }}"
+               class="source-item {% if source == s.sigla %}active{% endif %}">
+              <span class="source-badge {{ 'tse' if s.sigla == 'TSE' else 'tre' }}">{{ s.sigla }}</span>
+              <span class="source-name">{{ s.nome }}</span>
+              {% if src_count.value %}
+              <span class="badge bg-secondary ms-auto">{{ src_count.value }}</span>
+              {% endif %}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- NEWS FEED -->
+    <section class="col-lg-9">
+
+      <!-- Toolbar -->
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div class="text-muted small">
+          {% if search or source %}
+            <i class="bi bi-filter"></i>
+            {% if search %}<strong>Busca:</strong> "{{ search }}"{% endif %}
+            {% if source %}<strong>Fonte:</strong> {{ source }}{% endif %}
+            —
+          {% endif %}
+          <strong>{{ total }}</strong> notícias encontradas
+          {% if total_pages > 1 %}, página {{ page }} de {{ total_pages }}{% endif %}
+        </div>
+      </div>
+
+      {% if news %}
+      <div class="news-grid">
+        {% for item in news %}
+        <article class="news-card">
+          {% if item.image_url %}
+          <a href="{{ item.url }}" target="_blank" rel="noopener" class="news-thumb-wrap">
+            <img src="{{ item.image_url }}" alt="" class="news-thumb"
+                 onerror="this.closest('.news-thumb-wrap').style.display='none'" loading="lazy" />
+          </a>
+          {% endif %}
+          <div class="news-body">
+            <div class="d-flex gap-2 align-items-center mb-1 flex-wrap">
+              <span class="badge-source {{ 'tse' if item.sigla == 'TSE' else 'tre' }}">{{ item.sigla }}</span>
+              {% if item.published_fmt %}
+              <span class="text-muted small"><i class="bi bi-calendar3"></i> {{ item.published_fmt }}</span>
+              {% endif %}
+            </div>
+            <h2 class="news-title">
+              <a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a>
+            </h2>
+            {% if item.summary %}
+            <p class="news-summary">{{ item.summary }}</p>
+            {% endif %}
+            <a href="{{ item.url }}" target="_blank" rel="noopener"
+               class="btn btn-sm btn-outline-primary mt-2">
+              Leia mais <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if total_pages > 1 %}
+      <nav class="mt-4" aria-label="Paginação">
+        <ul class="pagination justify-content-center flex-wrap">
+          {% if page > 1 %}
+          <li class="page-item">
+            <a class="page-link" href="?q={{ search }}&source={{ source }}&page={{ page-1 }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          {% endif %}
+          {% set start = [1, page-2]|max %}
+          {% set end = [total_pages, page+2]|min %}
+          {% for p in range(start, end+1) %}
+          <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="?q={{ search }}&source={{ source }}&page={{ p }}">{{ p }}</a>
+          </li>
+          {% endfor %}
+          {% if page < total_pages %}
+          <li class="page-item">
+            <a class="page-link" href="?q={{ search }}&source={{ source }}&page={{ page+1 }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>Nenhuma notícia encontrada</h3>
+        {% if search or source %}
+        <p class="text-muted">Tente remover os filtros ou aguarde a próxima coleta automática.</p>
+        <a href="/" class="btn btn-primary">Ver todas as notícias</a>
+        {% else %}
+        <p class="text-muted">
+          O banco ainda não foi populado.<br>
+          Clique em <strong>Atualizar</strong> para iniciar a coleta agora.
+        </p>
+        <button class="btn btn-primary" onclick="triggerScrape()">
+          <i class="bi bi-arrow-repeat"></i> Iniciar coleta
+        </button>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </section>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="portal-footer mt-5">
+  <div class="container-xl text-center">
+    <p class="mb-1">Portal de Notícias da Justiça Eleitoral &mdash; TSE + 27 TREs</p>
+    <p class="text-muted small mb-0">
+      As notícias são coletadas diretamente dos sites oficiais da Justiça Eleitoral Brasileira.
+      Coleta automática a cada 2 horas.
+    </p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function triggerScrape() {
+    const btn = document.getElementById('btn-refresh');
+    const badge = document.getElementById('scraping-badge');
+    const spinner = document.getElementById('scraping-spinner');
+    const text = document.getElementById('scraping-text');
+
+    btn.disabled = true;
+    badge.className = 'badge bg-warning text-dark d-flex align-items-center gap-1';
+    spinner.classList.remove('d-none');
+    text.textContent = 'Coletando…';
+
+    fetch('/scrape', { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'started') {
+          pollStatus();
+        } else {
+          text.textContent = 'Em andamento…';
+          setTimeout(pollStatus, 3000);
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        badge.className = 'badge bg-danger d-flex align-items-center gap-1';
+        text.textContent = 'Erro';
+        spinner.classList.add('d-none');
+      });
+  }
+
+  function pollStatus() {
+    fetch('/status')
+      .then(r => r.json())
+      .then(data => {
+        if (data.scraping.running) {
+          setTimeout(pollStatus, 4000);
+        } else {
+          document.getElementById('scraping-badge').className =
+            'badge bg-success d-flex align-items-center gap-1';
+          document.getElementById('scraping-spinner').classList.add('d-none');
+          document.getElementById('scraping-text').textContent = 'Atualizado';
+          document.getElementById('btn-refresh').disabled = false;
+          setTimeout(() => location.reload(), 1200);
+        }
+      })
+      .catch(() => setTimeout(pollStatus, 5000));
+  }
+
+  // Auto-poll se estiver coletando ao carregar
+  {% if scraping %}pollStatus();{% endif %}
+</script>
+</body>
+</html>

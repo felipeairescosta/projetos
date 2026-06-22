@@ -1248,96 +1248,123 @@ function renderCurrent(){
 
 // ─── ESPN API ────────────────────────────────────────────────────────────────
 
+// Shared event processor used by both fetchLiveScores and syncScheduleFromESPN.
+function applyESPNEvents(events){
+  if(!events||!events.length) return false;
+  let updated = false;
+  events.forEach(ev=>{
+    const comp = ev.competitions&&ev.competitions[0];
+    if(!comp) return;
+    const home = comp.competitors.find(c=>c.homeAway==='home');
+    const away = comp.competitors.find(c=>c.homeAway==='away');
+    if(!home||!away) return;
+    const hCode = ESPN_MAP[home.team.abbreviation]||home.team.abbreviation;
+    const aCode = ESPN_MAP[away.team.abbreviation]||away.team.abbreviation;
+    let status = 'NS';
+    if(ev.status?.type?.completed) {
+      status = 'FT';
+    } else {
+      const typeId = String(ev.status?.type?.id ?? '');
+      const typeSt = ev.status?.type?.state  || '';
+      const period = ev.status?.period        || 0;
+      if(typeId === '2' || typeSt === 'in' || period >= 1) status = 'LIVE';
+    }
+    const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
+    const clockStr  = ev.status?.displayClock || '';
+    const detail    = ev.status?.type?.shortDetail || '';
+    const apiPeriod = ev.status?.period || 0;
+    const minute    = clockStr;
+    const minuteNum = parseInt(clockStr) || 0;
+    const captureTs = Date.now();
+    let periodLabel = '';
+    if(status==='LIVE'){
+      if(/halftime|half\s*time/i.test(detail)) periodLabel='INT';
+      else if(apiPeriod===1) periodLabel='1T';
+      else if(apiPeriod===2) periodLabel='2T';
+      else if(apiPeriod===3) periodLabel='P1';
+      else if(apiPeriod===4) periodLabel='P2';
+      else periodLabel='1T';
+    }
+
+    function patchMatch(m, rev){
+      m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+      m.minute=minute; m.minuteNum=minuteNum; m.minuteTs=captureTs; m.periodLabel=periodLabel;
+      if(ev.date){
+        const brtMs=new Date(ev.date).getTime()-3*3600000;
+        const bd=new Date(brtMs);
+        m.brt=`${padNum(bd.getUTCHours())}h`;
+        m.date=`${padNum(bd.getUTCDate())}/${padNum(bd.getUTCMonth()+1)}`;
+      }
+      updated=true;
+    }
+
+    let matched = false;
+    for(const g of Object.values(GROUPS)){
+      for(const m of g.matches){
+        if((m.home===hCode&&m.away===aCode)||(m.home===aCode&&m.away===hCode)){
+          patchMatch(m, m.home===aCode);
+          matched=true;
+        }
+      }
+    }
+    if(!matched){
+      for(const r of Object.values(KNOCKOUT)){
+        for(const m of r.matches){
+          const rh=resolveKOTeam(m.home), ra=resolveKOTeam(m.away);
+          if(!rh||!ra) continue;
+          if((rh.code===hCode&&ra.code===aCode)||(rh.code===aCode&&ra.code===hCode)){
+            const rev=rh.code===aCode;
+            patchMatch(m, rev);
+            if(status==='FT'){ m.home=rh.code; m.away=ra.code; }
+          }
+        }
+      }
+    }
+  });
+  if(updated) recalcStandings();
+  return updated;
+}
+
 async function fetchLiveScores(){
   try {
-    const url = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
-    const resp = await fetch(url,{signal:AbortSignal.timeout(6000)});
+    const resp = await fetch(
+      'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard',
+      {signal:AbortSignal.timeout(6000)}
+    );
     if(!resp.ok) throw new Error('HTTP '+resp.status);
     const data = await resp.json();
-    if(!data.events) return false;
-
-    let updated = false;
-    data.events.forEach(ev=>{
-      const comp = ev.competitions&&ev.competitions[0];
-      if(!comp) return;
-      const home = comp.competitors.find(c=>c.homeAway==='home');
-      const away = comp.competitors.find(c=>c.homeAway==='away');
-      if(!home||!away) return;
-      const hCode = ESPN_MAP[home.team.abbreviation]||home.team.abbreviation;
-      const aCode = ESPN_MAP[away.team.abbreviation]||away.team.abbreviation;
-      let status = 'NS';
-      if(ev.status?.type?.completed) {
-        status = 'FT';
-      } else {
-        const typeId = String(ev.status?.type?.id ?? '');
-        const typeSt = ev.status?.type?.state  || '';
-        const period = ev.status?.period        || 0;
-        if(typeId === '2' || typeSt === 'in' || period >= 1) status = 'LIVE';
-      }
-
-      // Extract period and clock for real-time timer
-      const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
-      const clockStr  = ev.status?.displayClock || '';
-      const detail    = ev.status?.type?.shortDetail || '';
-      const apiPeriod = ev.status?.period || 0;
-      const minute    = clockStr; // backward compat for banner
-      const minuteNum = parseInt(clockStr) || 0; // "23:45" → 23
-      const captureTs = Date.now();
-      let periodLabel = '';
-      if(status==='LIVE'){
-        if(/halftime|half\s*time/i.test(detail)) periodLabel='INT';
-        else if(apiPeriod===1) periodLabel='1T';
-        else if(apiPeriod===2) periodLabel='2T';
-        else if(apiPeriod===3) periodLabel='P1';
-        else if(apiPeriod===4) periodLabel='P2';
-        else periodLabel='1T'; // fallback
-      }
-      let matched = false;
-      for(const g of Object.values(GROUPS)){
-        for(const m of g.matches){
-          if((m.home===hCode&&m.away===aCode)||(m.home===aCode&&m.away===hCode)){
-            const rev = m.home===aCode;
-            m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
-            m.minute=minute; m.minuteNum=minuteNum; m.minuteTs=captureTs; m.periodLabel=periodLabel;
-            if(ev.date){
-              const brtMs=new Date(ev.date).getTime()-3*3600000;
-              const bd=new Date(brtMs);
-              m.brt=`${padNum(bd.getUTCHours())}h`;
-              m.date=`${padNum(bd.getUTCDate())}/${padNum(bd.getUTCMonth()+1)}`;
-            }
-            matched=true; updated=true;
-          }
-        }
-      }
-      if(!matched){
-        // Try knockout matches (compare resolved teams)
-        for(const r of Object.values(KNOCKOUT)){
-          for(const m of r.matches){
-            const rh=resolveKOTeam(m.home), ra=resolveKOTeam(m.away);
-            if(!rh||!ra) continue;
-            if((rh.code===hCode&&ra.code===aCode)||(rh.code===aCode&&ra.code===hCode)){
-              const rev=rh.code===aCode;
-              m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
-            m.minute=minute; m.minuteNum=minuteNum; m.minuteTs=captureTs; m.periodLabel=periodLabel;
-              if(status==='FT'){ m.home=rh.code; m.away=ra.code; }
-              if(ev.date){
-                const brtMs=new Date(ev.date).getTime()-3*3600000;
-                const bd=new Date(brtMs);
-                m.brt=`${padNum(bd.getUTCHours())}h`;
-                m.date=`${padNum(bd.getUTCDate())}/${padNum(bd.getUTCMonth()+1)}`;
-              }
-              updated=true;
-            }
-          }
-        }
-      }
-    });
-    if(updated) recalcStandings();
-    return updated;
+    return applyESPNEvents(data.events||[]);
   } catch(e){
     console.log('ESPN API:', e.message);
     return false;
   }
+}
+
+// Fetches all group-stage dates from ESPN to correct schedule dates and times.
+// Runs once on page load in the background — does not block the UI.
+async function syncScheduleFromESPN(){
+  const BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=';
+  const start = new Date('2026-06-11T12:00:00Z');
+  const end   = new Date('2026-07-03T12:00:00Z');
+  const dates = [];
+  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    dates.push(`${d.getUTCFullYear()}${padNum(d.getUTCMonth()+1)}${padNum(d.getUTCDate())}`);
+  }
+  let anyUpdated = false;
+  for(let i=0; i<dates.length; i+=4){
+    const batch = dates.slice(i,i+4);
+    const results = await Promise.allSettled(
+      batch.map(dt=>
+        fetch(`${BASE}${dt}`,{signal:AbortSignal.timeout(8000)})
+          .then(r=>r.ok?r.json():null).catch(()=>null)
+      )
+    );
+    results.forEach(r=>{
+      if(r.status==='fulfilled'&&r.value?.events)
+        if(applyESPNEvents(r.value.events)) anyUpdated=true;
+    });
+  }
+  if(anyUpdated){ renderCurrent(); updateLiveBanner(); }
 }
 
 function recalcStandings(){
@@ -1507,6 +1534,7 @@ recalcStandings();       // ensure standings match the FT match results
 renderCurrent();
 updateLiveBanner();
 doRefresh();
+syncScheduleFromESPN();  // background: fetch all group-stage dates from ESPN to fix schedule
 </script>
 </body>
 </html>

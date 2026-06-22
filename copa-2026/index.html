@@ -1477,7 +1477,7 @@ setInterval(()=>{
   });
 }, 1000);
 
-let countdown = 60;
+let countdown = 30;
 setInterval(()=>{
   countdown--;
   const el = document.getElementById('lastUpd');
@@ -1485,10 +1485,10 @@ setInterval(()=>{
     const base = el.textContent.split(' | ')[0];
     el.textContent = base + ` | próxima em ${countdown}s`;
   }
-  if(countdown<=0){ countdown=60; doRefresh(); }
+  if(countdown<=0){ countdown=30; doRefresh(); }
 
-  // Re-estimate every minute in case a new match window opened
-  if(countdown % 60 === 0){ estimateMatchStatuses(); updateLiveBanner(); }
+  // Re-estimate every 30s in case a new match window opened
+  if(countdown % 30 === 0){ estimateMatchStatuses(); updateLiveBanner(); }
 },1000);
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────

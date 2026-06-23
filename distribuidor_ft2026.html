@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distribuidor de Processos — Forças-Tarefa 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --surface:#fff; --surface2:#f0f2f7; --border:#d8dce6;
+    --text:#0d1629; --text2:#3a4462; --text3:#6b7599;
+    --azul:#003580; --azul2:#1a4fa8; --azul-light:#dce8f8; --azul-mid:#4d7fc4;
+    --verde:#0d6e3c; --verde-light:#d5f0e3;
+    --amarelo:#b45309; --amarelo-light:#fef3cd;
+    --vermelho:#b91c1c; --vermelho-light:#fde8e8;
+    --roxo:#5b21b6; --roxo-light:#ede9fe;
+    --cinza:#374151; --cinza-light:#f3f4f6;
+    --radius:12px; --radius-lg:18px; --shadow:0 2px 12px rgba(0,30,80,0.08);
+  }
+  *, *::before, *::after { box-sizing:border-box; }
+  .wrap { font-family:'IBM Plex Sans',sans-serif; padding:1.25rem 0 1rem; color:var(--text); }
+
+  /* Header */
+  .header-bar { background:var(--azul); border-radius:var(--radius-lg); padding:1rem 1.5rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:12px; }
+  .header-icon { width:40px; height:40px; background:rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; flex-shrink:0; }
+  .header-title { font-family:'Sora',sans-serif; font-size:15px; font-weight:700; color:#fff; }
+  .header-sub { font-size:12px; color:rgba(255,255,255,0.65); margin-top:2px; }
+  .header-save { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px; color:rgba(255,255,255,0.7); }
+  .save-dot { width:7px; height:7px; border-radius:50%; background:#4ade80; flex-shrink:0; }
+  .save-dot.unsaved { background:#fbbf24; animation:pulse .8s infinite alternate; }
+  @keyframes pulse { to { opacity:.3; } }
+
+  /* Abas de grupo */
+  .grupo-tabs { display:flex; gap:0; margin-bottom:1.25rem; border-radius:var(--radius-lg); overflow:hidden; border:1.5px solid var(--border); }
+  .grupo-tab { flex:1; font-size:13px; font-family:'Sora',sans-serif; padding:10px 18px; border:none; background:var(--surface2); color:var(--text3); cursor:pointer; font-weight:700; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:8px; border-right:1.5px solid var(--border); }
+  .grupo-tab:last-child { border-right:none; }
+  .grupo-tab:hover:not(.active) { background:var(--border); color:var(--text2); }
+  .grupo-tab.active-rcand { background:var(--azul); color:#fff; }
+  .grupo-tab.active-rep   { background:var(--roxo); color:#fff; }
+  .grupo-tab.active-contas { background:#0f766e; color:#fff; }
+  .grupo-tab.active-gestao { background:var(--cinza); color:#fff; }
+  .grupo-tab-badge { font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px; background:rgba(255,255,255,0.25); }
+
+  /* Sub-abas de classe */
+  .classe-subtabs { display:flex; gap:6px; margin-bottom:1.25rem; flex-wrap:wrap; }
+  .classe-subtab { font-size:12px; font-family:'IBM Plex Sans',sans-serif; padding:7px 14px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface); color:var(--text3); cursor:pointer; font-weight:600; transition:all .15s; display:flex; align-items:center; gap:6px; }
+  .classe-subtab:hover { border-color:var(--azul-mid); color:var(--text2); }
+  .classe-subtab.active-rep { background:#ede9fe; border-color:#5b21b6; color:#5b21b6; }
+  .classe-subtab.active-dr  { background:#d5f0e3; border-color:#0d6e3c; color:#0d6e3c; }
+  .classe-subtab.active-re  { background:#fef3cd; border-color:#b45309; color:#b45309; }
+  .classe-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  /* Abas internas */
+  .inner-tabs { display:flex; gap:4px; margin-bottom:1.25rem; background:var(--surface2); border-radius:10px; padding:4px; border:0.5px solid var(--border); }
+  .inner-tab { flex:1; font-size:12px; font-family:'IBM Plex Sans',sans-serif; padding:7px 8px; border-radius:8px; border:none; background:transparent; color:var(--text3); cursor:pointer; font-weight:500; transition:all .15s; position:relative; }
+  .inner-tab.active { color:#fff; }
+  .inner-tab:hover:not(.active) { background:var(--border); color:var(--text2); }
+  .tab-badge { position:absolute; top:3px; right:6px; font-size:9px; font-weight:700; padding:1px 5px; border-radius:10px; background:rgba(255,255,255,0.3); color:#fff; }
+  .inner-tab:not(.active) .tab-badge { background:var(--azul); color:#fff; }
+
+  /* Cards */
+  .card { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1.1rem 1.25rem; margin-bottom:1rem; box-shadow:var(--shadow); }
+  .card-title { font-family:'Sora',sans-serif; font-size:12px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; margin-bottom:.9rem; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .metrics-row { display:flex; gap:10px; margin-bottom:1rem; flex-wrap:wrap; }
+  .metric { flex:1; min-width:90px; background:var(--surface2); border:0.5px solid var(--border); border-radius:var(--radius); padding:.75rem 1rem; }
+  .metric-label { font-size:11px; color:var(--text3); margin-bottom:3px; text-transform:uppercase; letter-spacing:.06em; }
+  .metric-value { font-family:'Sora',sans-serif; font-size:22px; font-weight:700; }
+
+  label { font-size:12px; font-weight:600; color:var(--text2); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:.05em; }
+  input[type=text], select { width:100%; height:38px; padding:0 12px; border:0.5px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font-size:14px; font-family:'IBM Plex Sans',sans-serif; outline:none; }
+  input[type=text]:focus, select:focus { border-color:var(--azul-mid); box-shadow:0 0 0 3px rgba(0,53,128,.08); }
+
+  .btn { height:38px; padding:0 16px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text2); font-size:13px; font-weight:600; font-family:'IBM Plex Sans',sans-serif; cursor:pointer; transition:all .15s; white-space:nowrap; display:inline-flex; align-items:center; gap:6px; }
+  .btn:hover { background:var(--surface2); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-danger { border-color:#fca5a5; background:var(--vermelho-light); color:var(--vermelho); }
+  .btn-danger:hover { background:#fca5a5; }
+  .btn-primary { border-color:var(--azul); background:var(--azul); color:#fff; }
+  .btn-primary:hover { background:var(--azul2); border-color:var(--azul2); }
+
+  .drop-zone { border:2px dashed var(--azul-mid); border-radius:var(--radius); padding:1.25rem 1rem; text-align:center; cursor:pointer; transition:all .2s; background:var(--surface2); }
+  .drop-zone:hover, .drop-zone.over { background:var(--azul-light); border-color:var(--azul); }
+  .drop-icon { font-size:26px; color:var(--azul-mid); margin-bottom:5px; }
+  .drop-title { font-family:'Sora',sans-serif; font-size:13px; font-weight:600; color:var(--text2); margin-bottom:2px; }
+  .drop-sub { font-size:11px; color:var(--text3); }
+
+  .file-ok { background:var(--verde-light); border:0.5px solid #86efac; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:9px; margin-top:.6rem; }
+  .file-ok-name { font-size:13px; font-weight:600; color:var(--verde); }
+  .file-ok-sub { font-size:11px; color:var(--verde); opacity:.8; }
+
+  .col-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:.75rem; }
+  .col-row > div { flex:1; min-width:140px; }
+
+  .preview-wrap { overflow-x:auto; margin-top:.65rem; border-radius:8px; border:0.5px solid var(--border); }
+  .ptable { width:100%; border-collapse:collapse; font-size:12px; }
+  .ptable th { background:var(--surface2); padding:6px 10px; text-align:left; font-weight:600; color:var(--text2); border-bottom:0.5px solid var(--border); }
+  .ptable td { padding:5px 10px; border-bottom:0.5px solid var(--border); color:var(--text); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ptable tr:last-child td { border-bottom:none; }
+
+  .result-wrap { overflow-x:auto; border-radius:8px; border:0.5px solid var(--border); margin-top:.5rem; }
+  .rtable { width:100%; border-collapse:collapse; font-size:12px; }
+  .rtable td, .rtable th { padding:6px 10px; border-bottom:0.5px solid var(--border); color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rtable th { background:var(--surface2); font-weight:600; color:var(--text2); text-align:left; }
+  .rtable tr:last-child td { border-bottom:none; }
+  .rtable tr:nth-child(even) td { background:var(--surface2); }
+
+  .sbadge { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; }
+
+  /* Status badges */
+  .st-tramitando { background:#dbeafe; color:#1e40af; }
+  .st-julgado    { background:var(--verde-light); color:var(--verde); }
+  .st-baixado    { background:#f3f4f6; color:#374151; }
+
+  .method-opt { display:flex; gap:8px; margin-bottom:.9rem; flex-wrap:wrap; }
+  .method-card { flex:1; min-width:100px; padding:9px 10px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; transition:all .15s; background:var(--surface); }
+  .method-card-title { font-size:12px; font-weight:600; color:var(--text); margin-bottom:2px; }
+  .method-card-desc { font-size:10px; color:var(--text3); line-height:1.3; }
+
+  .alert-ok   { background:var(--verde-light);   border-left:3px solid #86efac;    color:var(--verde);    border-radius:0 8px 8px 0; font-size:12px; padding:8px 12px; }
+  .alert-err  { background:var(--vermelho-light); border-left:3px solid #fca5a5;    color:var(--vermelho); border-radius:0 8px 8px 0; font-size:12px; padding:8px 12px; }
+  .alert-info { background:var(--azul-light);     border-left:3px solid var(--azul); color:var(--azul2);   border-radius:0 8px 8px 0; font-size:12px; padding:8px 12px; }
+
+  .empty { text-align:center; color:var(--text3); font-size:13px; padding:1.5rem 0; }
+  .empty i { font-size:28px; display:block; margin-bottom:8px; }
+  .divider { height:0.5px; background:var(--border); margin:.75rem 0; }
+
+  .chips-wrap { display:flex; flex-wrap:wrap; min-height:34px; padding:3px 0; }
+  .server-chip { display:inline-flex; align-items:center; gap:5px; border-radius:20px; padding:3px 10px 3px 11px; font-size:12px; font-weight:600; margin:2px; }
+  .chip-x { background:none; border:none; cursor:pointer; font-size:13px; line-height:1; padding:0; display:flex; align-items:center; opacity:.7; }
+  .chip-x:hover { opacity:1; }
+
+  .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin-bottom:.75rem; }
+  .stat-card { background:var(--surface2); border:0.5px solid var(--border); border-radius:var(--radius); padding:.7rem .9rem; text-align:center; }
+  .stat-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+  .stat-value { font-family:'Sora',sans-serif; font-size:19px; font-weight:700; }
+  .stat-sub { font-size:10px; color:var(--text3); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .stat-card-click { cursor:pointer; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+  .stat-card-click:hover { transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,30,80,0.12); border-color:var(--azul-mid); }
+  .stat-card-click:focus { outline:none; box-shadow:0 0 0 3px rgba(0,53,128,.12); }
+  .server-link { border:none; background:transparent; color:inherit; font:inherit; font-weight:700; cursor:pointer; padding:0; text-align:left; text-decoration:underline; text-underline-offset:2px; }
+  .server-link:hover { opacity:.8; }
+  .server-link-badge { border:none; cursor:pointer; text-decoration:none; }
+  .proc-modal-box { max-width:820px; max-height:86vh; overflow:auto; }
+  .proc-modal-head { display:flex; align-items:flex-start; gap:10px; margin-bottom:1rem; }
+  .proc-modal-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
+  .proc-modal-title { font-family:'Sora',sans-serif; font-size:15px; font-weight:800; color:var(--text); margin-bottom:3px; }
+  .proc-modal-sub { font-size:12px; color:var(--text3); line-height:1.4; }
+  .proc-modal-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .proc-modal-table th { background:var(--surface2); padding:7px 10px; text-align:left; color:var(--text2); border-bottom:0.5px solid var(--border); }
+  .proc-modal-table td { padding:7px 10px; border-bottom:0.5px solid var(--border); color:var(--text); vertical-align:top; }
+  .proc-modal-table tr:last-child td { border-bottom:none; }
+  .proc-modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:1rem; flex-wrap:wrap; }
+
+  .bar-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+  .bar-name { font-size:11px; color:var(--text2); font-weight:500; width:130px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right; }
+  .bar-track { flex:1; height:20px; background:var(--surface2); border-radius:4px; overflow:hidden; border:0.5px solid var(--border); }
+  .bar-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:7px; transition:width .4s ease; }
+  .bar-val { font-size:10px; font-weight:700; color:#fff; }
+  .bar-pct { font-size:10px; color:var(--text3); width:36px; text-align:right; flex-shrink:0; }
+
+  .rank-table { width:100%; border-collapse:collapse; font-size:11px; }
+  .rank-table th { background:var(--surface2); padding:6px 8px; text-align:left; font-weight:600; color:var(--text2); border-bottom:0.5px solid var(--border); }
+  .rank-table td { padding:6px 8px; border-bottom:0.5px solid var(--border); color:var(--text); }
+  .rank-table tr:last-child td { border-bottom:none; }
+
+  /* Progress bar */
+  .progress-wrap { background:var(--surface2); border-radius:6px; height:10px; overflow:hidden; border:0.5px solid var(--border); }
+  .progress-fill { height:100%; border-radius:6px; transition:width .4s ease; }
+
+  /* Gestão — filtros */
+  .filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; }
+  .filter-row select, .filter-row input { height:34px; font-size:12px; flex:1; min-width:120px; }
+
+  /* Gestão — tabela de processos */
+  .gestao-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .gestao-table th { background:var(--surface2); padding:7px 10px; text-align:left; font-weight:600; color:var(--text2); border-bottom:0.5px solid var(--border); white-space:nowrap; }
+  .gestao-table td { padding:6px 10px; border-bottom:0.5px solid var(--border); color:var(--text); vertical-align:middle; }
+  .gestao-table tr:last-child td { border-bottom:none; }
+  .gestao-table tr:hover td { background:var(--surface2); }
+  select.st-select { height:28px; font-size:11px; padding:0 6px; border-radius:6px; font-weight:600; cursor:pointer; border:1px solid var(--border); }
+  select.st-select.st-tramitando { background:#dbeafe; color:#1e40af; }
+  select.st-select.st-julgado    { background:var(--verde-light); color:var(--verde); }
+  select.st-select.st-baixado    { background:#f3f4f6; color:#374151; }
+
+  /* Histórico */
+  .hist-item { display:flex; gap:10px; align-items:flex-start; padding:.5rem 0; border-bottom:0.5px solid var(--border); font-size:11px; }
+  .hist-item:last-child { border-bottom:none; }
+  .hist-time { color:var(--text3); white-space:nowrap; flex-shrink:0; width:110px; }
+  .hist-desc { color:var(--text2); line-height:1.4; }
+
+  .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(0,0,0,.15); border-top-color:currentColor; border-radius:50%; animation:spin .7s linear infinite; vertical-align:-2px; }
+  @keyframes spin { to { transform:rotate(360deg) } }
+
+  .pagination { display:flex; gap:4px; align-items:center; margin-top:.75rem; flex-wrap:wrap; }
+  .pg-btn { height:30px; min-width:30px; padding:0 8px; border-radius:6px; border:0.5px solid var(--border); background:var(--surface); color:var(--text2); font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; justify-content:center; }
+  .pg-btn:hover:not(:disabled) { background:var(--surface2); }
+  .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .pg-btn.active { color:#fff; }
+  .pg-info { font-size:11px; color:var(--text3); padding:0 6px; }
+
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:1000; backdrop-filter:blur(2px); }
+  .modal-box { background:#fff; border-radius:var(--radius-lg); padding:1.5rem; max-width:360px; width:92%; box-shadow:0 8px 40px rgba(0,0,0,.18); }
+  .modal-title { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; margin-bottom:.5rem; color:var(--text); }
+  .modal-msg { font-size:13px; color:var(--text2); margin-bottom:1.25rem; line-height:1.5; }
+  .modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+  .modal-input { width:100%; height:40px; padding:0 12px; border:0.5px solid var(--border); border-radius:8px; font-size:14px; font-family:'IBM Plex Sans',sans-serif; margin:.25rem 0 1rem; outline:none; }
+  .modal-input:focus { border-color:var(--azul-mid); box-shadow:0 0 0 3px rgba(0,53,128,.08); }
+  .modal-error { display:none; font-size:12px; color:var(--vermelho); background:var(--vermelho-light); border-left:3px solid #fca5a5; padding:7px 10px; border-radius:0 8px 8px 0; margin:-.35rem 0 1rem; }
+  .clear-options { margin:.25rem 0 1rem; display:grid; gap:8px; }
+  .clear-option { display:flex; align-items:flex-start; gap:9px; padding:10px 12px; border:0.5px solid var(--border); border-radius:10px; background:var(--surface2); cursor:pointer; }
+  .clear-option:hover { border-color:var(--azul-mid); background:var(--azul-light); }
+  .clear-option input { margin-top:2px; width:15px; height:15px; flex-shrink:0; accent-color:var(--azul); }
+  .clear-option-title { font-size:13px; font-weight:700; color:var(--text); line-height:1.2; }
+  .clear-option-desc { font-size:11px; color:var(--text3); line-height:1.35; margin-top:2px; }
+
+  .pdf-btn { height:38px; padding:0 14px; border-radius:8px; font-size:12px; font-weight:600; font-family:'IBM Plex Sans',sans-serif; cursor:pointer; transition:all .15s; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; border:0.5px solid #fca5a5; background:#fde8e8; color:#7f1d1d; }
+  .pdf-btn:hover { background:#fca5a5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2 style="position:absolute;width:1px;height:1px;overflow:hidden">Distribuidor — Força Tarefa 2026</h2>
+  <div class="header-bar">
+    <div class="header-icon"><i class="ti ti-scale" aria-hidden="true"></i></div>
+    <div>
+      <div class="header-title">Distribuidor de Processos — Forças-Tarefa</div>
+      <div class="header-sub">Eleições 2026 · FT RCAND | FT Representação | FTCONTAS</div>
+    </div>
+    <div class="header-save" id="saveStatus">
+      <span class="save-dot" id="saveDot"></span>
+      <span id="saveLabel">Salvo</span>
+    </div>
+  </div>
+
+  <div class="grupo-tabs" id="grupoTabs"></div>
+  <div id="subtabsRep" style="display:none">
+    <div class="classe-subtabs" id="classeSubtabs"></div>
+  </div>
+  <div class="inner-tabs" id="innerTabs"></div>
+  <div id="classeContent"></div>
+</div>
+
+<div id="confirmModal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-title" id="confirmTitle">Confirmar ação</div>
+    <div class="modal-msg" id="confirmMsg"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeConfirm(false)">Cancelar</button>
+      <button class="btn btn-danger" id="confirmOkBtn" onclick="closeConfirm(true)">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="serverProcModal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="serverProcTitle">
+  <div class="modal-box proc-modal-box">
+    <div id="serverProcContent"></div>
+  </div>
+</div>
+
+<div id="passwordModal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-title" id="passwordTitle">Confirmar limpeza total</div>
+    <div class="modal-msg" id="passwordMsg"></div>
+    <div class="clear-options" id="clearOptions">
+      <label class="clear-option" for="clearServers">
+        <input type="checkbox" id="clearServers" checked>
+        <span>
+          <span class="clear-option-title">Servidores</span>
+          <span class="clear-option-desc">Remove as equipes cadastradas nas abas FT RCAND, FT Representação e FTCONTAS.</span>
+        </span>
+      </label>
+      <label class="clear-option" for="clearProcesses">
+        <input type="checkbox" id="clearProcesses" checked>
+        <span>
+          <span class="clear-option-title">Processos e distribuições</span>
+          <span class="clear-option-desc">Remove planilhas importadas, resultados, status, histórico e dados de gestão.</span>
+        </span>
+      </label>
+    </div>
+    <input type="password" class="modal-input" id="passwordInput" placeholder="Digite a senha" autocomplete="off" onkeydown="if(event.key==='Enter') closePasswordModal(true)"/>
+    <div class="modal-error" id="passwordError">Senha incorreta.</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closePasswordModal(false)">Cancelar</button>
+      <button class="btn btn-danger" id="passwordOkBtn" onclick="closePasswordModal(true)">Limpar tudo</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+const { jsPDF } = window.jspdf;
+
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════════════════════════════
+const GRUPOS = [
+  { id:'rcand', label:'FT RCAND',         cor:'#003580', corLight:'#dce8f8', corText:'#003580',
+    classes:[{ id:'rc',  label:'Registro de Candidaturas', sigla:'RC',  cor:'#003580', corLight:'#dce8f8', corText:'#003580' }] },
+  { id:'rep',   label:'FT Representação', cor:'#5b21b6', corLight:'#ede9fe', corText:'#5b21b6',
+    classes:[{ id:'rep', label:'Representações, Direito de Resposta e Representações Especiais', sigla:'REP/DR/RE', cor:'#5b21b6', corLight:'#ede9fe', corText:'#5b21b6' }] },
+  { id:'contas', label:'FTCONTAS', cor:'#0f766e', corLight:'#ccfbf1', corText:'#0f766e',
+    classes:[{ id:'contas', label:'Prestação de Contas', sigla:'CONTAS', cor:'#0f766e', corLight:'#ccfbf1', corText:'#0f766e' }] },
+];
+
+const INNER_TABS_DIST   = ['servidores','processos','resultado','estatisticas'];
+const INNER_LABELS_DIST = [
+  { icon:'ti-users',     label:'Servidores'    },
+  { icon:'ti-upload',    label:'Processos'     },
+  { icon:'ti-list',      label:'Resultado'     },
+  { icon:'ti-chart-bar', label:'Estatísticas'  },
+];
+const INNER_TABS_GEST   = ['painel','processos','historico'];
+const INNER_LABELS_GEST = [
+  { icon:'ti-dashboard',  label:'Painel'     },
+  { icon:'ti-list-check', label:'Processos'  },
+  { icon:'ti-history',    label:'Histórico'  },
+];
+
+const STATUS_LIST = ['TRAMITANDO','JULGADO','BAIXADO'];
+const STATUS_CLS  = { 'TRAMITANDO':'st-tramitando', 'JULGADO':'st-julgado', 'BAIXADO':'st-baixado' };
+const DEFAULT_STATUS = 'TRAMITANDO';
+function normalizeStatus(status) {
+  const raw = String(status || '').trim();
+  const upper = raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+  if (upper === 'TRAMITANDO') return 'TRAMITANDO';
+  if (upper === 'JULGADO' || upper === 'CONCLUIDO' || upper === 'CONCLUIDA') return 'JULGADO';
+  if (upper === 'BAIXADO' || upper === 'BAIXADA') return 'BAIXADO';
+  if (upper === 'PENDENTE' || upper === 'EM ANDAMENTO' || upper === 'DEVOLVIDO' || upper === 'SOBRESTADO') return 'TRAMITANDO';
+  return DEFAULT_STATUS;
+}
+const BAR_COLORS  = ['#003580','#1a4fa8','#4d7fc4','#0d6e3c','#b45309','#7c3d0f','#5b21b6','#0e7490','#b91c1c','#374151'];
+const ITENS_PAG   = 50;
+const LS_KEY      = 'ft2026_v5';
+const ADMIN_CLEAR_PASSWORD = '@eleicao2026';
+
+// ═══════════════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════════════
+let grupoState = {};   // servidores compartilhados por grupo
+let classeState = {};  // processos/resultado por classe
+let gestaoState = {    // estado da aba Gestão
+  innerTab:    'painel',
+  filtroGrupo: 'todos',
+  filtroServ:  '',
+  filtroSt:    '',
+  filtroBusca: '',
+  pagina:      1,
+};
+// Tabela de status: { [classeId]: { [numProcesso]: { status, obs, ts } } }
+let statusData = {};
+// Histórico de eventos
+let historico = [];
+
+let activeGrupo      = 'rcand';
+let confirmCallback  = null;
+let passwordCallback = null;
+let saveTimer        = null;
+
+// ─── Init estado ─────────────────────────────────────────────────
+function initState() {
+  GRUPOS.forEach(g => {
+    grupoState[g.id] = { servers:[], parsedServData:[], innerTab:'servidores', activeClasse:g.classes[0].id };
+    g.classes.forEach(c => {
+      classeState[c.id] = { parsedData:[], resultData:[], metodo:'roundrobin', colProc:'', colExtra:'', pagina:1 };
+      statusData[c.id]  = {};
+    });
+  });
+}
+
+
+function normalizarStatusData() {
+  Object.keys(statusData || {}).forEach(classeId => {
+    Object.keys(statusData[classeId] || {}).forEach(numProc => {
+      const item = statusData[classeId][numProc] || {};
+      statusData[classeId][numProc] = { ...item, status: normalizeStatus(item.status) };
+    });
+  });
+  historico = (historico || []).map(h => ({ ...h, de: normalizeStatus(h.de), para: normalizeStatus(h.para) }));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PERSISTÊNCIA localStorage
+// ═══════════════════════════════════════════════════════════════
+function salvarLS() {
+  try {
+    const payload = {
+      v: 5,
+      grupoState:  JSON.parse(JSON.stringify(grupoState,   (k,v) => k==='parsedServData'?[]:v)),
+      classeState: JSON.parse(JSON.stringify(classeState,  (k,v) => k==='parsedData'?[]:v)),
+      gestaoState, statusData, historico,
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+    setSaveStatus(true);
+  } catch(e) { console.warn('Erro ao salvar:', e); }
+}
+
+function carregarLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const p = JSON.parse(raw);
+    if (!p || p.v !== 5) return false;
+    // Mescla preservando estrutura
+    GRUPOS.forEach(g => {
+      if (p.grupoState?.[g.id]) {
+        const gs = p.grupoState[g.id];
+        grupoState[g.id].servers     = gs.servers     || [];
+        grupoState[g.id].innerTab    = gs.innerTab    || 'servidores';
+        grupoState[g.id].activeClasse= gs.activeClasse|| g.classes[0].id;
+      }
+      g.classes.forEach(c => {
+        if (p.classeState?.[c.id]) {
+          const cs = p.classeState[c.id];
+          classeState[c.id].resultData = cs.resultData || [];
+          classeState[c.id].metodo     = cs.metodo     || 'roundrobin';
+          classeState[c.id].colProc    = cs.colProc    || '';
+          classeState[c.id].colExtra   = cs.colExtra   || '';
+          classeState[c.id].pagina     = cs.pagina     || 1;
+        }
+        if (p.statusData?.[c.id]) statusData[c.id] = p.statusData[c.id];
+      });
+    });
+    if (p.gestaoState) Object.assign(gestaoState, p.gestaoState);
+    if (p.historico)   historico = p.historico;
+    normalizarStatusData();
+    return true;
+  } catch(e) { console.warn('Erro ao carregar:', e); return false; }
+}
+
+function setSaveStatus(saved) {
+  const dot   = document.getElementById('saveDot');
+  const label = document.getElementById('saveLabel');
+  if (!dot) return;
+  if (saved) { dot.className='save-dot'; label.textContent='Salvo'; }
+  else       { dot.className='save-dot unsaved'; label.textContent='Salvando…'; }
+}
+
+function markDirty() {
+  setSaveStatus(false);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(salvarLS, 800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODAL DE CONFIRMAÇÃO
+// ═══════════════════════════════════════════════════════════════
+function showConfirm(title, msg, okLabel, cb) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent   = msg;
+  document.getElementById('confirmOkBtn').textContent = okLabel || 'Confirmar';
+  document.getElementById('confirmModal').style.display = 'flex';
+  confirmCallback = cb;
+}
+function closeConfirm(ok) {
+  document.getElementById('confirmModal').style.display = 'none';
+  if (confirmCallback) confirmCallback(ok);
+  confirmCallback = null;
+}
+
+function showPasswordModal(title, msg, cb) {
+  document.getElementById('passwordTitle').textContent = title;
+  document.getElementById('passwordMsg').textContent   = msg;
+  document.getElementById('passwordInput').value       = '';
+  document.getElementById('passwordError').textContent = 'Senha incorreta.';
+  document.getElementById('passwordError').style.display = 'none';
+  document.getElementById('clearServers').checked = true;
+  document.getElementById('clearProcesses').checked = true;
+  document.getElementById('passwordModal').style.display = 'flex';
+  passwordCallback = cb;
+  setTimeout(() => document.getElementById('passwordInput').focus(), 50);
+}
+function closePasswordModal(ok) {
+  const modal = document.getElementById('passwordModal');
+  const error = document.getElementById('passwordError');
+  if (!ok) {
+    modal.style.display = 'none';
+    passwordCallback = null;
+    return;
+  }
+  const limparServidores = document.getElementById('clearServers').checked;
+  const limparProcessos  = document.getElementById('clearProcesses').checked;
+  if (!limparServidores && !limparProcessos) {
+    error.textContent = 'Marque pelo menos uma opção para limpar.';
+    error.style.display = 'block';
+    return;
+  }
+  const senha = document.getElementById('passwordInput').value;
+  if (senha !== ADMIN_CLEAR_PASSWORD) {
+    error.textContent = 'Senha incorreta.';
+    error.style.display = 'block';
+    document.getElementById('passwordInput').select();
+    return;
+  }
+  modal.style.display = 'none';
+  if (passwordCallback) passwordCallback({ servidores:limparServidores, processos:limparProcessos });
+  passwordCallback = null;
+}
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    closeConfirm(false);
+    closePasswordModal(false);
+  }
+});
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeServidorProcessos(); });
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS NAVEGAÇÃO
+// ═══════════════════════════════════════════════════════════════
+function getG()  { return GRUPOS.find(g => g.id===activeGrupo) || GRUPOS[0]; }
+function getGS() { return grupoState[activeGrupo]; }
+function getC()  { const g=getG(); return g.classes.find(c=>c.id===getGS().activeClasse)||g.classes[0]; }
+function getCS() { return classeState[getC().id]; }
+function isGestao() { return activeGrupo==='gestao'; }
+
+function grupoTotalResultados(gid) {
+  return GRUPOS.find(g=>g.id===gid).classes.reduce((s,c)=>s+classeState[c.id].resultData.length,0);
+}
+function totalGlobal() { return GRUPOS.reduce((s,g)=>s+grupoTotalResultados(g.id),0); }
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER PRINCIPAL
+// ═══════════════════════════════════════════════════════════════
+function renderAll() {
+  renderGrupoTabs();
+  if (isGestao()) {
+    document.getElementById('subtabsRep').style.display = 'none';
+    renderInnerTabsGestao();
+  } else {
+    renderSubtabs();
+    renderInnerTabs();
+  }
+  renderContent();
+}
+
+function renderGrupoTabs() {
+  const totalG = totalGlobal();
+  document.getElementById('grupoTabs').innerHTML = [
+    ...GRUPOS.map(g => {
+      const isA  = activeGrupo===g.id;
+      const tot  = grupoTotalResultados(g.id);
+      const icon = g.id==='rcand' ? 'ti-user-check' : (g.id==='contas' ? 'ti-file-dollar' : 'ti-gavel');
+      return `<button class="grupo-tab ${isA?'active-'+g.id:''}" onclick="switchGrupo('${g.id}')" aria-pressed="${isA}">
+        <i class="ti ${icon}" aria-hidden="true"></i>${g.label}
+        ${tot?`<span class="grupo-tab-badge">${tot}</span>`:''}
+      </button>`;
+    }),
+    `<button class="grupo-tab ${activeGrupo==='gestao'?'active-gestao':''}" onclick="switchGrupo('gestao')" aria-pressed="${activeGrupo==='gestao'}">
+       <i class="ti ti-layout-dashboard" aria-hidden="true"></i>Gestão
+       ${totalG?`<span class="grupo-tab-badge">${totalG}</span>`:''}
+     </button>`,
+  ].join('');
+}
+
+function renderSubtabs() {
+  const g  = getG(), gs = getGS();
+  const el = document.getElementById('subtabsRep');
+  if (g.classes.length > 1) {
+    el.style.display = '';
+    document.getElementById('classeSubtabs').innerHTML = g.classes.map(c => {
+      const isA = gs.activeClasse===c.id;
+      const res = classeState[c.id].resultData.length;
+      return `<button class="classe-subtab ${isA?'active-'+c.id:''}" onclick="switchClasse('${c.id}')" aria-pressed="${isA}">
+        <span class="classe-dot" style="background:${c.cor}"></span>${c.sigla}
+        ${res?`<span style="background:${c.cor};color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px">${res}</span>`:''}
+      </button>`;
+    }).join('');
+  } else { el.style.display='none'; }
+}
+
+function renderInnerTabs() {
+  const c=getC(), gs=getGS(), cs=getCS();
+  document.getElementById('innerTabs').innerHTML = INNER_LABELS_DIST.map((t,i) => {
+    const tab=INNER_TABS_DIST[i], isA=gs.innerTab===tab;
+    let badge='';
+    if (tab==='servidores'  && gs.servers.length)    badge=gs.servers.length;
+    if (tab==='processos'   && cs.parsedData.length) badge=cs.parsedData.length;
+    if (tab==='resultado'   && cs.resultData.length) badge=cs.resultData.length;
+    return `<button class="inner-tab ${isA?'active':''}" style="${isA?'background:'+c.cor:''}" onclick="switchInner('${tab}')">
+      <i class="ti ${t.icon}" aria-hidden="true"></i> ${t.label}
+      ${badge?`<span class="tab-badge">${badge}</span>`:''}
+    </button>`;
+  }).join('');
+}
+
+function renderInnerTabsGestao() {
+  const cor = '#374151';
+  document.getElementById('innerTabs').innerHTML = INNER_LABELS_GEST.map((t,i) => {
+    const tab=INNER_TABS_GEST[i], isA=gestaoState.innerTab===tab;
+    return `<button class="inner-tab ${isA?'active':''}" style="${isA?'background:'+cor:''}" onclick="switchInnerGestao('${tab}')">
+      <i class="ti ${t.icon}" aria-hidden="true"></i> ${t.label}
+    </button>`;
+  }).join('');
+}
+
+function switchGrupo(gid)    { activeGrupo=gid; renderAll(); }
+function switchClasse(cid)   { getGS().activeClasse=cid; renderAll(); }
+function switchInner(t)      { getGS().innerTab=t; getCS().pagina=1; renderAll(); }
+function switchInnerGestao(t){ gestaoState.innerTab=t; gestaoState.pagina=1; renderAll(); }
+
+function renderContent() {
+  const el = document.getElementById('classeContent');
+  if (isGestao()) {
+    const t = gestaoState.innerTab;
+    if      (t==='painel')    el.innerHTML = renderGestPainel();
+    else if (t==='processos') el.innerHTML = renderGestProcessos();
+    else if (t==='historico') el.innerHTML = renderGestHistorico();
+    return;
+  }
+  const gs=getGS(), cs=getCS(), t=gs.innerTab;
+  if      (t==='servidores')   el.innerHTML = renderServidoresHTML();
+  else if (t==='processos')    el.innerHTML = renderProcessosHTML();
+  else if (t==='resultado')    el.innerHTML = renderResultadoHTML();
+  else if (t==='estatisticas') el.innerHTML = renderEstatHTML();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ABA SERVIDORES
+// ═══════════════════════════════════════════════════════════════
+function renderServidoresHTML() {
+  const g=getG(), gs=getGS(), gid=activeGrupo;
+  const chips = gs.servers.length
+    ? gs.servers.map((sv,i) => `<span class="server-chip" style="background:${g.corLight};color:${g.corText}">
+        ${escHTML(sv)}
+        <button class="chip-x" onclick="confirmRemoveServ(${i})" style="color:${g.cor}" aria-label="Remover ${escHTML(sv)}">
+          <i class="ti ti-x" style="font-size:11px"></i>
+        </button></span>`).join('')
+    : '<span style="font-size:12px;color:var(--text3);padding:3px 0">Nenhum servidor cadastrado.</span>';
+
+  const nota = g.classes.length>1
+    ? `<div class="alert-info" style="margin-bottom:.75rem"><i class="ti ti-info-circle"></i> Servidores compartilhados entre ${g.classes.map(c=>c.sigla).join(', ')}.</div>` : '';
+
+  return `
+  <div class="card">
+    <div class="card-title" style="color:${g.cor}"><i class="ti ti-file-import"></i> Importar planilha — ${g.label}</div>
+    ${nota}
+    <div class="drop-zone" id="dzServ_${gid}" onclick="document.getElementById('fServ_${gid}').click()"
+         ondragover="dOver(event,'dzServ_${gid}')" ondragleave="dLeave('dzServ_${gid}')" ondrop="dDropServ(event,'dzServ_${gid}')" role="button" tabindex="0">
+      <div class="drop-icon"><i class="ti ti-table-import"></i></div>
+      <div class="drop-title">Clique ou arraste a planilha</div>
+      <div class="drop-sub">CSV ou Excel com nomes dos servidores</div>
+    </div>
+    <input type="file" id="fServ_${gid}" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleServFile(this.files[0]); this.value=''"/>
+    <div id="servInfo"></div>
+    <div id="servColWrap" style="display:none">
+      <div class="divider"></div>
+      <div style="margin-bottom:.75rem"><label>Coluna com o nome</label><select id="colServNome" onchange="previewServCol()"></select></div>
+      <div id="servColPreview"></div>
+      <button class="btn" onclick="importarServidores()" style="width:100%;justify-content:center;margin-top:.75rem;background:${g.cor};color:#fff;border-color:${g.cor}">
+        <i class="ti ti-check"></i> Confirmar importação
+      </button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:${g.cor}">
+      <i class="ti ti-users"></i> Equipe — ${g.label}
+      <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:4px">${gs.servers.length} servidores</span>
+      ${gs.servers.length?`<button class="btn btn-danger" onclick="confirmLimparServs()" style="margin-left:auto;height:28px;font-size:11px;padding:0 10px"><i class="ti ti-trash"></i> Limpar</button>`:''}
+    </div>
+    <div class="chips-wrap">${chips}</div>
+    <div class="divider"></div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <div style="flex:1"><label>Adicionar manualmente</label>
+        <input type="text" id="novoServ" placeholder="Nome do servidor" onkeydown="if(event.key==='Enter')addServManual()"/></div>
+      <button class="btn" onclick="addServManual()"><i class="ti ti-plus"></i> Adicionar</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ABA PROCESSOS
+// ═══════════════════════════════════════════════════════════════
+function renderProcessosHTML() {
+  const c=getC(), cs=getCS(), gid=activeGrupo;
+  const metOpts = ['roundrobin','lote','aleatorio'].map(m => {
+    const lbl={roundrobin:['Rodízio','1 por servidor, ciclicamente'],lote:['Lote','Divide em partes iguais'],aleatorio:['Sorteio','Distribuição aleatória']}[m];
+    const sel=cs.metodo===m;
+    return `<div class="method-card" onclick="selectMethod('${m}')" style="${sel?'border-color:'+c.cor+';background:'+c.corLight:''}">
+      <div class="method-card-title" style="${sel?'color:'+c.cor:''}">${lbl[0]}</div>
+      <div class="method-card-desc">${lbl[1]}</div></div>`;
+  }).join('');
+  const hdrs=cs.parsedData.length?Object.keys(cs.parsedData[0]):[];
+  const pOpts=hdrs.map(h=>`<option value="${escHTML(h)}" ${cs.colProc===h?'selected':''}>${escHTML(h)}</option>`).join('');
+  const eOpts='<option value="">— nenhuma —</option>'+hdrs.map(h=>`<option value="${escHTML(h)}" ${cs.colExtra===h?'selected':''}>${escHTML(h)}</option>`).join('');
+  return `
+  <div class="card">
+    <div class="card-title" style="color:${c.cor}"><i class="ti ti-file-spreadsheet"></i> Importar planilha de processos — ${c.label}</div>
+    <div class="drop-zone" id="dzProc_${gid}" onclick="document.getElementById('fProc_${gid}').click()"
+         ondragover="dOver(event,'dzProc_${gid}')" ondragleave="dLeave('dzProc_${gid}')" ondrop="dDropProc(event,'dzProc_${gid}')" role="button" tabindex="0">
+      <div class="drop-icon"><i class="ti ti-cloud-upload"></i></div>
+      <div class="drop-title">Clique ou arraste a planilha de processos</div>
+      <div class="drop-sub">CSV ou Excel com a lista de processos de ${c.sigla} — não importa servidores aqui</div>
+    </div>
+    <input type="file" id="fProc_${gid}" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleProcFile(this.files[0]); this.value=''"/>
+    <div id="procInfo">${cs.parsedData.length?`<div class="file-ok" style="margin-top:.6rem">
+      <i class="ti ti-file-check" style="font-size:18px;color:var(--verde)"></i>
+      <div><div class="file-ok-name">Arquivo carregado — ${c.sigla}</div><div class="file-ok-sub">${cs.parsedData.length} registros no lote atual${cs.resultData.length?` · ${cs.resultData.length} já distribuídos serão preservados`:''}</div></div>
+      <button class="btn btn-danger" onclick="confirmLimparProc()" style="margin-left:auto;height:28px;font-size:11px;padding:0 10px"><i class="ti ti-trash"></i> Remover lote</button>
+    </div>`:''}</div>
+    <div id="procColWrap" style="display:${cs.parsedData.length?'':'none'}">
+      <div class="divider"></div>
+      ${cs.resultData.length?`<div class="alert-info" style="margin-bottom:.75rem"><i class="ti ti-info-circle"></i> Distribuição incremental: os processos já distribuídos serão mantidos; ao clicar em distribuir, somente processos ainda não vinculados serão acrescentados.</div>`:''}
+      <div class="col-row">
+        <div><label>Número do processo <span style="color:#b91c1c">*</span></label><select id="colProc" onchange="saveColProc()">${pOpts}</select></div>
+        <div><label>Coluna adicional</label><select id="colExtra" onchange="saveColExtra()">${eOpts}</select></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="display:${cs.parsedData.length?'':'none'}">
+    <div class="card-title" style="color:${c.cor}"><i class="ti ti-adjustments"></i> Método de distribuição</div>
+    <div class="method-opt">${metOpts}</div>
+    <button class="btn" onclick="distribuir()" style="width:100%;justify-content:center;background:${c.cor};color:#fff;border-color:${c.cor}">
+      <i class="ti ti-arrows-shuffle"></i> Distribuir processos — ${c.sigla}
+    </button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ABA RESULTADO
+// ═══════════════════════════════════════════════════════════════
+function renderResultadoHTML() {
+  const c=getC(), cs=getCS(), gs=getGS();
+  if (!cs.resultData.length) return `<div class="empty"><i class="ti ti-inbox"></i>Distribua os processos de ${c.sigla} para ver o resultado.</div>`;
+  const active=gs.servers.filter(sv=>sv.trim());
+  const totals={}; active.forEach(sv=>totals[sv]=0);
+  cs.resultData.forEach(p=>{if(totals[p._servidor]!==undefined)totals[p._servidor]++;});
+  const col=cs.colProc||Object.keys(cs.parsedData[0]||{})[0]||'Processo';
+  const totalPags=Math.ceil(cs.resultData.length/ITENS_PAG);
+  const pag=Math.min(cs.pagina,totalPags);
+  const fatia=cs.resultData.slice((pag-1)*ITENS_PAG,pag*ITENS_PAG);
+  const rows=fatia.map(p=>{
+    const extra=cs.colExtra?`<td>${escHTML(String(p[cs.colExtra]??''))}</td>`:'';
+    return `<tr><td>${escHTML(String(p[col]??''))}</td><td><button class="sbadge server-link-badge" style="background:${c.corLight};color:${c.corText}" onclick="showServidorProcessos('${c.id}', ${jsArg(p._servidor)})" title="Ver processos vinculados a ${escHTML(p._servidor)}">${escHTML(p._servidor)}</button></td>${extra}</tr>`;
+  }).join('');
+  const thExtra=cs.colExtra?`<th>${escHTML(cs.colExtra)}</th>`:'';
+  const sumCards=active.map(sv=>`<div class="stat-card stat-card-click" onclick="showServidorProcessos('${c.id}', ${jsArg(sv)})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')showServidorProcessos('${c.id}', ${jsArg(sv)})" title="Clique para ver os processos vinculados a ${escHTML(sv)}"><div class="stat-label" title="${escHTML(sv)}">${escHTML(sv)}</div><div class="stat-value" style="color:${c.cor}">${totals[sv]||0}</div><div class="stat-sub">processos · clique para abrir</div></div>`).join('');
+  return `
+  <div class="metrics-row">
+    <div class="metric"><div class="metric-label">Processos</div><div class="metric-value" style="color:${c.cor}">${cs.resultData.length}</div></div>
+    <div class="metric"><div class="metric-label">Servidores</div><div class="metric-value" style="color:${c.cor}">${active.length}</div></div>
+    <div class="metric"><div class="metric-label">Média</div><div class="metric-value" style="color:${c.cor}">${active.length?Math.round(cs.resultData.length/active.length):0}</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:${c.cor}"><i class="ti ti-chart-bar"></i> Por servidor — ${c.sigla}</div>
+    <div class="stat-grid">${sumCards}</div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:${c.cor}">
+      <i class="ti ti-list"></i> Lista — pág. ${pag}/${totalPags}
+      <span style="font-weight:400;font-size:11px;color:var(--text3);margin-left:4px">(${cs.resultData.length} registros)</span>
+    </div>
+    <div class="result-wrap"><table class="rtable">
+      <thead><tr style="background:${c.cor}"><th style="color:#fff;padding:7px 10px">${escHTML(col)}</th><th style="color:#fff;padding:7px 10px">Servidor</th>${cs.colExtra?`<th style="color:#fff;padding:7px 10px">${escHTML(cs.colExtra)}</th>`:''}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    ${totalPags>1?renderPaginacao(pag,totalPags,c):''}
+    <div style="margin-top:.75rem;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="exportCSV()" style="flex:1;justify-content:center;min-width:120px"><i class="ti ti-download"></i> Baixar CSV</button>
+      <button class="pdf-btn" onclick="gerarMemoPDF()" style="flex:1;justify-content:center;min-width:120px"><i class="ti ti-file-type-pdf"></i> Memorando</button>
+      <button class="pdf-btn" onclick="gerarRelatorioPDF()" style="flex:1;justify-content:center;min-width:120px"><i class="ti ti-file-type-pdf"></i> Relatório</button>
+      <button class="btn btn-danger" onclick="confirmLimparResult()" style="flex:0;justify-content:center"><i class="ti ti-refresh"></i> Redistribuir</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ABA ESTATÍSTICAS
+// ═══════════════════════════════════════════════════════════════
+function renderEstatHTML() {
+  const c=getC(), cs=getCS(), gs=getGS();
+  if (!cs.resultData.length) return `<div class="empty"><i class="ti ti-chart-bar"></i>Distribua os processos de ${c.sigla}.</div>`;
+  const st=calcStats(cs,gs), sorted=[...st.active].sort((a,b)=>st.totals[b]-st.totals[a]);
+  const bars=sorted.map((sv,i)=>{const v=st.totals[sv],pct=Math.round(v/(st.max||1)*100);
+    return `<div class="bar-row"><div class="bar-name" title="${escHTML(sv)}">${escHTML(sv)}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${BAR_COLORS[i%BAR_COLORS.length]}"><span class="bar-val">${v}</span></div></div><div class="bar-pct">${st.total?Math.round(v/st.total*100):0}%</div></div>`;}).join('');
+  const rankRows=sorted.map((sv,i)=>{const v=st.totals[sv],diff=v-st.media,pct=st.total?((v/st.total)*100).toFixed(1):0;
+    const dh=Math.abs(diff)<0.5?`<span style="color:var(--verde);font-size:11px;font-weight:600">= média</span>`:diff>0?`<span style="color:var(--amarelo);font-size:11px;font-weight:600">+${diff.toFixed(1)}</span>`:`<span style="color:var(--verde);font-size:11px;font-weight:600">${diff.toFixed(1)}</span>`;
+    return `<tr><td style="font-weight:700;color:${c.cor}">${i+1}º</td><td>${escHTML(sv)}</td><td style="text-align:right;font-weight:700">${v}</td><td style="text-align:right">${pct}%</td><td style="text-align:right">${dh}</td></tr>`;}).join('');
+  const alCls=st.cv<5?'alert-ok':st.cv<10?'alert-info':'alert-err';
+  const alMsg=st.cv<5?'Distribuição excelente — CV abaixo de 5%.':st.cv<10?'Distribuição boa — CV entre 5% e 10%.':'Variação elevada — considere redistribuir.';
+  return `
+  <div class="stat-grid">
+    <div class="stat-card" style="border-color:${c.cor};background:${c.corLight}"><div class="stat-label">Total</div><div class="stat-value" style="color:${c.cor}">${st.total}</div></div>
+    <div class="stat-card" style="border-color:${c.cor};background:${c.corLight}"><div class="stat-label">Servidores</div><div class="stat-value" style="color:${c.cor}">${st.active.length}</div></div>
+    <div class="stat-card" style="border-color:${c.cor};background:${c.corLight}"><div class="stat-label">Média</div><div class="stat-value" style="color:${c.cor}">${st.media.toFixed(1)}</div></div>
+    <div class="stat-card" style="border-color:#fcd34d;background:var(--amarelo-light)"><div class="stat-label">Maior carga</div><div class="stat-value" style="color:var(--amarelo)">${st.max}</div><div class="stat-sub">${escHTML(st.maxServ)}</div></div>
+    <div class="stat-card" style="border-color:#86efac;background:var(--verde-light)"><div class="stat-label">Menor carga</div><div class="stat-value" style="color:var(--verde)">${st.min}</div><div class="stat-sub">${escHTML(st.minServ)}</div></div>
+  </div>
+  <div class="card"><div class="card-title" style="color:${c.cor}"><i class="ti ti-chart-bar"></i> Por servidor — ${c.sigla}</div>${bars}</div>
+  <div class="card"><div class="card-title" style="color:${c.cor}"><i class="ti ti-trophy"></i> Ranking</div>
+    <table class="rank-table"><thead><tr><th>#</th><th>Servidor</th><th style="text-align:right">Qtd.</th><th style="text-align:right">%</th><th style="text-align:right">vs. média</th></tr></thead><tbody>${rankRows}</tbody></table></div>
+  <div class="card"><div class="card-title" style="color:${c.cor}"><i class="ti ti-scale"></i> Equilíbrio</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Desvio padrão</div><div class="stat-value" style="color:${c.cor}">${st.desvPad.toFixed(2)}</div></div>
+      <div class="stat-card"><div class="stat-label">Coef. variação</div><div class="stat-value" style="color:${c.cor}">${st.cv.toFixed(1)}%</div><div class="stat-sub">${st.cv<5?'ótimo':st.cv<10?'bom':'atenção'}</div></div>
+      <div class="stat-card"><div class="stat-label">Amplitude</div><div class="stat-value" style="color:${c.cor}">${st.max-st.min}</div></div>
+    </div>
+    <div class="${alCls}" style="margin-top:.5rem">${alMsg}</div>
+  </div>
+  <button class="pdf-btn" onclick="gerarEstatPDF()" style="width:100%;justify-content:center;margin-top:.25rem"><i class="ti ti-file-type-pdf"></i> Exportar estatísticas em PDF</button>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GESTÃO — PAINEL
+// ═══════════════════════════════════════════════════════════════
+function getAllProcessos() {
+  const all = [];
+  GRUPOS.forEach(g => {
+    g.classes.forEach(c => {
+      const cs = classeState[c.id];
+      const colKey = cs.colProc || (cs.resultData[0] ? Object.keys(cs.resultData[0]).find(k=>k!=='_servidor')||'' : '');
+      cs.resultData.forEach(p => {
+        const numProc = processoValor(p,colKey);
+        const st      = statusData[c.id][numProc] || { status:DEFAULT_STATUS, obs:'', ts:'' };
+        all.push({ grupo:g.id, grupoLabel:g.label, classeId:c.id, sigla:c.sigla, cor:c.cor, corLight:c.corLight, corText:c.corText,
+                   servidor:p._servidor, numProc, colKey, extra:cs.colExtra?String(p[cs.colExtra]??''):'', status:normalizeStatus(st.status), obs:st.obs });
+      });
+    });
+  });
+  return all;
+}
+
+function renderGestPainel() {
+  const all = getAllProcessos();
+  if (!all.length) return `<div class="empty"><i class="ti ti-layout-dashboard"></i>Nenhum processo distribuído ainda.<br>Use as abas FT RCAND, FT Representação e FTCONTAS para distribuir uma planilha em cada força-tarefa.</div>
+  <div class="card">
+    <div class="card-title" style="color:var(--vermelho)"><i class="ti ti-shield-lock"></i> Administração</div>
+    <div class="alert-info" style="margin-bottom:.75rem">A limpeza permite escolher entre apagar servidores, processos/distribuições ou ambos. A senha será exigida antes da execução.</div>
+    <button class="btn btn-danger" onclick="confirmLimparTudo()"><i class="ti ti-trash-x"></i> Limpar todos os dados</button>
+  </div>`;
+
+  // Totais globais por status
+  const bySt = {};
+  STATUS_LIST.forEach(s=>bySt[s]=0);
+  all.forEach(p=>{ bySt[p.status]=(bySt[p.status]||0)+1; });
+
+  const total      = all.length;
+  const tramitando = bySt['TRAMITANDO']||0;
+  const julgado    = bySt['JULGADO']||0;
+  const baixado    = bySt['BAIXADO']||0;
+  const finalizado = julgado + baixado;
+  const pctFinal   = total?Math.round(finalizado/total*100):0;
+
+  // Por grupo
+  const porGrupo = GRUPOS.map(g => {
+    const gProcs = all.filter(p=>p.grupo===g.id);
+    if (!gProcs.length) return '';
+    const gTotal=gProcs.length, gFinal=gProcs.filter(p=>p.status==='JULGADO'||p.status==='BAIXADO').length;
+    const gPct=gTotal?Math.round(gFinal/gTotal*100):0;
+    // Por servidor dentro do grupo
+    const servMap = {};
+    gProcs.forEach(p=>{
+      if (!servMap[p.servidor]) servMap[p.servidor]={total:0,tramitando:0,julgado:0,baixado:0};
+      servMap[p.servidor].total++;
+      const st = normalizeStatus(p.status);
+      if (st==='JULGADO')       servMap[p.servidor].julgado++;
+      else if (st==='BAIXADO')  servMap[p.servidor].baixado++;
+      else                      servMap[p.servidor].tramitando++;
+    });
+    const servRows = Object.entries(servMap).sort((a,b)=>b[1].total-a[1].total).map(([sv,d])=>{
+      const pct=d.total?Math.round((d.julgado+d.baixado)/d.total*100):0;
+      return `<tr>
+        <td style="font-weight:500"><button class="server-link" onclick="showServidorProcessos('', ${jsArg(sv)}, '${g.id}')" title="Ver processos vinculados a ${escHTML(sv)} em ${g.label}">${escHTML(sv)}</button></td>
+        <td style="text-align:center;font-weight:700">${d.total}</td>
+        <td style="text-align:center"><span class="sbadge st-tramitando">${d.tramitando}</span></td>
+        <td style="text-align:center"><span class="sbadge st-julgado">${d.julgado}</span></td>
+        <td style="text-align:center"><span class="sbadge st-baixado">${d.baixado}</span></td>
+        <td style="min-width:80px"><div class="progress-wrap"><div class="progress-fill" style="width:${pct}%;background:${g.cor}"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px;text-align:right">${pct}%</div></td>
+      </tr>`;
+    }).join('');
+    return `<div class="card">
+      <div class="card-title" style="color:${g.cor}"><i class="ti ti-users"></i> ${g.label}
+        <span style="font-weight:400;font-size:11px;color:var(--text3);margin-left:4px">${gTotal} processos · ${gPct}% finalizados</span>
+      </div>
+      <div class="result-wrap"><table class="gestao-table">
+        <thead><tr><th>Servidor</th><th style="text-align:center">Total</th><th style="text-align:center">TRAMITANDO</th><th style="text-align:center">JULGADO</th><th style="text-align:center">BAIXADO</th><th>Progresso</th></tr></thead>
+        <tbody>${servRows}</tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+
+  const stCards = STATUS_LIST.map(s=>`<div class="stat-card"><div class="stat-label">${s}</div><div class="stat-value">${bySt[s]||0}</div></div>`).join('');
+
+  return `
+  <div class="metrics-row">
+    <div class="metric"><div class="metric-label">Total distribuído</div><div class="metric-value" style="color:var(--azul)">${total}</div></div>
+    <div class="metric"><div class="metric-label">TRAMITANDO</div><div class="metric-value" style="color:#1e40af">${tramitando}</div></div>
+    <div class="metric"><div class="metric-label">JULGADO</div><div class="metric-value" style="color:var(--verde)">${julgado}</div></div>
+    <div class="metric"><div class="metric-label">BAIXADO</div><div class="metric-value" style="color:var(--cinza)">${baixado}</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-chart-pie"></i> Por status</div>
+    <div class="stat-grid">${stCards}</div>
+    <div class="progress-wrap" style="margin-top:.5rem"><div class="progress-fill" style="width:${pctFinal}%;background:var(--verde)"></div></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:4px">${pctFinal}% do total finalizado</div>
+  </div>
+  ${porGrupo}
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.5rem">
+    <button class="btn btn-primary" onclick="exportarBackup()"><i class="ti ti-download"></i> Exportar backup (JSON)</button>
+    <button class="btn" onclick="document.getElementById('fBackup').click()"><i class="ti ti-upload"></i> Restaurar backup</button>
+    <input type="file" id="fBackup" accept=".json" style="display:none" onchange="restaurarBackup(this.files[0])"/>
+    <button class="pdf-btn" onclick="gerarRelatorioPainelPDF()"><i class="ti ti-file-type-pdf"></i> Relatório gerencial PDF</button>
+    <button class="btn btn-danger" onclick="confirmLimparTudo()"><i class="ti ti-trash-x"></i> Limpar todos os dados</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GESTÃO — PROCESSOS (tabela com status editável)
+// ═══════════════════════════════════════════════════════════════
+function renderGestProcessos() {
+  const all = getAllProcessos();
+  if (!all.length) return `<div class="empty"><i class="ti ti-list-check"></i>Nenhum processo distribuído ainda.</div>`;
+
+  // Filtros
+  const servOpts = [...new Set(all.map(p=>p.servidor))].sort().map(s=>`<option value="${escHTML(s)}" ${gestaoState.filtroServ===s?'selected':''}>${escHTML(s)}</option>`).join('');
+  const grupoOpts= GRUPOS.map(g=>`<option value="${g.id}" ${gestaoState.filtroGrupo===g.id?'selected':''}>${g.label}</option>`).join('');
+  const stOpts   = STATUS_LIST.map(s=>`<option value="${s}" ${gestaoState.filtroSt===s?'selected':''}>${s}</option>`).join('');
+
+  let filtrado = all;
+  if (gestaoState.filtroGrupo && gestaoState.filtroGrupo!=='todos') filtrado=filtrado.filter(p=>p.grupo===gestaoState.filtroGrupo);
+  if (gestaoState.filtroServ)  filtrado=filtrado.filter(p=>p.servidor===gestaoState.filtroServ);
+  if (gestaoState.filtroSt)    filtrado=filtrado.filter(p=>p.status===gestaoState.filtroSt);
+  if (gestaoState.filtroBusca) { const q=gestaoState.filtroBusca.toLowerCase(); filtrado=filtrado.filter(p=>p.numProc.toLowerCase().includes(q)||p.servidor.toLowerCase().includes(q)); }
+
+  const totalPags = Math.ceil(filtrado.length/ITENS_PAG);
+  const pag       = Math.min(gestaoState.pagina||1, totalPags||1);
+  const fatia     = filtrado.slice((pag-1)*ITENS_PAG, pag*ITENS_PAG);
+
+  const rows = fatia.map((p,idx) => {
+    const realIdx = (pag-1)*ITENS_PAG + idx;
+    const sCls = STATUS_CLS[p.status]||'st-tramitando';
+    const stOp = STATUS_LIST.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('');
+    return `<tr>
+      <td><span class="sbadge" style="background:${p.corLight};color:${p.corText}">${p.sigla}</span></td>
+      <td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHTML(p.numProc)}">${escHTML(p.numProc)}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHTML(p.servidor)}"><button class="server-link" onclick="showServidorProcessos('', ${jsArg(p.servidor)}, '${p.grupo}')">${escHTML(p.servidor)}</button></td>
+      <td><select class="st-select ${sCls}" onchange="setStatus('${p.classeId}','${escHTML(p.numProc)}',this.value,${realIdx})">${stOp}</select></td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="card">
+    <div class="card-title"><i class="ti ti-filter"></i> Filtros
+      <span style="font-weight:400;font-size:11px;color:var(--text3);margin-left:4px">${filtrado.length} de ${all.length} processos</span>
+      <button class="btn" onclick="limparFiltros()" style="margin-left:auto;height:28px;font-size:11px;padding:0 10px"><i class="ti ti-x"></i> Limpar</button>
+    </div>
+    <div class="filter-row">
+      <select onchange="gestaoState.filtroGrupo=this.value;gestaoState.pagina=1;renderAll()"><option value="todos">Todos os grupos</option>${grupoOpts}</select>
+      <select onchange="gestaoState.filtroServ=this.value;gestaoState.pagina=1;renderAll()"><option value="">Todos os servidores</option>${servOpts}</select>
+      <select onchange="gestaoState.filtroSt=this.value;gestaoState.pagina=1;renderAll()"><option value="">Todos os status</option>${stOpts}</select>
+      <input type="text" placeholder="Buscar processo ou servidor…" value="${escHTML(gestaoState.filtroBusca||'')}"
+             oninput="gestaoState.filtroBusca=this.value;gestaoState.pagina=1;renderAll()" style="min-width:180px"/>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-list-check"></i> Processos — clique no status para alterar</div>
+    <div class="result-wrap"><table class="gestao-table">
+      <thead><tr><th>Classe</th><th>Processo</th><th>Servidor</th><th>Status</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:1rem">Nenhum resultado para os filtros aplicados.</td></tr>'}</tbody>
+    </table></div>
+    ${totalPags>1?renderPaginacaoGest(pag,totalPags):''}
+    <div style="margin-top:.75rem">
+      <button class="btn" onclick="exportarCSVGestao()"><i class="ti ti-download"></i> Exportar CSV com status</button>
+    </div>
+  </div>`;
+}
+
+function limparFiltros() {
+  gestaoState.filtroGrupo='todos'; gestaoState.filtroServ=''; gestaoState.filtroSt=''; gestaoState.filtroBusca=''; gestaoState.pagina=1; renderAll();
+}
+
+function renderPaginacaoGest(pag, total) {
+  const b=[];
+  b.push(`<button class="pg-btn" ${pag===1?'disabled':''} onclick="gestaoState.pagina=${pag-1};renderAll()"><i class="ti ti-chevron-left"></i></button>`);
+  const delta=2;
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||(i>=pag-delta&&i<=pag+delta)) b.push(`<button class="pg-btn ${i===pag?'active':''}" style="${i===pag?'background:#374151;border-color:#374151':''}" onclick="gestaoState.pagina=${i};renderAll()">${i}</button>`);
+    else if((i===pag-delta-1&&pag-delta-1>1)||(i===pag+delta+1&&pag+delta+1<total)) b.push(`<span class="pg-info">…</span>`);
+  }
+  b.push(`<button class="pg-btn" ${pag===total?'disabled':''} onclick="gestaoState.pagina=${pag+1};renderAll()"><i class="ti ti-chevron-right"></i></button>`);
+  return `<div class="pagination">${b.join('')}</div>`;
+}
+
+// Altera status de um processo
+function setStatus(classeId, numProc, novoStatus, idx) {
+  const anterior = normalizeStatus((statusData[classeId][numProc]||{}).status || DEFAULT_STATUS);
+  novoStatus = normalizeStatus(novoStatus);
+  statusData[classeId][numProc] = { status:novoStatus, ts:new Date().toISOString() };
+  // Atualiza classe do select imediatamente sem re-render completo
+  const sel = document.querySelectorAll('.st-select')[idx % ITENS_PAG];
+  if (sel) { sel.className = `st-select ${STATUS_CLS[novoStatus]||'st-tramitando'}`; }
+  // Registra no histórico
+  const classe = GRUPOS.flatMap(g=>g.classes).find(c=>c.id===classeId);
+  historico.unshift({ ts:new Date().toISOString(), classeId, sigla:classe?.sigla||classeId, numProc, de:anterior, para:novoStatus });
+  if (historico.length > 500) historico.length = 500;
+  markDirty();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GESTÃO — HISTÓRICO
+// ═══════════════════════════════════════════════════════════════
+function renderGestHistorico() {
+  if (!historico.length) return `<div class="empty"><i class="ti ti-history"></i>Nenhuma alteração de status registrada ainda.</div>`;
+  const items = historico.slice(0,200).map(h => {
+    const dt=new Date(h.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<div class="hist-item">
+      <div class="hist-time">${dt}</div>
+      <div class="hist-desc">
+        <span class="sbadge" style="font-size:10px;background:var(--azul-light);color:var(--azul)">${escHTML(h.sigla)}</span>
+        <strong>${escHTML(h.numProc)}</strong>:
+        <span class="sbadge ${STATUS_CLS[h.de]||'st-tramitando'}">${h.de}</span>
+        → <span class="sbadge ${STATUS_CLS[h.para]||'st-tramitando'}">${h.para}</span>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="card">
+    <div class="card-title"><i class="ti ti-history"></i> Histórico de alterações
+      <span style="font-weight:400;font-size:11px;color:var(--text3);margin-left:4px">${historico.length} eventos</span>
+      ${historico.length?`<button class="btn btn-danger" onclick="confirmLimparHistorico()" style="margin-left:auto;height:28px;font-size:11px;padding:0 10px"><i class="ti ti-trash"></i> Limpar</button>`:''}
+    </div>
+    ${items}
+    ${historico.length>200?`<div style="text-align:center;font-size:11px;color:var(--text3);padding:.5rem">Exibindo 200 de ${historico.length}</div>`:''}
+  </div>`;
+}
+
+function confirmLimparHistorico() {
+  showConfirm('Limpar histórico','Apagar todo o histórico de alterações?','Apagar',ok=>{ if(ok){historico=[];markDirty();renderAll();} });
+}
+
+function resetEstadoCompleto() {
+  clearTimeout(saveTimer);
+  grupoState = {};
+  classeState = {};
+  statusData = {};
+  historico = [];
+  gestaoState = { innerTab:'painel', filtroGrupo:'todos', filtroServ:'', filtroSt:'', filtroBusca:'', pagina:1 };
+  activeGrupo = 'rcand';
+  initState();
+}
+
+function resetEstadoSelecionado(opts) {
+  clearTimeout(saveTimer);
+  const limparServidores = !!opts.servidores;
+  const limparProcessos  = !!opts.processos;
+
+  if (limparServidores && limparProcessos) {
+    resetEstadoCompleto();
+    localStorage.removeItem(LS_KEY);
+    setSaveStatus(true);
+    return;
+  }
+
+  if (limparServidores) {
+    GRUPOS.forEach(g => {
+      grupoState[g.id].servers = [];
+      grupoState[g.id].parsedServData = [];
+    });
+  }
+
+  if (limparProcessos) {
+    GRUPOS.forEach(g => {
+      grupoState[g.id].innerTab = 'processos';
+      grupoState[g.id].activeClasse = g.classes[0].id;
+      g.classes.forEach(c => {
+        classeState[c.id] = { parsedData:[], resultData:[], metodo:'roundrobin', colProc:'', colExtra:'', pagina:1 };
+        statusData[c.id] = {};
+      });
+    });
+    historico = [];
+    gestaoState = { innerTab:'painel', filtroGrupo:'todos', filtroServ:'', filtroSt:'', filtroBusca:'', pagina:1 };
+  }
+
+  salvarLS();
+}
+
+function descricaoLimpeza(opts) {
+  if (opts.servidores && opts.processos) return 'servidores, processos, distribuições, status, histórico e dados salvos';
+  if (opts.servidores) return 'somente os servidores cadastrados';
+  return 'somente os processos, distribuições, status, histórico e dados de gestão';
+}
+
+function mensagemSucessoLimpeza(opts) {
+  if (opts.servidores && opts.processos) return 'Servidores, processos e demais dados foram apagados.';
+  if (opts.servidores) return 'Servidores cadastrados foram apagados.';
+  return 'Processos, distribuições, status e histórico foram apagados.';
+}
+
+function confirmLimparTudo() {
+  showPasswordModal(
+    'Limpar dados do distribuidor',
+    'Marque o que deseja limpar. É possível apagar apenas servidores, apenas processos/distribuições ou ambos. Depois, digite a senha para continuar.',
+    opts => {
+      showConfirm('Confirmação final',`Tem certeza de que deseja apagar ${descricaoLimpeza(opts)}? Esta ação não pode ser desfeita.`,'Apagar selecionados',confirma=>{
+        if (!confirma) return;
+        resetEstadoSelecionado(opts);
+        renderAll();
+        alert(mensagemSucessoLimpeza(opts));
+      });
+    }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BACKUP / RESTAURAÇÃO
+// ═══════════════════════════════════════════════════════════════
+function exportarBackup() {
+  const payload = {
+    v:4, exportadoEm:new Date().toISOString(),
+    grupoState: JSON.parse(JSON.stringify(grupoState, (k,v)=>k==='parsedServData'?[]:v)),
+    classeState: JSON.parse(JSON.stringify(classeState,(k,v)=>k==='parsedData'?[]:v)),
+    gestaoState, statusData, historico,
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`ft2026_backup_${dataHoje()}.json`; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function restaurarBackup(file) {
+  if (!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try {
+      const p=JSON.parse(e.target.result);
+      if (!p||p.v!==4) { alert('Arquivo inválido ou versão incompatível.'); return; }
+      showConfirm('Restaurar backup',
+        `Restaurar backup de ${p.exportadoEm?new Date(p.exportadoEm).toLocaleString('pt-BR'):'data desconhecida'}? O estado atual será substituído.`,
+        'Restaurar', ok=>{
+          if (!ok) return;
+          GRUPOS.forEach(g=>{
+            if (p.grupoState?.[g.id]){const gs=p.grupoState[g.id];grupoState[g.id].servers=gs.servers||[];grupoState[g.id].innerTab=gs.innerTab||'servidores';grupoState[g.id].activeClasse=gs.activeClasse||g.classes[0].id;}
+            g.classes.forEach(c=>{
+              if(p.classeState?.[c.id]){const cs=p.classeState[c.id];classeState[c.id].resultData=cs.resultData||[];classeState[c.id].metodo=cs.metodo||'roundrobin';classeState[c.id].colProc=cs.colProc||'';classeState[c.id].colExtra=cs.colExtra||'';}
+              if(p.statusData?.[c.id]) statusData[c.id]=p.statusData[c.id];
+            });
+          });
+          if(p.gestaoState) Object.assign(gestaoState,p.gestaoState);
+          if(p.historico)   historico=p.historico;
+          normalizarStatusData();
+          salvarLS(); renderAll();
+        });
+    } catch(err) { alert('Erro ao ler o arquivo: '+err.message); }
+  };
+  r.readAsText(file,'UTF-8');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PDF GERENCIAL
+// ═══════════════════════════════════════════════════════════════
+function gerarRelatorioPainelPDF() {
+  const all=getAllProcessos(); if(!all.length){alert('Nenhum processo distribuído.');return;}
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'#374151','RELATORIO GERENCIAL — FORCA TAREFA',`Situacao em ${new Date().toLocaleString('pt-BR')}`);
+  // Resumo global
+  const bySt={};STATUS_LIST.forEach(s=>bySt[s]=0);all.forEach(p=>bySt[p.status]=(bySt[p.status]||0)+1);
+  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(55,65,81);doc.text('1. Resumo global',14,y);y+=5;
+  doc.autoTable({startY:y,head:[['Status','Qtd.','%']],body:STATUS_LIST.map(s=>[s,bySt[s],all.length?((bySt[s]/all.length)*100).toFixed(1)+'%':'0%']),styles:{fontSize:9,cellPadding:3},headStyles:{fillColor:[55,65,81],textColor:255,fontStyle:'bold'},margin:{left:14,right:14}});
+  y=doc.lastAutoTable.finalY+8;
+  // Por grupo
+  GRUPOS.forEach(g=>{
+    const gP=all.filter(p=>p.grupo===g.id); if(!gP.length)return;
+    const rgb=hexToRgb(g.cor);
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(rgb.r,rgb.g,rgb.b);doc.text(g.label,14,y);y+=5;
+    const servMap={};
+    gP.forEach(p=>{if(!servMap[p.servidor])servMap[p.servidor]={};STATUS_LIST.forEach(s=>{servMap[p.servidor][s]=(servMap[p.servidor][s]||0)+(p.status===s?1:0);});servMap[p.servidor]._total=(servMap[p.servidor]._total||0)+1;});
+    doc.autoTable({startY:y,head:[['Servidor','Total',...STATUS_LIST]],body:Object.entries(servMap).map(([sv,d])=>[sv,d._total,...STATUS_LIST.map(s=>d[s]||0)]),styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[rgb.r,rgb.g,rgb.b],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[rgb.r+(255-rgb.r)*.92,rgb.g+(255-rgb.g)*.92,rgb.b+(255-rgb.b)*.92]},margin:{left:14,right:14}});
+    y=doc.lastAutoTable.finalY+8;
+  });
+  pdfFooter(doc);doc.save(`relatorio_gerencial_${dataHoje()}.pdf`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORTAR CSV COM STATUS
+// ═══════════════════════════════════════════════════════════════
+function exportarCSVGestao() {
+  const all=getAllProcessos(); if(!all.length)return;
+  const rows=[['Grupo','Classe','Processo','Servidor','Status'].join(';')];
+  all.forEach(p=>rows.push([`"${p.grupoLabel}"`,`"${p.sigla}"`,`"${p.numProc.replace(/"/g,'""')}"`,`"${p.servidor.replace(/"/g,'""')}"`,`"${p.status}"`].join(';')));
+  const blob=new Blob(['\uFEFF'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`ft2026_status_${dataHoje()}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PAGINAÇÃO
+// ═══════════════════════════════════════════════════════════════
+function renderPaginacao(pag,total,c){
+  const b=[];
+  b.push(`<button class="pg-btn" ${pag===1?'disabled':''} onclick="irPagina(${pag-1})"><i class="ti ti-chevron-left"></i></button>`);
+  const delta=2;
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||(i>=pag-delta&&i<=pag+delta)) b.push(`<button class="pg-btn ${i===pag?'active':''}" style="${i===pag?'background:'+c.cor+';border-color:'+c.cor:''}" onclick="irPagina(${i})">${i}</button>`);
+    else if((i===pag-delta-1&&pag-delta-1>1)||(i===pag+delta+1&&pag+delta+1<total)) b.push(`<span class="pg-info">…</span>`);
+  }
+  b.push(`<button class="pg-btn" ${pag===total?'disabled':''} onclick="irPagina(${pag+1})"><i class="ti ti-chevron-right"></i></button>`);
+  return `<div class="pagination">${b.join('')}</div>`;
+}
+function irPagina(p){getCS().pagina=p;renderAll();}
+
+// ═══════════════════════════════════════════════════════════════
+// DRAG & DROP / LEITURA DE ARQUIVOS
+// ═══════════════════════════════════════════════════════════════
+function dOver(e,id){e.preventDefault();document.getElementById(id)?.classList.add('over');}
+function dLeave(id){document.getElementById(id)?.classList.remove('over');}
+function dDropServ(e,id){e.preventDefault();dLeave(id||'dzServ_'+activeGrupo);const f=e.dataTransfer.files[0];if(f)handleServFile(f);}
+function dDropProc(e,id){e.preventDefault();dLeave(id||'dzProc_'+activeGrupo);const f=e.dataTransfer.files[0];if(f)handleProcFile(f);}
+
+function readXLSX(file,cb){
+  const ext=file.name.split('.').pop().toLowerCase(), r=new FileReader();
+  r.onerror=()=>cb(new Error('Falha ao ler'));
+  if(ext==='csv'){r.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'string',raw:false});cb(null,XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}));}catch(err){cb(err);}};r.readAsText(file,'UTF-8');}
+  else{r.onload=e=>{try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});cb(null,XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}));}catch(err){cb(err);}};r.readAsArrayBuffer(file);}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SERVIDORES
+// ═══════════════════════════════════════════════════════════════
+function handleServFile(file){
+  if(!file) return;
+  if(!isGestao()) getGS().innerTab='servidores';
+  setEl('servInfo',`<div class="alert-info" style="margin-top:.6rem"><span class="spinner"></span> Lendo arquivo…</div>`);
+  setTimeout(()=>{readXLSX(file,(err,data)=>{
+    if(err||!data||!data.length){setEl('servInfo','<div class="alert-err" style="margin-top:.6rem">Erro ao ler o arquivo.</div>');return;}
+    getGS().parsedServData=data;
+    const hdrs=Object.keys(data[0]);
+    setEl('servInfo',`<div class="file-ok" style="margin-top:.6rem"><i class="ti ti-file-check" style="font-size:18px;color:var(--verde)"></i><div><div class="file-ok-name">${escHTML(file.name)}</div><div class="file-ok-sub">${data.length} linhas</div></div></div>`);
+    const sel=document.getElementById('colServNome');
+    if(sel){sel.innerHTML=hdrs.map(h=>`<option value="${escHTML(h)}">${escHTML(h)}</option>`).join('');const g=hdrs.find(h=>/nome|servidor|name|func/i.test(h));if(g)sel.value=g;}
+    showEl('servColWrap');previewServCol();
+  });},50);
+}
+function previewServCol(){
+  const col=document.getElementById('colServNome')?.value;if(!col)return;
+  const rows=getGS().parsedServData.slice(0,5);
+  setEl('servColPreview',`<div style="font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Pré-visualização</div><div class="preview-wrap"><table class="ptable"><thead><tr><th>${escHTML(col)}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escHTML(String(r[col]??''))}</td></tr>`).join('')}</tbody></table></div>`);
+}
+function importarServidores(){
+  const col=document.getElementById('colServNome')?.value;if(!col)return;
+  const novos=getGS().parsedServData.map(r=>String(r[col]??'').trim()).filter(Boolean);
+  getGS().servers=[...new Set([...getGS().servers,...novos])];
+  registrarHistorico(`Importados ${novos.length} servidores em ${getG().label}`,'sistema','sistema');
+  setEl('servInfo',`<div class="alert-ok" style="margin-top:.6rem"><i class="ti ti-check"></i> ${novos.length} servidores importados.</div>`);
+  hideEl('servColWrap');markDirty();renderAll();
+}
+function confirmRemoveServ(i){
+  const nome=getGS().servers[i];
+  showConfirm('Remover servidor',`Remover "${nome}" da equipe ${getG().label}?`,'Remover',ok=>{if(ok){getGS().servers.splice(i,1);markDirty();renderAll();}});
+}
+function confirmLimparServs(){
+  showConfirm('Limpar equipe',`Remover todos os ${getGS().servers.length} servidores de ${getG().label}?`,'Limpar',ok=>{if(ok){getGS().servers=[];markDirty();renderAll();}});
+}
+function addServManual(){
+  const inp=document.getElementById('novoServ');if(!inp)return;
+  const nome=inp.value.trim();if(!nome)return;
+  if(!getGS().servers.includes(nome))getGS().servers.push(nome);
+  inp.value='';markDirty();renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROCESSOS
+// ═══════════════════════════════════════════════════════════════
+function handleProcFile(file){
+  if(!file) return;
+  if(!isGestao()) getGS().innerTab='processos';
+  setEl('procInfo',`<div class="alert-info" style="margin-top:.6rem"><span class="spinner"></span> Lendo arquivo…</div>`);
+  setTimeout(()=>{readXLSX(file,(err,data)=>{
+    if(err||!data||!data.length){setEl('procInfo','<div class="alert-err" style="margin-top:.6rem">Erro ao ler o arquivo.</div>');return;}
+    const cs=getCS();cs.parsedData=data;
+    const hdrs=Object.keys(data[0]);if(!cs.colProc||!hdrs.includes(cs.colProc))cs.colProc=hdrs[0]||'';
+    renderAll();
+  });},50);
+}
+function saveColProc(){getCS().colProc=document.getElementById('colProc')?.value||'';}
+function saveColExtra(){getCS().colExtra=document.getElementById('colExtra')?.value||'';}
+function confirmLimparProc(){
+  showConfirm('Remover lote importado',`Remover apenas o lote de processos recém-carregado em ${getC().sigla}? A distribuição já existente será preservada.`,'Remover lote',ok=>{if(ok){const cs=getCS();cs.parsedData=[];markDirty();renderAll();}});
+}
+function selectMethod(m){getCS().metodo=m;renderAll();}
+
+function processoValor(row, preferredCol){
+  if(!row) return '';
+  if(preferredCol && row[preferredCol] !== undefined && row[preferredCol] !== null && String(row[preferredCol]).trim() !== '') return String(row[preferredCol]).trim();
+  const keys=Object.keys(row).filter(k=>k !== '_servidor');
+  const prefer=keys.find(k=>/processo|n[uú]mero|numero|nro|nr|proc/i.test(k));
+  const key=prefer || keys[0] || '';
+  return key ? String(row[key] ?? '').trim() : '';
+}
+function processoKey(row, preferredCol){
+  const raw=processoValor(row, preferredCol);
+  const digits=raw.replace(/\D/g,'');
+  return digits || raw.toLowerCase().replace(/\s+/g,' ').trim();
+}
+function distribuirNovos(procs, active, metodo, inicio){
+  const assigned=[];
+  if(metodo==='roundrobin') {
+    procs.forEach((p,i)=>assigned.push({...p,_servidor:active[(inicio+i)%active.length]}));
+  } else if(metodo==='lote') {
+    const base=Math.floor(procs.length/active.length), rem=procs.length%active.length; let idx=0;
+    active.forEach((sv,si)=>{const cnt=base+(si<rem?1:0); for(let j=0;j<cnt && idx<procs.length;j++) assigned.push({...procs[idx++],_servidor:sv});});
+  } else {
+    const sh=[...procs].sort(()=>Math.random()-.5); const base=Math.floor(sh.length/active.length), rem=sh.length%active.length; let idx=0;
+    active.forEach((sv,si)=>{const cnt=base+(si<rem?1:0); for(let j=0;j<cnt && idx<sh.length;j++) assigned.push({...sh[idx++],_servidor:sv});});
+  }
+  return assigned;
+}
+
+function distribuir(){
+  const cs=getCS(),gs=getGS(),c=getC();
+  const active=gs.servers.filter(sv=>sv.trim());
+  if(!active.length){alert(`Cadastre ao menos um servidor em ${getG().label}.`);return;}
+  if(!cs.parsedData.length)return;
+  const col=cs.colProc||Object.keys(cs.parsedData[0]||{})[0];
+  const existentes=Array.isArray(cs.resultData)?cs.resultData:[];
+  const chavesExistentes=new Set(existentes.map(p=>processoKey(p,col)).filter(Boolean));
+  const novos=[];
+  const vistosNoLote=new Set();
+  cs.parsedData.forEach(p=>{
+    const k=processoKey(p,col);
+    if(!k) return;
+    if(chavesExistentes.has(k) || vistosNoLote.has(k)) return;
+    vistosNoLote.add(k);
+    novos.push(p);
+  });
+  const ignorados=Math.max(0, cs.parsedData.length-novos.length);
+  if(!novos.length){
+    alert(`Nenhum processo novo encontrado em ${c.sigla}. Os ${existentes.length} processos já distribuídos foram preservados.`);
+    return;
+  }
+  const inicio=existentes.length % active.length;
+  const assignedNovos=distribuirNovos(novos, active, cs.metodo, inicio);
+  assignedNovos.forEach(p=>{
+    const num=processoValor(p,col);
+    if(!statusData[c.id][num]) statusData[c.id][num]={status:DEFAULT_STATUS,ts:new Date().toISOString()};
+  });
+  cs.resultData=[...existentes, ...assignedNovos];
+  cs.pagina=Math.max(1, Math.ceil(cs.resultData.length/ITENS_PAG));
+  registrarHistorico(`Adicionados ${assignedNovos.length} processo(s) novo(s) em ${c.sigla} (${cs.metodo})${ignorados?` · ${ignorados} ignorado(s) por já existir/duplicidade`:''}`, 'sistema','sistema');
+  markDirty();renderAll();switchInner('resultado');
+}
+function confirmLimparResult(){
+  showConfirm('Redistribuir',`Apagar a distribuição de ${getC().sigla}?`,'Redistribuir',ok=>{if(ok){getCS().resultData=[];getCS().pagina=1;markDirty();renderAll();switchInner('processos');}});
+}
+
+function registrarHistorico(desc,de,para){
+  historico.unshift({ts:new Date().toISOString(),classeId:'sistema',sigla:'SYS',numProc:desc,de,para});
+  if(historico.length>500)historico.length=500;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// DETALHAMENTO POR SERVIDOR
+// ═══════════════════════════════════════════════════════════════
+function findClasseById(classeId){
+  for (const g of GRUPOS) {
+    const c = g.classes.find(cl => cl.id === classeId);
+    if (c) return { grupo:g, classe:c, state:classeState[c.id] };
+  }
+  return null;
+}
+
+function processosDoServidor(classeId, servidor, grupoId){
+  const itens = [];
+  const grupos = grupoId ? GRUPOS.filter(g => g.id === grupoId) : GRUPOS;
+  grupos.forEach(g => {
+    g.classes.forEach(c => {
+      if (classeId && c.id !== classeId) return;
+      const cs = classeState[c.id];
+      const col = cs.colProc || (cs.resultData[0] ? Object.keys(cs.resultData[0]).find(k => k !== '_servidor') || 'Processo' : 'Processo');
+      cs.resultData
+        .filter(p => String(p._servidor || '') === String(servidor || ''))
+        .forEach(p => {
+          const numProc = processoValor(p,col);
+          const st = statusData[c.id][numProc] || { status:DEFAULT_STATUS, obs:'', ts:'' };
+          itens.push({
+            grupo:g,
+            classe:c,
+            processo:numProc,
+            servidor:p._servidor,
+            extra:cs.colExtra ? String(p[cs.colExtra] ?? '') : '',
+            extraLabel:cs.colExtra || '',
+            status:st.status || DEFAULT_STATUS
+          });
+        });
+    });
+  });
+  return itens;
+}
+
+function showServidorProcessos(classeId, servidor, grupoId){
+  const itens = processosDoServidor(classeId, servidor, grupoId);
+  const ref = classeId ? findClasseById(classeId) : null;
+  const cor = ref?.classe?.cor || (grupoId ? (GRUPOS.find(g => g.id === grupoId)?.cor || '#374151') : '#374151');
+  const contexto = ref ? ref.classe.sigla : (grupoId ? (GRUPOS.find(g => g.id === grupoId)?.label || 'Força-tarefa') : 'Todas as forças-tarefa');
+  const linhas = itens.map((item, i) => {
+    const extra = item.extra ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">${escHTML(item.extraLabel)}: ${escHTML(item.extra)}</div>` : '';
+    return `<tr>
+      <td style="width:42px;text-align:right;color:var(--text3)">${i+1}</td>
+      <td><span class="sbadge" style="background:${item.classe.corLight};color:${item.classe.corText}">${item.classe.sigla}</span></td>
+      <td style="font-weight:600">${escHTML(item.processo)}${extra}</td>
+      <td><span class="sbadge ${STATUS_CLS[item.status] || 'st-tramitando'}">${escHTML(item.status)}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('serverProcContent').innerHTML = `
+    <div class="proc-modal-head">
+      <div class="proc-modal-icon" style="background:${cor}"><i class="ti ti-user-search"></i></div>
+      <div style="flex:1">
+        <div class="proc-modal-title" id="serverProcTitle">${escHTML(servidor)}</div>
+        <div class="proc-modal-sub">${itens.length} processo(s) vinculado(s) · ${escHTML(contexto)}</div>
+      </div>
+    </div>
+    ${itens.length ? `<div class="result-wrap"><table class="proc-modal-table">
+      <thead><tr><th>#</th><th>Classe</th><th>Processo</th><th>Status</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table></div>` : `<div class="empty"><i class="ti ti-inbox"></i>Nenhum processo vinculado a este servidor.</div>`}
+    <div class="proc-modal-actions">
+      ${itens.length ? `<button class="btn" onclick="exportarCSVServidor(${jsArg(classeId || '')}, ${jsArg(servidor)}, ${jsArg(grupoId || '')})"><i class="ti ti-download"></i> Baixar CSV</button>` : ''}
+      <button class="btn btn-primary" onclick="closeServidorProcessos()"><i class="ti ti-x"></i> Fechar</button>
+    </div>`;
+  document.getElementById('serverProcModal').style.display = 'flex';
+}
+
+function closeServidorProcessos(){
+  const modal = document.getElementById('serverProcModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function exportarCSVServidor(classeId, servidor, grupoId){
+  const itens = processosDoServidor(classeId, servidor, grupoId);
+  if (!itens.length) return;
+  const rows = ['"Força-tarefa";"Classe";"Processo";"Servidor";"Status";"Informação adicional"'];
+  itens.forEach(item => {
+    const cells = [item.grupo.label, item.classe.sigla, item.processo, item.servidor, item.status, item.extra]
+      .map(v => `"${String(v ?? '').replace(/"/g,'""')}"`);
+    rows.push(cells.join(';'));
+  });
+  const blob = new Blob(['\uFEFF' + rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `processos_${slug(servidor)}_${dataHoje()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function jsArg(str){
+  return `decodeURIComponent('${encodeURIComponent(String(str ?? ''))}')`;
+}
+
+function slug(str){
+  return String(str ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').toLowerCase() || 'servidor';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORTAÇÃO CSV
+// ═══════════════════════════════════════════════════════════════
+function exportCSV(){
+  const cs=getCS(),c=getC();if(!cs.resultData.length)return;
+  const col=cs.colProc||Object.keys(cs.parsedData[0]||{})[0]||'Processo';
+  const hdrs=cs.colExtra?[col,'Servidor',cs.colExtra]:[col,'Servidor'];
+  const rows=[hdrs.join(';')];
+  cs.resultData.forEach(p=>{
+    const cells=[`"${String(p[col]??'').replace(/"/g,'""')}"`,`"${String(p._servidor??'').replace(/"/g,'""')}"`];
+    if(cs.colExtra)cells.push(`"${String(p[cs.colExtra]??'').replace(/"/g,'""')}"`);
+    rows.push(cells.join(';'));
+  });
+  const blob=new Blob(['\uFEFF'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`distribuicao_${c.id}_${dataHoje()}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PDFs
+// ═══════════════════════════════════════════════════════════════
+function pdfHeader(doc,cor,titulo,subtitulo){
+  const rgb=hexToRgb(cor);doc.setFillColor(rgb.r,rgb.g,rgb.b);doc.rect(0,0,210,28,'F');
+  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);doc.text('TRE-CE - Forca Tarefa Eleicoes 2026',14,11);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text(titulo,14,19);
+  doc.setFontSize(8);doc.setTextColor(220,230,255);doc.text(subtitulo,14,25);doc.setTextColor(0,0,0);return 34;
+}
+function pdfFooter(doc){const p=doc.internal.getNumberOfPages();for(let i=1;i<=p;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(130,130,130);doc.setDrawColor(200,200,200);doc.line(14,285,196,285);doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`,14,290);doc.text(`Pag. ${i}/${p}`,196,290,{align:'right'});}}
+function hexToRgb(hex){return{r:parseInt(hex.slice(1,3),16),g:parseInt(hex.slice(3,5),16),b:parseInt(hex.slice(5,7),16)};}
+function dataHoje(){return new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');}
+
+function calcStats(cs,gs){
+  const active=gs.servers.filter(sv=>sv.trim());const totals={};active.forEach(sv=>totals[sv]=0);cs.resultData.forEach(p=>{if(totals[p._servidor]!==undefined)totals[p._servidor]++;});
+  const vals=active.map(sv=>totals[sv]),total=vals.reduce((a,b)=>a+b,0),media=total/(active.length||1);
+  const max=vals.length?Math.max(...vals):0,min=vals.length?Math.min(...vals):0;
+  const desvPad=Math.sqrt(vals.reduce((a,v)=>a+(v-media)**2,0)/(vals.length||1));const cv=media>0?(desvPad/media)*100:0;
+  return{active,totals,vals,total,media,max,min,maxServ:active[vals.indexOf(max)]||'',minServ:active[vals.indexOf(min)]||'',desvPad,cv};
+}
+
+function gerarMemoPDF(){
+  const cs=getCS(),c=getC(),gs=getGS();if(!cs.resultData.length)return;
+  const st=calcStats(cs,gs),doc=new jsPDF(),rgb=hexToRgb(c.cor);
+  const metL={roundrobin:'Rodizio (round-robin)',lote:'Lote igualitario',aleatorio:'Sorteio aleatorio'}[cs.metodo];
+  let y=pdfHeader(doc,c.cor,`MEMORANDO - ${c.sigla}`,`Distribuicao de processos - ${new Date().toLocaleString('pt-BR',{dateStyle:'long',timeStyle:'short'})}`);
+  doc.setFillColor(rgb.r+(255-rgb.r)*.85,rgb.g+(255-rgb.g)*.85,rgb.b+(255-rgb.b)*.85);doc.rect(14,y,182,22,'F');
+  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(rgb.r,rgb.g,rgb.b);doc.text(`MEMORANDO No 001/${c.sigla}/FT-2026`,18,y+7);
+  doc.setFont('helvetica','normal');doc.setTextColor(40,40,40);doc.text(`Para: Membros da Equipe de ${c.label}`,18,y+13);doc.text(`Assunto: Distribuicao de processos de ${c.label}`,18,y+19);y+=28;
+  doc.setFontSize(9);[`Em cumprimento as determinacoes da Coordenacao da Forca Tarefa, comunico a`,`distribuicao de processos de ${c.label} realizada nesta data:`,``,`Total distribuido: ${st.total} processo(s)`,`Servidores: ${st.active.length}  |  Media: ${st.media.toFixed(1)}  |  Metodo: ${metL}`,``].forEach(l=>{doc.text(l,14,y);y+=5.5;});
+  doc.autoTable({startY:y,head:[['Servidor','Processos','Percentual']],body:st.active.map(sv=>[sv,st.totals[sv],st.total?((st.totals[sv]/st.total)*100).toFixed(1)+'%':'0%']),styles:{fontSize:9,cellPadding:3},headStyles:{fillColor:[rgb.r,rgb.g,rgb.b],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[rgb.r+(255-rgb.r)*.9,rgb.g+(255-rgb.g)*.9,rgb.b+(255-rgb.b)*.9]},columnStyles:{1:{halign:'center'},2:{halign:'center'}},margin:{left:14,right:14}});
+  y=doc.lastAutoTable.finalY+12;['A distribuicao foi realizada de forma isonomica, assegurando equilibrio','na carga de trabalho entre os membros da equipe.','','Atenciosamente,','','','___________________________________',`Coordenacao da Forca Tarefa - ${c.label}`,'TRE-CE - Eleicoes 2026'].forEach(l=>{doc.text(l,14,y);y+=5.5;});
+  pdfFooter(doc);doc.save(`memorando_${c.id}_${dataHoje()}.pdf`);
+}
+
+function gerarRelatorioPDF(){
+  const cs=getCS(),c=getC();if(!cs.resultData.length)return;
+  const doc=new jsPDF(),col=cs.colProc||Object.keys(cs.parsedData[0]||{})[0]||'Processo',rgb=hexToRgb(c.cor);
+  let y=pdfHeader(doc,c.cor,`RELATORIO - ${c.sigla}`,'Lista completa de processos por servidor');
+  doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(rgb.r,rgb.g,rgb.b);doc.text(`Total: ${cs.resultData.length}  |  Data: ${new Date().toLocaleDateString('pt-BR')}`,14,y);y+=7;
+  const head=[[col,'Servidor']];if(cs.colExtra)head[0].push(cs.colExtra);
+  const body=cs.resultData.map(p=>{const row=[processoValor(p,col),p._servidor];if(cs.colExtra)row.push(String(p[cs.colExtra]??''));return row;});
+  doc.autoTable({startY:y,head,body,styles:{fontSize:8,cellPadding:2,overflow:'ellipsize'},headStyles:{fillColor:[rgb.r,rgb.g,rgb.b],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[rgb.r+(255-rgb.r)*.92,rgb.g+(255-rgb.g)*.92,rgb.b+(255-rgb.b)*.92]},columnStyles:{1:{cellWidth:55}},margin:{left:14,right:14}});
+  pdfFooter(doc);doc.save(`relatorio_${c.id}_${dataHoje()}.pdf`);
+}
+
+function gerarEstatPDF(){
+  const cs=getCS(),c=getC(),gs=getGS();if(!cs.resultData.length)return;
+  const st=calcStats(cs,gs),doc=new jsPDF(),rgb=hexToRgb(c.cor);
+  const metL={roundrobin:'Rodizio (round-robin)',lote:'Lote igualitario',aleatorio:'Sorteio aleatorio'}[cs.metodo];
+  const sorted=[...st.active].sort((a,b)=>st.totals[b]-st.totals[a]);
+  let y=pdfHeader(doc,c.cor,`RELATORIO ESTATISTICO - ${c.sigla}`,'Analise da distribuicao por servidor');
+  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(rgb.r,rgb.g,rgb.b);doc.text('1. Resumo geral',14,y);y+=5;
+  doc.autoTable({startY:y,body:[['Total de processos',st.total],['Servidores',st.active.length],['Media',st.media.toFixed(1)],['Metodo',metL],['Maior carga',`${st.maxServ} (${st.max})`],['Menor carga',`${st.minServ} (${st.min})`],['Data',new Date().toLocaleString('pt-BR')]],styles:{fontSize:9,cellPadding:3},columnStyles:{0:{fontStyle:'bold',fillColor:[rgb.r+(255-rgb.r)*.88,rgb.g+(255-rgb.g)*.88,rgb.b+(255-rgb.b)*.88],cellWidth:70}},margin:{left:14,right:14}});
+  y=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(rgb.r,rgb.g,rgb.b);doc.text('2. Ranking por servidor',14,y);y+=5;
+  doc.autoTable({startY:y,head:[['Pos.','Servidor','Processos','% Total','vs. Media']],body:sorted.map((sv,i)=>{const v=st.totals[sv],diff=v-st.media;return[`${i+1}o`,sv,v,st.total?((v/st.total)*100).toFixed(1)+'%':'0%',(diff>=0?'+':'')+diff.toFixed(1)];}),styles:{fontSize:9,cellPadding:3},headStyles:{fillColor:[rgb.r,rgb.g,rgb.b],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[rgb.r+(255-rgb.r)*.92,rgb.g+(255-rgb.g)*.92,rgb.b+(255-rgb.b)*.92]},columnStyles:{0:{halign:'center',cellWidth:16},2:{halign:'center'},3:{halign:'center'},4:{halign:'center'}},margin:{left:14,right:14}});
+  pdfFooter(doc);doc.save(`estatisticas_${c.id}_${dataHoje()}.pdf`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILITÁRIOS
+// ═══════════════════════════════════════════════════════════════
+function escHTML(str){return String(str??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function setEl(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}
+function showEl(id){const el=document.getElementById(id);if(el)el.style.display='';}
+function hideEl(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+
+// ═══════════════════════════════════════════════════════════════
+// INICIALIZAÇÃO
+// ═══════════════════════════════════════════════════════════════
+initState();
+const carregou = carregarLS();
+if (!carregou) setSaveStatus(true);
+renderAll();
+</script>
+</body>
+</html>

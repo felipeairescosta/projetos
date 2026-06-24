@@ -20,10 +20,13 @@ from data_loader import (
 )
 from process_generator import (
     GeradorProcessosPJe,
+    TipoProcesso,
+    classificar_tipo_processo,
     CLASSES_1G,
     CLASSES_2G,
     ORGAOS_2G,
 )
+from leitor_pecas import carregar_peca, extrair_texto, pecas_para_classe
 
 # ========== CONFIGURAÇÃO DA PÁGINA ==========
 st.set_page_config(
@@ -57,7 +60,7 @@ df_2g["decisao"] = df_2g["tipo_decisao"].apply(classificar_decisao)
 df_2g["unidade"] = df_2g["tarefas"].apply(classificar_unidade)
 
 # ========== TABS ==========
-tab1, tab2, tab3 = st.tabs(["1º Grau", "2º Grau", "Gerador de Processos"])
+tab1, tab2, tab3, tab4 = st.tabs(["1º Grau", "2º Grau", "Gerador de Processos", "Análise de Peças"])
 
 with tab1:
     grau = "1º Grau"
@@ -617,6 +620,77 @@ with tab3:
                 mime="text/csv",
                 key="download_gen",
             )
+
+with tab4:
+    st.markdown("### Análise de Peças Processuais")
+    st.markdown(
+        "Selecione a classe do processo. O sistema identifica automaticamente "
+        "se é **originário** (lê a petição inicial) ou **recurso** "
+        "(lê sentença, recurso e contrarrazões) e solicita os arquivos correspondentes."
+    )
+
+    todas_classes = sorted(set(CLASSES_1G + CLASSES_2G))
+    classe_sel = st.selectbox(
+        "Classe processual",
+        options=todas_classes,
+        key="classe_analise",
+    )
+
+    tipo = classificar_tipo_processo(classe_sel)
+    pecas = pecas_para_classe(classe_sel)
+
+    if tipo == TipoProcesso.ORIGINARIO:
+        st.info(f"**Processo originário** — será lida a **petição inicial**.")
+    else:
+        st.info(
+            f"**Recurso** — serão lidas: **sentença**, **recurso/razões** e **contrarrazões**."
+        )
+
+    st.markdown("---")
+
+    # Upload individual por peça
+    for peca in pecas:
+        st.markdown(f"#### {peca.nome}")
+        arquivo = st.file_uploader(
+            f"Arquivo — {peca.nome}",
+            type=["pdf", "txt"],
+            key=f"upload_{peca.tipo}_{classe_sel}",
+            label_visibility="collapsed",
+        )
+        if arquivo is not None:
+            with st.spinner(f"Extraindo texto de {arquivo.name}..."):
+                try:
+                    carregar_peca(peca, arquivo.read(), arquivo.name)
+                except RuntimeError as e:
+                    st.error(str(e))
+
+        if peca.carregado:
+            n_chars = len(peca.conteudo or "")
+            n_words = len((peca.conteudo or "").split())
+            st.caption(
+                f"Arquivo: **{peca.nome_arquivo}** · "
+                f"{n_chars:,} caracteres · {n_words:,} palavras".replace(",", ".")
+            )
+            with st.expander(f"Ver texto extraído — {peca.nome}", expanded=False):
+                st.text_area(
+                    label="conteudo",
+                    value=peca.conteudo,
+                    height=400,
+                    disabled=True,
+                    label_visibility="collapsed",
+                    key=f"texto_{peca.tipo}_{classe_sel}",
+                )
+            st.download_button(
+                label=f"Baixar texto — {peca.nome}",
+                data=(peca.conteudo or "").encode("utf-8"),
+                file_name=f"{peca.tipo.lower()}.txt",
+                mime="text/plain",
+                key=f"dl_{peca.tipo}_{classe_sel}",
+            )
+        else:
+            st.caption("Aguardando upload.")
+
+        st.markdown("")  # espaço entre peças
 
 # ========== RODAPÉ ==========
 st.markdown("---")

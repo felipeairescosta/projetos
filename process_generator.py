@@ -9,6 +9,10 @@ Número CNJ gerado seguindo a estrutura:
     NNNNNNN-DD.AAAA.8.06.OOOO
     - 8  → Justiça Eleitoral
     - 06 → TRE-CE
+
+Classificação de tipo de processo e peças processuais:
+    - ORIGINÁRIO → petição inicial
+    - RECURSO    → sentença + recurso/razões + contrarrazões
 """
 
 from __future__ import annotations
@@ -16,6 +20,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from enum import Enum
 from typing import List, Optional
 
 import pandas as pd
@@ -207,6 +212,75 @@ def _escolher_ponderado(opcoes: list, pesos: list):
 
 
 # ---------------------------------------------------------------------------
+# Classificação de tipo de processo e peças processuais
+# ---------------------------------------------------------------------------
+
+class TipoProcesso(str, Enum):
+    """Distingue processos originários de recursos eleitorais."""
+    ORIGINARIO = "Originário"
+    RECURSO = "Recurso"
+
+
+# Prefixos que identificam inequivocamente um recurso
+_PREFIXOS_RECURSO: tuple[str, ...] = ("RECURSO", "AGRAVO", "EMBARGOS")
+
+
+def classificar_tipo_processo(classe: str) -> TipoProcesso:
+    """
+    Classifica uma classe processual como originário ou recurso.
+
+    Regra: qualquer classe que comece com 'RECURSO', 'AGRAVO' ou 'EMBARGOS'
+    é tratada como recurso; as demais são processos originários.
+    """
+    normalizada = classe.strip().upper()
+    if any(normalizada.startswith(p) for p in _PREFIXOS_RECURSO):
+        return TipoProcesso.RECURSO
+    return TipoProcesso.ORIGINARIO
+
+
+@dataclass
+class DocumentoProcessual:
+    """
+    Representa uma peça processual associada a um processo PJe.
+
+    Atributos
+    ----------
+    tipo        : identificador interno da peça
+                  ("PETICAO_INICIAL" | "SENTENCA" | "RECURSO" | "CONTRARRAZOES")
+    nome        : rótulo exibido na interface
+    conteudo    : texto extraído do arquivo (None enquanto não carregado)
+    nome_arquivo: nome original do arquivo enviado pelo usuário
+    """
+
+    tipo: str
+    nome: str
+    conteudo: Optional[str] = None
+    nome_arquivo: Optional[str] = None
+
+    @property
+    def carregado(self) -> bool:
+        return self.conteudo is not None
+
+
+def pecas_requeridas(tipo: TipoProcesso) -> List[DocumentoProcessual]:
+    """
+    Retorna a lista de peças que devem ser lidas para cada tipo de processo.
+
+    - Originário → petição inicial
+    - Recurso    → sentença, recurso/razões, contrarrazões
+    """
+    if tipo == TipoProcesso.ORIGINARIO:
+        return [
+            DocumentoProcessual(tipo="PETICAO_INICIAL", nome="Petição Inicial"),
+        ]
+    return [
+        DocumentoProcessual(tipo="SENTENCA",       nome="Sentença"),
+        DocumentoProcessual(tipo="RECURSO",        nome="Recurso / Razões"),
+        DocumentoProcessual(tipo="CONTRARRAZOES",  nome="Contrarrazões"),
+    ]
+
+
+# ---------------------------------------------------------------------------
 # Dataclasses de processo
 # ---------------------------------------------------------------------------
 
@@ -222,6 +296,12 @@ class ProcessoEleitoral1G:
     ano: int
     mes: int
     DT_AUTUACAO: datetime
+    tipo_processo: TipoProcesso = field(init=False)
+    documentos: List[DocumentoProcessual] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.tipo_processo = classificar_tipo_processo(self.classe)
+        self.documentos = pecas_requeridas(self.tipo_processo)
 
     def to_dict(self) -> dict:
         return {
@@ -250,6 +330,12 @@ class ProcessoEleitoral2G:
     situacao: str
     decisao: str
     unidade: str
+    tipo_processo: TipoProcesso = field(init=False)
+    documentos: List[DocumentoProcessual] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.tipo_processo = classificar_tipo_processo(self.classe)
+        self.documentos = pecas_requeridas(self.tipo_processo)
 
     def to_dict(self) -> dict:
         return {
@@ -507,6 +593,10 @@ def _inferir_unidade(tarefa: str) -> str:
 # ---------------------------------------------------------------------------
 
 __all__ = [
+    "TipoProcesso",
+    "DocumentoProcessual",
+    "classificar_tipo_processo",
+    "pecas_requeridas",
     "ProcessoEleitoral1G",
     "ProcessoEleitoral2G",
     "GeradorProcessosPJe",

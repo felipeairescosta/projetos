@@ -316,7 +316,14 @@ class ProcessoEleitoral1G:
 
 @dataclass
 class ProcessoEleitoral2G:
-    """Representa um processo PJe do 2º Grau da Justiça Eleitoral (TRE-CE)."""
+    """
+    Representa um processo PJe do 2º Grau da Justiça Eleitoral (TRE-CE).
+
+    Número CNJ:
+        NNNNNNN-DD.AAAA.8.06.OOOO
+        - OOOO = 0000  → processo originário (nasce no TRE)
+        - OOOO = zona  → recurso oriundo de zona eleitoral
+    """
 
     nr_processo: str
     classe: str
@@ -330,6 +337,7 @@ class ProcessoEleitoral2G:
     situacao: str
     decisao: str
     unidade: str
+    zona_origem: Optional[int] = None   # None → originário; int → recurso da zona
     tipo_processo: TipoProcesso = field(init=False)
     documentos: List[DocumentoProcessual] = field(init=False)
 
@@ -440,6 +448,17 @@ class GeradorProcessosPJe:
         decisao = _inferir_decisao(tipo_decisao)
         unidade = _inferir_unidade(tarefa)
 
+        # OOOO do número CNJ:
+        #   originário → 0000 (processo nasce no TRE)
+        #   recurso    → número da zona eleitoral de origem
+        tipo_proc = classificar_tipo_processo(classe)
+        if tipo_proc == TipoProcesso.RECURSO:
+            zona_origem_num, _ = random.choice(_ZONAS_CE)
+            oooo = zona_origem_num
+        else:
+            zona_origem_num = None
+            oooo = 0
+
         # Data de trânsito (apenas processos arquivados)
         dt_dist = _data_aleatoria(ano, mes)
         dt_transito = ""
@@ -449,12 +468,12 @@ class GeradorProcessosPJe:
             if dt_transito_dt.year <= ano + 2:
                 dt_transito = dt_transito_dt.strftime("%d/%m/%Y %H:%M:%S")
 
-        chave = (ano, 0)
+        chave = (ano, oooo)
         self._contador_2g[chave] = self._contador_2g.get(chave, 0) + 1
         nr_seq = self._contador_2g[chave]
 
         return ProcessoEleitoral2G(
-            nr_processo=_numero_cnj(nr_seq, ano, oooo=0),
+            nr_processo=_numero_cnj(nr_seq, ano, oooo=oooo),
             classe=classe,
             orgao=orgao,
             ano=ano,
@@ -466,6 +485,7 @@ class GeradorProcessosPJe:
             situacao=situacao,
             decisao=decisao,
             unidade=unidade,
+            zona_origem=zona_origem_num,
         )
 
     # ------------------------------------------------------------------

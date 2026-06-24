@@ -3,6 +3,8 @@ Dashboard PJe — TRE-CE
 Análise de processos distribuídos no 1º e 2º Grau.
 """
 
+import random
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -15,6 +17,12 @@ from data_loader import (
     classificar_situacao,
     classificar_decisao,
     classificar_unidade,
+)
+from process_generator import (
+    GeradorProcessosPJe,
+    CLASSES_1G,
+    CLASSES_2G,
+    ORGAOS_2G,
 )
 
 # ========== CONFIGURAÇÃO DA PÁGINA ==========
@@ -49,7 +57,7 @@ df_2g["decisao"] = df_2g["tipo_decisao"].apply(classificar_decisao)
 df_2g["unidade"] = df_2g["tarefas"].apply(classificar_unidade)
 
 # ========== TABS ==========
-tab1, tab2 = st.tabs(["1º Grau", "2º Grau"])
+tab1, tab2, tab3 = st.tabs(["1º Grau", "2º Grau", "Gerador de Processos"])
 
 with tab1:
     grau = "1º Grau"
@@ -499,6 +507,116 @@ with tab2:
     df_tempo_ranking["Tempo Médio (dias)"] = df_tempo_ranking["Tempo Médio (dias)"].apply(lambda x: f"{x:.1f}")
     
     st.dataframe(df_tempo_ranking, use_container_width=True, height=400)
+
+with tab3:
+    st.markdown("### Gerador de Processos PJe — Justiça Eleitoral")
+    st.markdown(
+        "Gera dados sintéticos de processos eleitorais seguindo o padrão CNJ "
+        "(segmento 8 · TRE-CE). Útil para testes, demonstrações e prototipagem."
+    )
+
+    col_conf1, col_conf2 = st.columns(2)
+    with col_conf1:
+        grau_gen = st.radio("Grau", options=["1º Grau", "2º Grau"], horizontal=True, key="grau_gen")
+    with col_conf2:
+        n_gen = st.number_input(
+            "Quantidade de processos", min_value=1, max_value=10_000,
+            value=100, step=50, key="n_gen",
+        )
+
+    col_conf3, col_conf4 = st.columns(2)
+    with col_conf3:
+        anos_gen = st.multiselect(
+            "Anos",
+            options=list(range(2018, 2026)),
+            default=[2022, 2023, 2024],
+            key="anos_gen",
+        )
+    with col_conf4:
+        seed_gen = st.number_input(
+            "Semente aleatória (0 = aleatório)", min_value=0, max_value=99999,
+            value=42, step=1, key="seed_gen",
+        )
+
+    # Filtros opcionais por classe / órgão
+    with st.expander("Filtros opcionais"):
+        if grau_gen == "1º Grau":
+            classe_fixa = st.selectbox(
+                "Fixar classe processual (opcional)",
+                options=["— todas —"] + CLASSES_1G,
+                key="classe_fixa_gen",
+            )
+            classe_arg = None if classe_fixa == "— todas —" else classe_fixa
+            orgao_arg = None
+        else:
+            classe_fixa = st.selectbox(
+                "Fixar classe processual (opcional)",
+                options=["— todas —"] + CLASSES_2G,
+                key="classe_fixa_gen2",
+            )
+            orgao_fixo = st.selectbox(
+                "Fixar órgão julgador (opcional)",
+                options=["— todos —"] + ORGAOS_2G,
+                key="orgao_fixo_gen",
+            )
+            classe_arg = None if classe_fixa == "— todas —" else classe_fixa
+            orgao_arg = None if orgao_fixo == "— todos —" else orgao_fixo
+
+    if not anos_gen:
+        st.warning("Selecione ao menos um ano para gerar processos.")
+    else:
+        if st.button("Gerar processos", type="primary", key="btn_gerar"):
+            seed_val = int(seed_gen) if seed_gen > 0 else None
+            gerador = GeradorProcessosPJe(seed=seed_val)
+
+            with st.spinner("Gerando processos..."):
+                if grau_gen == "1º Grau":
+                    if classe_arg:
+                        registros = [
+                            gerador.gerar_processo_1g(
+                                ano=random.choice(anos_gen),
+                                classe=classe_arg,
+                            )
+                            for _ in range(int(n_gen))
+                        ]
+                        df_gen = pd.DataFrame([p.to_dict() for p in registros])
+                    else:
+                        df_gen = gerador.gerar_dataframe_1g(n=int(n_gen), anos=anos_gen)
+                else:
+                    if classe_arg or orgao_arg:
+                        registros = [
+                            gerador.gerar_processo_2g(
+                                ano=random.choice(anos_gen),
+                                classe=classe_arg,
+                                orgao=orgao_arg,
+                            )
+                            for _ in range(int(n_gen))
+                        ]
+                        df_gen = pd.DataFrame([p.to_dict() for p in registros])
+                    else:
+                        df_gen = gerador.gerar_dataframe_2g(n=int(n_gen), anos=anos_gen)
+
+            st.success(f"{len(df_gen):,} processos gerados.".replace(",", "."))
+
+            # KPIs rápidos
+            col_k1, col_k2, col_k3 = st.columns(3)
+            col_k1.metric("Total", f"{len(df_gen):,}".replace(",", "."))
+            col_k2.metric("Classes distintas", df_gen["classe"].nunique())
+            col_k3.metric("Órgãos / Zonas", df_gen["orgao"].nunique())
+
+            st.markdown("#### Amostra dos dados gerados")
+            st.dataframe(df_gen.head(50), use_container_width=True)
+
+            # Download CSV
+            csv_bytes = df_gen.to_csv(index=False, sep=";").encode("utf-8")
+            grau_label = "1g" if grau_gen == "1º Grau" else "2g"
+            st.download_button(
+                label="Baixar CSV",
+                data=csv_bytes,
+                file_name=f"pje_sintetico_{grau_label}_{len(df_gen)}_processos.csv",
+                mime="text/csv",
+                key="download_gen",
+            )
 
 # ========== RODAPÉ ==========
 st.markdown("---")

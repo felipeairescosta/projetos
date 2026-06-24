@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Candidaturas — A Viagem Eleitoral</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, #0a0e27 0%, #111530 50%, #0d1420 100%);
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .stars {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle linear infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #1a3a6e, #2d5ba3);
+    border: 1px solid rgba(100,160,255,0.3);
+    border-radius: 30px;
+    padding: 8px 24px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #7ab3ff;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .header h1 span {
+    background: linear-gradient(90deg, #4dabf7, #74c0fc, #a5d8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.55);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Flight Path */
+  .flight-path-wrapper {
+    position: relative;
+    margin-bottom: 80px;
+  }
+
+  .flight-svg {
+    width: 100%;
+    overflow: visible;
+  }
+
+  /* Journey Grid */
+  .journey-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  /* Cards Isométricos */
+  .iso-card {
+    position: relative;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 28px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+  }
+
+  .iso-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .iso-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .iso-card.phase-1::before { background: linear-gradient(90deg, #74c0fc, #4dabf7); }
+  .iso-card.phase-2::before { background: linear-gradient(90deg, #63e6be, #38d9a9); }
+  .iso-card.phase-3::before { background: linear-gradient(90deg, #ffd43b, #fab005); }
+  .iso-card.phase-4::before { background: linear-gradient(90deg, #f783ac, #e64980); }
+  .iso-card.phase-5::before { background: linear-gradient(90deg, #da77f2, #be4bdb); }
+  .iso-card.phase-6::before { background: linear-gradient(90deg, #748ffc, #4263eb); }
+
+  .card-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .phase-1 .step-number { background: linear-gradient(135deg, #74c0fc, #4dabf7); }
+  .phase-2 .step-number { background: linear-gradient(135deg, #63e6be, #38d9a9); }
+  .phase-3 .step-number { background: linear-gradient(135deg, #ffd43b, #fab005); color: #333; }
+  .phase-4 .step-number { background: linear-gradient(135deg, #f783ac, #e64980); }
+  .phase-5 .step-number { background: linear-gradient(135deg, #da77f2, #be4bdb); }
+  .phase-6 .step-number { background: linear-gradient(135deg, #748ffc, #4263eb); }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    color: #fff;
+  }
+
+  .card-icon {
+    font-size: 48px;
+    margin-bottom: 14px;
+    display: block;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .card-subtitle {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+    opacity: 0.7;
+  }
+
+  .phase-1 .card-subtitle { color: #74c0fc; }
+  .phase-2 .card-subtitle { color: #63e6be; }
+  .phase-3 .card-subtitle { color: #ffd43b; }
+  .phase-4 .card-subtitle { color: #f783ac; }
+  .phase-5 .card-subtitle { color: #da77f2; }
+  .phase-6 .card-subtitle { color: #748ffc; }
+
+  .card-desc {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+
+  .checklist {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.4;
+  }
+
+  .check-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .phase-1 .check-icon { background: rgba(116,192,252,0.2); color: #74c0fc; }
+  .phase-2 .check-icon { background: rgba(99,230,190,0.2); color: #63e6be; }
+  .phase-3 .check-icon { background: rgba(255,212,59,0.2); color: #ffd43b; }
+  .phase-4 .check-icon { background: rgba(247,131,172,0.2); color: #f783ac; }
+  .phase-5 .check-icon { background: rgba(218,119,242,0.2); color: #da77f2; }
+  .phase-6 .check-icon { background: rgba(116,143,252,0.2); color: #748ffc; }
+
+  .card-tag {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 500;
+  }
+
+  /* Decorative isometric box inside cards */
+  .iso-box {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+
+  /* Timeline connector */
+  .timeline-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+    color: rgba(255,255,255,0.2);
+    font-size: 24px;
+  }
+
+  /* Bottom stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  /* Big Isometric plane SVG section */
+  .plane-section {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0 50px;
+    position: relative;
+  }
+
+  .route-bar {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 60px;
+    padding: 12px 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 500;
+  }
+
+  .route-city {
+    font-weight: 700;
+    color: #fff;
+    font-size: 15px;
+  }
+
+  .route-arrow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .route-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(116,192,252,0.3), rgba(116,192,252,0.8), rgba(116,192,252,0.3));
+  }
+
+  .route-plane {
+    font-size: 20px;
+    filter: drop-shadow(0 0 8px rgba(116,192,252,0.6));
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .footer p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+  }
+
+  .footer strong {
+    color: rgba(255,255,255,0.45);
+  }
+
+  /* Alert box */
+  .alert-box {
+    background: rgba(250,176,5,0.08);
+    border: 1px solid rgba(250,176,5,0.25);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .alert-icon { font-size: 18px; flex-shrink: 0; }
+
+  .alert-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+  }
+
+  .alert-text strong { color: #ffd43b; }
+
+  /* Full-width isometric scene */
+  .scene-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 0 0 60px;
+    overflow: hidden;
+  }
+
+  .scene-svg-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Stars -->
+<div class="stars" id="stars"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">✈ Processo Eleitoral · TRE-CE · 2026</div>
+    <h1>O Registro de Candidaturas<br><span>como uma Viagem de Avião</span></h1>
+    <p>Da ideia de concorrer à diplomação: cada etapa do processo eleitoral mapeada como uma jornada aérea, do check-in à chegada no destino.</p>
+  </div>
+
+  <!-- Route Bar -->
+  <div class="plane-section">
+    <div class="route-bar">
+      <div>
+        <div class="route-city">CONVENÇÃO</div>
+        <div style="font-size:11px;opacity:0.5">Origem · CVN</div>
+      </div>
+      <div class="route-arrow">
+        <div class="route-line"></div>
+        <div class="route-plane">✈</div>
+        <div class="route-line"></div>
+      </div>
+      <div style="text-align:center;padding:0 20px">
+        <div style="font-size:11px;opacity:0.5;margin-bottom:4px">PARADAS</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.5)">Protocolo · Análise · Julgamento</div>
+      </div>
+      <div class="route-arrow">
+        <div class="route-line"></div>
+        <div class="route-plane" style="transform:scaleX(-1)">✈</div>
+        <div class="route-line"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="route-city">DIPLOMAÇÃO</div>
+        <div style="font-size:11px;opacity:0.5">Destino · DPL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Isometric Scene SVG -->
+  <div class="scene-wrapper">
+    <div class="scene-svg-container">
+      <svg viewBox="0 0 1200 420" width="100%" style="max-width:1200px" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#0a0e27"/>
+            <stop offset="100%" style="stop-color:#111530"/>
+          </linearGradient>
+          <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.12)"/>
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0.04)"/>
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="softglow">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <!-- Isometric grid lines -->
+          <pattern id="isoGrid" x="0" y="0" width="60" height="34.64" patternUnits="userSpaceOnUse">
+            <path d="M30 0 L60 17.32 L30 34.64 L0 17.32 Z" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background grid -->
+        <rect width="1200" height="420" fill="url(#sky)"/>
+        <rect width="1200" height="420" fill="url(#isoGrid)" opacity="0.4"/>
+
+        <!-- Clouds -->
+        <ellipse cx="120" cy="80" rx="70" ry="20" fill="url(#cloudGrad)"/>
+        <ellipse cx="160" cy="68" rx="50" ry="18" fill="url(#cloudGrad)"/>
+        <ellipse cx="90" cy="72" rx="40" ry="15" fill="url(#cloudGrad)"/>
+
+        <ellipse cx="950" cy="60" rx="80" ry="22" fill="url(#cloudGrad)"/>
+        <ellipse cx="990" cy="48" rx="55" ry="18" fill="url(#cloudGrad)"/>
+        <ellipse cx="920" cy="54" rx="45" ry="16" fill="url(#cloudGrad)"/>
+
+        <ellipse cx="550" cy="40" rx="60" ry="16" fill="url(#cloudGrad)" opacity="0.6"/>
+        <ellipse cx="580" cy="30" rx="40" ry="14" fill="url(#cloudGrad)" opacity="0.6"/>
+
+        <!-- Flight path dashed line -->
+        <path d="M 80 320 C 200 280, 350 200, 600 160 C 850 120, 1000 180, 1120 260"
+              fill="none" stroke="rgba(116,192,252,0.25)" stroke-width="2"
+              stroke-dasharray="12,8"/>
+
+        <!-- Glow on path -->
+        <path d="M 80 320 C 200 280, 350 200, 600 160 C 850 120, 1000 180, 1120 260"
+              fill="none" stroke="rgba(116,192,252,0.08)" stroke-width="8"/>
+
+        <!-- ===== ETAPA 1: CONVENÇÃO — Portão de Embarque ===== -->
+        <!-- Building base isometric -->
+        <!-- Top face -->
+        <polygon points="60,280 120,248 180,280 120,312" fill="#1a2d5a" stroke="#2d4a8a" stroke-width="1"/>
+        <!-- Left face -->
+        <polygon points="60,280 120,312 120,355 60,323" fill="#0f1d3d" stroke="#1a2d5a" stroke-width="1"/>
+        <!-- Right face -->
+        <polygon points="120,312 180,280 180,323 120,355" fill="#162345" stroke="#1d3060" stroke-width="1"/>
+        <!-- Window left -->
+        <rect x="72" y="300" width="14" height="10" rx="2" fill="rgba(116,192,252,0.25)" stroke="rgba(116,192,252,0.4)" stroke-width="0.5"/>
+        <!-- Window right -->
+        <rect x="152" y="285" width="14" height="10" rx="2" fill="rgba(116,192,252,0.25)" stroke="rgba(116,192,252,0.4)" stroke-width="0.5"/>
+        <!-- Door on top-left face -->
+        <polygon points="100,258 120,248 120,265 100,275" fill="rgba(116,192,252,0.15)" stroke="rgba(116,192,252,0.5)" stroke-width="0.8"/>
+        <!-- Antenna / flag -->
+        <line x1="120" y1="248" x2="120" y2="220" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+        <rect x="120" y="220" width="18" height="10" rx="2" fill="#4dabf7" opacity="0.8"/>
+        <!-- Label -->
+        <text x="120" y="378" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter,sans-serif" font-weight="600" letter-spacing="1">CONVENÇÃO</text>
+        <text x="120" y="390" text-anchor="middle" fill="#74c0fc" font-size="8" font-family="Inter,sans-serif" letter-spacing="1.5">PORTÃO A1</text>
+
+        <!-- Step dot 1 -->
+        <circle cx="120" cy="248" r="6" fill="#4dabf7" filter="url(#glow)"/>
+        <circle cx="120" cy="248" r="10" fill="rgba(77,171,247,0.15)"/>
+
+        <!-- ===== ETAPA 2: PROTOCOLO — Check-in ===== -->
+        <!-- Small counter isometric -->
+        <polygon points="240,285 290,260 340,285 290,310" fill="#1a3d2d" stroke="#2d6645" stroke-width="1"/>
+        <polygon points="240,285 290,310 290,335 240,310" fill="#102518" stroke="#1a3d2d" stroke-width="1"/>
+        <polygon points="290,310 340,285 340,310 290,335" fill="#142e1f" stroke="#1a3d2d" stroke-width="1"/>
+        <!-- Screen on counter -->
+        <polygon points="262,268 290,255 318,268 290,281" fill="#0d2118" stroke="#38d9a9" stroke-width="0.8"/>
+        <polygon points="262,268 290,281 290,295 262,282" fill="#081510" stroke="#1a3d2d" stroke-width="0.5"/>
+        <polygon points="290,281 318,268 318,282 290,295" fill="#0a1a13" stroke="#1a3d2d" stroke-width="0.5"/>
+        <!-- Screen glow -->
+        <polygon points="264,269 290,257 316,269 290,281" fill="rgba(99,230,190,0.12)"/>
+        <!-- Ticket/docs icon -->
+        <rect x="283" y="261" width="14" height="10" rx="1" fill="rgba(99,230,190,0.3)" stroke="#63e6be" stroke-width="0.5"/>
+        <line x1="285" y1="264" x2="295" y2="264" stroke="#63e6be" stroke-width="0.8" opacity="0.7"/>
+        <line x1="285" y1="267" x2="292" y2="267" stroke="#63e6be" stroke-width="0.8" opacity="0.7"/>
+        <!-- Label -->
+        <text x="290" y="358" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter,sans-serif" font-weight="600" letter-spacing="1">PROTOCOLO</text>
+        <text x="290" y="370" text-anchor="middle" fill="#63e6be" font-size="8" font-family="Inter,sans-serif" letter-spacing="1.5">CHECK-IN</text>
+
+        <!-- Step dot 2 -->
+        <circle cx="290" cy="255" r="6" fill="#38d9a9" filter="url(#glow)"/>
+        <circle cx="290" cy="255" r="10" fill="rgba(56,217,169,0.15)"/>
+
+        <!-- ===== ETAPA 3: ANÁLISE — Controle de Segurança ===== -->
+        <!-- Security arch isometric -->
+        <!-- Base platform -->
+        <polygon points="430,255 490,225 550,255 490,285" fill="#3d3000" stroke="#665200" stroke-width="1"/>
+        <polygon points="430,255 490,285 490,305 430,275" fill="#261f00" stroke="#3d3000" stroke-width="1"/>
+        <polygon points="490,285 550,255 550,275 490,305" fill="#2e2400" stroke="#3d3000" stroke-width="1"/>
+        <!-- Arch left pillar isometric -->
+        <polygon points="450,225 468,215 486,225 468,235" fill="#4a3a00" stroke="#7a6000" stroke-width="1"/>
+        <polygon points="450,225 468,235 468,255 450,245" fill="#332800" stroke="#4a3a00" stroke-width="1"/>
+        <polygon points="468,235 486,225 486,245 468,255" fill="#3d3000" stroke="#4a3a00" stroke-width="1"/>
+        <!-- Arch top beam -->
+        <polygon points="450,210 510,178 568,210 508,242" fill="#5c4a00" stroke="#8a7000" stroke-width="1"/>
+        <polygon points="450,210 510,242 510,252 450,220" fill="#3d3100" stroke="#5c4a00" stroke-width="0.8"/>
+        <!-- X-ray detector glow -->
+        <polygon points="452,212 510,180 566,212 510,244" fill="rgba(255,212,59,0.08)"/>
+        <!-- Conveyor belt -->
+        <polygon points="470,238 530,208 550,218 490,248" fill="#2e2800" stroke="#4a3d00" stroke-width="0.8"/>
+        <polygon points="470,238 490,248 490,258 470,248" fill="#1f1c00" stroke="#2e2800" stroke-width="0.5"/>
+        <!-- Yellow beams / scan lines -->
+        <line x1="480" y1="215" x2="520" y2="232" stroke="rgba(255,212,59,0.4)" stroke-width="1.5"/>
+        <line x1="483" y1="220" x2="523" y2="237" stroke="rgba(255,212,59,0.25)" stroke-width="1"/>
+        <line x1="477" y1="225" x2="517" y2="242" stroke="rgba(255,212,59,0.15)" stroke-width="1"/>
+        <!-- Label -->
+        <text x="490" y="330" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter,sans-serif" font-weight="600" letter-spacing="1">ANÁLISE</text>
+        <text x="490" y="342" text-anchor="middle" fill="#ffd43b" font-size="8" font-family="Inter,sans-serif" letter-spacing="1.5">SEGURANÇA</text>
+
+        <!-- Step dot 3 -->
+        <circle cx="490" cy="185" r="6" fill="#fab005" filter="url(#glow)"/>
+        <circle cx="490" cy="185" r="10" fill="rgba(250,176,5,0.15)"/>
+
+        <!-- ===== AIRPLANE (mid-journey) ===== -->
+        <!-- Main fuselage -->
+        <g transform="translate(600,155) rotate(-15)">
+          <!-- Body -->
+          <ellipse cx="0" cy="0" rx="62" ry="14" fill="#e8f4ff"/>
+          <ellipse cx="0" cy="0" rx="62" ry="14" fill="url(#planeBody)" opacity="0.3"/>
+          <!-- Nose -->
+          <ellipse cx="52" cy="0" rx="18" ry="11" fill="#d0e8ff"/>
+          <!-- Tail -->
+          <ellipse cx="-52" cy="0" rx="14" ry="10" fill="#c8e0ff"/>
+          <!-- Main wings -->
+          <polygon points="-10,-14 30,-14 50,32 -30,32" fill="#b8d8ff" opacity="0.9"/>
+          <polygon points="-10,-14 30,-14 50,32 -30,32" fill="rgba(255,255,255,0.1)"/>
+          <!-- Wing stripe -->
+          <line x1="-10" y1="0" x2="46" y2="0" stroke="#4dabf7" stroke-width="2" opacity="0.6"/>
+          <!-- Tail fin -->
+          <polygon points="-52,-14 -38,-14 -28,0 -62,0" fill="#a8ccf0"/>
+          <!-- Engine 1 -->
+          <ellipse cx="10" cy="22" rx="16" ry="7" fill="#d0e8ff"/>
+          <ellipse cx="10" cy="22" rx="16" ry="7" fill="rgba(116,192,252,0.2)"/>
+          <!-- Engine 2 (mirrored on other wing, simplified) -->
+          <!-- Windows row -->
+          <circle cx="30" cy="-3" r="3" fill="rgba(116,192,252,0.5)"/>
+          <circle cx="18" cy="-3" r="3" fill="rgba(116,192,252,0.5)"/>
+          <circle cx="6" cy="-3" r="3" fill="rgba(116,192,252,0.5)"/>
+          <circle cx="-6" cy="-3" r="3" fill="rgba(116,192,252,0.5)"/>
+          <circle cx="-18" cy="-3" r="3" fill="rgba(116,192,252,0.5)"/>
+          <!-- Stripe on body -->
+          <rect x="-55" y="-4" width="110" height="5" rx="2" fill="#4dabf7" opacity="0.3"/>
+          <!-- Glow effect -->
+          <ellipse cx="0" cy="0" rx="65" ry="16" fill="none" stroke="rgba(116,192,252,0.3)" stroke-width="2"/>
+        </g>
+
+        <!-- Engine exhaust trail -->
+        <path d="M 530 162 C 500 165, 470 170, 440 175" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" stroke-linecap="round"/>
+        <path d="M 530 162 C 500 165, 470 170, 440 175" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4" stroke-linecap="round"/>
+
+        <!-- ===== ETAPA 4: JULGAMENTO — Sala de Bordo ===== -->
+        <!-- Control tower isometric -->
+        <polygon points="700,235 755,205 810,235 755,265" fill="#3d0028" stroke="#660044" stroke-width="1"/>
+        <polygon points="700,235 755,265 755,320 700,290" fill="#280018" stroke="#3d0028" stroke-width="1"/>
+        <polygon points="755,265 810,235 810,290 755,320" fill="#300020" stroke="#3d0028" stroke-width="1"/>
+        <!-- Tower level 2 -->
+        <polygon points="718,218 755,198 792,218 755,238" fill="#4a0030" stroke="#7a0050" stroke-width="1"/>
+        <polygon points="718,218 755,238 755,260 718,240" fill="#300020" stroke="#4a0030" stroke-width="1"/>
+        <polygon points="755,238 792,218 792,240 755,260" fill="#3d0028" stroke="#4a0030" stroke-width="1"/>
+        <!-- Observation deck -->
+        <polygon points="728,195 755,180 782,195 755,210" fill="#5a0038" stroke="#900060" stroke-width="1"/>
+        <polygon points="728,195 755,210 755,222 728,207" fill="#3a0025" stroke="#5a0038" stroke-width="0.8"/>
+        <polygon points="755,210 782,195 782,207 755,222" fill="#440028" stroke="#5a0038" stroke-width="0.8"/>
+        <!-- Windows on deck -->
+        <polygon points="732,197 755,184 778,197 755,210" fill="rgba(247,131,172,0.1)" stroke="rgba(247,131,172,0.3)" stroke-width="0.8"/>
+        <!-- Pink glow from windows -->
+        <polygon points="732,197 755,184 778,197 755,210" fill="rgba(247,131,172,0.06)"/>
+        <!-- Rotating beacon -->
+        <circle cx="755" cy="178" r="5" fill="#e64980" filter="url(#softglow)"/>
+        <circle cx="755" cy="178" r="9" fill="rgba(230,73,128,0.2)"/>
+        <!-- Label -->
+        <text x="755" y="345" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter,sans-serif" font-weight="600" letter-spacing="1">JULGAMENTO</text>
+        <text x="755" y="357" text-anchor="middle" fill="#f783ac" font-size="8" font-family="Inter,sans-serif" letter-spacing="1.5">A BORDO</text>
+
+        <!-- Step dot 4 -->
+        <circle cx="755" cy="180" r="6" fill="#e64980" filter="url(#glow)"/>
+        <circle cx="755" cy="180" r="10" fill="rgba(230,73,128,0.15)"/>
+
+        <!-- ===== ETAPA 5: RECURSO — Escala Técnica ===== -->
+        <!-- Small refuel station isometric -->
+        <polygon points="870,220 920,195 970,220 920,245" fill="#28003d" stroke="#440060" stroke-width="1"/>
+        <polygon points="870,220 920,245 920,280 870,255" fill="#1a0028" stroke="#28003d" stroke-width="1"/>
+        <polygon points="920,245 970,220 970,255 920,280" fill="#200030" stroke="#28003d" stroke-width="1"/>
+        <!-- Refuel arm -->
+        <line x1="920" y1="195" x2="950" y2="175" stroke="rgba(218,119,242,0.5)" stroke-width="2"/>
+        <circle cx="950" cy="175" r="5" fill="#be4bdb" opacity="0.8"/>
+        <circle cx="950" cy="175" r="8" fill="rgba(190,75,219,0.2)"/>
+        <!-- Screen -->
+        <polygon points="882,228 910,214 938,228 910,242" fill="rgba(218,119,242,0.08)" stroke="rgba(218,119,242,0.3)" stroke-width="0.8"/>
+        <!-- Label -->
+        <text x="920" y="308" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter,sans-serif" font-weight="600" letter-spacing="1">RECURSO</text>
+        <text x="920" y="320" text-anchor="middle" fill="#da77f2" font-size="8" font-family="Inter,sans-serif" letter-spacing="1.5">ESCALA</text>
+
+        <!-- Step dot 5 -->
+        <circle cx="920" cy="195" r="6" fill="#be4bdb" filter="url(#glow)"/>
+        <circle cx="920" cy="195" r="10" fill="rgba(190,75,219,0.15)"/>
+
+        <!-- ===== ETAPA 6: DIPLOMAÇÃO — Aeroporto de Destino ===== -->
+        <!-- Large terminal isometric -->
+        <!-- Main terminal body -->
+        <polygon points="1010,265 1100,218 1190,265 1100,312" fill="#001f4d" stroke="#003380" stroke-width="1.5"/>
+        <polygon points="1010,265 1100,312 1100,360 1010,313" fill="#00122e" stroke="#001f4d" stroke-width="1"/>
+        <polygon points="1100,312 1190,265 1190,313 1100,360" fill="#00172e" stroke="#001f4d" stroke-width="1"/>
+        <!-- Roof windows -->
+        <polygon points="1020,258 1100,212 1180,258 1100,304" fill="rgba(116,143,252,0.05)"/>
+        <!-- Window row on main top -->
+        <polygon points="1040,250 1070,234 1100,250 1070,266" fill="rgba(116,143,252,0.15)" stroke="rgba(116,143,252,0.3)" stroke-width="0.8"/>
+        <polygon points="1100,250 1130,234 1160,250 1130,266" fill="rgba(116,143,252,0.15)" stroke="rgba(116,143,252,0.3)" stroke-width="0.8"/>
+        <!-- Left face windows -->
+        <rect x="1020" y="280" width="18" height="12" rx="2" fill="rgba(116,143,252,0.2)" stroke="rgba(116,143,252,0.4)" stroke-width="0.8"/>
+        <rect x="1048" y="292" width="18" height="12" rx="2" fill="rgba(116,143,252,0.2)" stroke="rgba(116,143,252,0.4)" stroke-width="0.8"/>
+        <!-- Right face windows -->
+        <rect x="1110" y="280" width="18" height="12" rx="2" fill="rgba(116,143,252,0.2)" stroke="rgba(116,143,252,0.4)" stroke-width="0.8"/>
+        <rect x="1140" y="292" width="18" height="12" rx="2" fill="rgba(116,143,252,0.2)" stroke="rgba(116,143,252,0.4)" stroke-width="0.8"/>
+        <!-- Entrance arch -->
+        <polygon points="1086,262 1100,254 1114,262 1100,270" fill="rgba(116,143,252,0.2)" stroke="rgba(116,143,252,0.5)" stroke-width="1"/>
+        <!-- Tall control mast -->
+        <line x1="1100" y1="218" x2="1100" y2="175" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+        <polygon points="1100,175 1118,178 1100,185 1082,178" fill="#4263eb" opacity="0.9"/>
+        <!-- Star/beacon on top -->
+        <circle cx="1100" cy="170" r="6" fill="#748ffc" filter="url(#softglow)"/>
+        <circle cx="1100" cy="170" r="12" fill="rgba(116,143,252,0.2)"/>
+        <!-- Trophy/diploma icon near top -->
+        <text x="1100" y="160" text-anchor="middle" font-size="16" fill="#748ffc" filter="url(#glow)">🏛</text>
+        <!-- Label -->
+        <text x="1100" y="385" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Inter,sans-serif" font-weight="600" letter-spacing="1">DIPLOMAÇÃO</text>
+        <text x="1100" y="397" text-anchor="middle" fill="#748ffc" font-size="8" font-family="Inter,sans-serif" letter-spacing="1.5">DESTINO FINAL</text>
+
+        <!-- Step dot 6 -->
+        <circle cx="1100" cy="175" r="7" fill="#4263eb" filter="url(#softglow)"/>
+        <circle cx="1100" cy="175" r="13" fill="rgba(66,99,235,0.2)"/>
+
+        <!-- Ground line -->
+        <line x1="0" y1="380" x2="1200" y2="380" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+        <!-- Connecting dots on path -->
+        <circle cx="200" cy="290" r="3" fill="rgba(255,255,255,0.2)"/>
+        <circle cx="380" cy="225" r="3" fill="rgba(255,255,255,0.2)"/>
+        <circle cx="800" cy="148" r="3" fill="rgba(255,255,255,0.2)"/>
+        <circle cx="1000" cy="195" r="3" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- Small decorative stars -->
+        <circle cx="200" cy="50" r="1.5" fill="rgba(255,255,255,0.6)"/>
+        <circle cx="400" cy="25" r="1" fill="rgba(255,255,255,0.4)"/>
+        <circle cx="700" cy="35" r="1.5" fill="rgba(255,255,255,0.5)"/>
+        <circle cx="850" cy="18" r="1" fill="rgba(255,255,255,0.4)"/>
+        <circle cx="300" cy="100" r="1" fill="rgba(255,255,255,0.3)"/>
+        <circle cx="1050" cy="30" r="1.5" fill="rgba(255,255,255,0.5)"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Journey Cards -->
+  <div class="journey-grid">
+
+    <!-- Fase 1 -->
+    <div class="iso-card phase-1">
+      <div class="card-tag">JUN · CONVENÇÃO</div>
+      <div class="card-step">
+        <div class="step-number">1</div>
+        <span class="step-label">Partida</span>
+      </div>
+      <span class="card-icon">🏛️</span>
+      <div class="card-title">Convenção Partidária</div>
+      <div class="card-subtitle">Reserva de Passagem</div>
+      <p class="card-desc">O candidato é escolhido em convenção — é como reservar o assento. Sem bilhete confirmado, não há embarque. O partido emite a "passagem" e o candidato decide o destino.</p>
+      <ul class="checklist">
+        <li><span class="check-icon">✓</span>Realização da convenção (20/06–05/08)</li>
+        <li><span class="check-icon">✓</span>Escolha e aprovação do candidato</li>
+        <li><span class="check-icon">✓</span>Definição do cargo e coligação</li>
+        <li><span class="check-icon">✓</span>Ata de convenção assinada</li>
+      </ul>
+      <svg class="iso-box" width="100" height="80" viewBox="0 0 100 80">
+        <polygon points="50,10 90,32 90,68 50,90 10,68 10,32" fill="none" stroke="white" stroke-width="2"/>
+        <polygon points="50,10 90,32 50,54 10,32" fill="white" opacity="0.3"/>
+      </svg>
+    </div>
+
+    <!-- Fase 2 -->
+    <div class="iso-card phase-2">
+      <div class="card-tag">AGO · PROTOCOLO</div>
+      <div class="card-step">
+        <div class="step-number">2</div>
+        <span class="step-label">Check-in</span>
+      </div>
+      <span class="card-icon">📋</span>
+      <div class="card-title">Protocolo do DRAP</div>
+      <div class="card-subtitle">Balcão de Check-in</div>
+      <p class="card-desc">O Demonstrativo de Regularidade de Atos Partidários é entregue ao TSE/TRE. Como no check-in, documentos incompletos resultam em impedimento imediato do embarque.</p>
+      <ul class="checklist">
+        <li><span class="check-icon">✓</span>Protocolo do DRAP no sistema e-Título</li>
+        <li><span class="check-icon">✓</span>Lista de candidatos e suplentes</li>
+        <li><span class="check-icon">✓</span>Requerimento de registro individual (RRC)</li>
+        <li><span class="check-icon">✓</span>Prazo: até 15/08 (15 dias pré-eleição)</li>
+      </ul>
+      <div class="alert-box">
+        <span class="alert-icon">⏱️</span>
+        <div class="alert-text"><strong>Prazo fatal:</strong> documentação incompleta gera inabilitação automática, sem possibilidade de reapresentação após o prazo.</div>
+      </div>
+    </div>
+
+    <!-- Fase 3 -->
+    <div class="iso-card phase-3">
+      <div class="card-tag">AGO · ANÁLISE</div>
+      <div class="card-step">
+        <div class="step-number">3</div>
+        <span class="step-label">Segurança</span>
+      </div>
+      <span class="card-icon">🔍</span>
+      <div class="card-title">Análise de Elegibilidade</div>
+      <div class="card-subtitle">Controle de Segurança</div>
+      <p class="card-desc">A Justiça Eleitoral passa os candidatos pela "esteira de raio-X". Condições de elegibilidade são verificadas: filiação, domicílio eleitoral, quitação eleitoral e militar, idoneidade moral.</p>
+      <ul class="checklist">
+        <li><span class="check-icon">✓</span>Verificação de filiação partidária (1 ano)</li>
+        <li><span class="check-icon">✓</span>Domicílio eleitoral na circunscrição (6 meses)</li>
+        <li><span class="check-icon">✓</span>Quitação eleitoral e militar</li>
+        <li><span class="check-icon">✓</span>Ficha limpa e condições do art. 14 CF/88</li>
+      </ul>
+    </div>
+
+    <!-- Fase 4 -->
+    <div class="iso-card phase-4">
+      <div class="card-tag">SET · JULGAMENTO</div>
+      <div class="card-step">
+        <div class="step-number">4</div>
+        <span class="step-label">Voo</span>
+      </div>
+      <span class="card-icon">⚖️</span>
+      <div class="card-title">Julgamento do Pedido</div>
+      <div class="card-subtitle">Cruzeiro — A Bordo</div>
+      <p class="card-desc">O avião está no ar: o juiz eleitoral ou relator analisa o pedido de registro. Terceiros podem impugnar — como turbulências durante o voo. O candidato pode prestar esclarecimentos.</p>
+      <ul class="checklist">
+        <li><span class="check-icon">✓</span>Publicação do edital de candidatos</li>
+        <li><span class="check-icon">✓</span>Prazo para impugnação por terceiros (5 dias)</li>
+        <li><span class="check-icon">✓</span>Diligências e pedidos de esclarecimento</li>
+        <li><span class="check-icon">✓</span>Decisão de deferimento ou indeferimento</li>
+      </ul>
+      <div class="alert-box" style="background:rgba(230,73,128,0.08);border-color:rgba(230,73,128,0.25)">
+        <span class="alert-icon">✈️</span>
+        <div class="alert-text"><strong>Candidatos sub judice</strong> podem disputar enquanto aguardam julgamento final — o avião pode voar mesmo com turbulência.</div>
+      </div>
+    </div>
+
+    <!-- Fase 5 -->
+    <div class="iso-card phase-5">
+      <div class="card-tag">OUT · RECURSO</div>
+      <div class="card-step">
+        <div class="step-number">5</div>
+        <span class="step-label">Escala</span>
+      </div>
+      <span class="card-icon">🔄</span>
+      <div class="card-title">Recursos Eleitorais</div>
+      <div class="card-subtitle">Escala Técnica</div>
+      <p class="card-desc">Decisão desfavorável? É como uma escala técnica — o voo não acabou. Recurso ao TRE (1ª instância) ou ao TSE (2ª instância). A viagem continua até a decisão definitiva transitar em julgado.</p>
+      <ul class="checklist">
+        <li><span class="check-icon">✓</span>Recurso contra expedição de diploma (RCED)</li>
+        <li><span class="check-icon">✓</span>Recurso ao TRE-CE (3 dias após decisão)</li>
+        <li><span class="check-icon">✓</span>Recurso especial ao TSE</li>
+        <li><span class="check-icon">✓</span>Ação de Investigação Judicial Eleitoral (AIJE)</li>
+      </ul>
+    </div>
+
+    <!-- Fase 6 -->
+    <div class="iso-card phase-6">
+      <div class="card-tag">DEZ · DIPLOMAÇÃO</div>
+      <div class="card-step">
+        <div class="step-number">6</div>
+        <span class="step-label">Chegada</span>
+      </div>
+      <span class="card-icon">🏆</span>
+      <div class="card-title">Diplomação</div>
+      <div class="card-subtitle">Desembarque no Destino</div>
+      <p class="card-desc">O avião pousou. O candidato eleito recebe o diploma — documento que formaliza a eleição e autoriza o exercício do mandato. É a chegada ao destino após toda a jornada.</p>
+      <ul class="checklist">
+        <li><span class="check-icon">✓</span>Proclamação dos eleitos pelo TRE-CE</li>
+        <li><span class="check-icon">✓</span>Expedição e entrega do diploma (dezembro)</li>
+        <li><span class="check-icon">✓</span>Posse no cargo (1º de janeiro)</li>
+        <li><span class="check-icon">✓</span>Início do exercício do mandato</li>
+      </ul>
+      <div class="alert-box" style="background:rgba(116,143,252,0.08);border-color:rgba(116,143,252,0.25)">
+        <span class="alert-icon">🏛️</span>
+        <div class="alert-text"><strong>Atenção:</strong> O diploma pode ser cassado mesmo após posse, caso recursos pendentes sejam julgados desfavoravelmente.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value" style="color:#74c0fc">6</div>
+      <div class="stat-label">Etapas do Processo</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#63e6be">15/08</div>
+      <div class="stat-label">Prazo de Protocolo</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#ffd43b">6 meses</div>
+      <div class="stat-label">Domicílio Eleitoral</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#f783ac">1 ano</div>
+      <div class="stat-label">Filiação Partidária</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#da77f2">5 dias</div>
+      <div class="stat-label">Prazo de Impugnação</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#748ffc">DEZ</div>
+      <div class="stat-label">Diplomação</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p><strong>Tribunal Regional Eleitoral do Ceará</strong> &nbsp;·&nbsp; Infográfico de Processo Eleitoral &nbsp;·&nbsp; Eleições 2026</p>
+    <p style="margin-top:8px">Baseado na legislação eleitoral vigente: Lei nº 9.504/97 · Resoluções TSE · Código Eleitoral</p>
+  </div>
+
+</div>
+
+<script>
+  // Generate stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    star.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      top: ${Math.random() * 100}%;
+      left: ${Math.random() * 100}%;
+      animation-duration: ${Math.random() * 4 + 2}s;
+      animation-delay: ${Math.random() * 4}s;
+    `;
+    starsEl.appendChild(star);
+  }
+</script>
+</body>
+</html>

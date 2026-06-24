@@ -3,6 +3,10 @@ Dashboard PJe — TRE-CE
 Análise de processos distribuídos no 1º e 2º Grau.
 """
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import random
 
 import streamlit as st

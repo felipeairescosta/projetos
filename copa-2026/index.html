@@ -400,7 +400,7 @@
 <main><div id="content"></div></main>
 
 <footer>
-  <p>Atualização automática a cada 60 segundos via ESPN API &nbsp;•&nbsp; Horários em <strong>BRT (Brasília)</strong></p>
+  <p>Atualização automática a cada 30 segundos via ESPN API &nbsp;•&nbsp; Horários em <strong>BRT (Brasília)</strong></p>
   <p style="margin-top:6px"><strong>Copa do Mundo FIFA 2026™</strong> — 48 seleções · 12 grupos · 104 jogos · Fase Final: R32 → Oitavas → Quartas → Semis → Final</p>
 </footer>
 
@@ -1257,7 +1257,7 @@ function applyESPNEvents(events){
     if(!comp) return;
     const home = comp.competitors.find(c=>c.homeAway==='home');
     const away = comp.competitors.find(c=>c.homeAway==='away');
-    if(!home||!away) return;
+    if(!home||!away||!home.team||!away.team) return;
     const hCode = ESPN_MAP[home.team.abbreviation]||home.team.abbreviation;
     const aCode = ESPN_MAP[away.team.abbreviation]||away.team.abbreviation;
     let status = 'NS';
@@ -1269,7 +1269,8 @@ function applyESPNEvents(events){
       const period = ev.status?.period        || 0;
       if(typeId === '2' || typeSt === 'in' || period >= 1) status = 'LIVE';
     }
-    const rawHs = parseInt(home.score)||0, rawAs = parseInt(away.score)||0;
+    const rawHs = status!=='NS' ? (parseInt(home.score)||0) : null;
+    const rawAs = status!=='NS' ? (parseInt(away.score)||0) : null;
     const clockStr  = ev.status?.displayClock || '';
     const detail    = ev.status?.type?.shortDetail || '';
     const apiPeriod = ev.status?.period || 0;
@@ -1286,15 +1287,21 @@ function applyESPNEvents(events){
       else periodLabel='1T';
     }
 
+    function patchDate(m){
+      if(!ev.date) return;
+      const brtMs=new Date(ev.date).getTime()-3*3600000;
+      const bd=new Date(brtMs);
+      if(isNaN(brtMs)) return;
+      m.brt=`${padNum(bd.getUTCHours())}h`;
+      m.date=`${padNum(bd.getUTCDate())}/${padNum(bd.getUTCMonth()+1)}`;
+    }
     function patchMatch(m, rev){
-      m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; m.status=status;
+      // Never downgrade a completed match back to NS
+      if(status==='NS' && m.status==='FT'){ patchDate(m); updated=true; return; }
+      if(rawHs!==null){ m.hs=rev?rawAs:rawHs; m.as=rev?rawHs:rawAs; }
+      m.status=status;
       m.minute=minute; m.minuteNum=minuteNum; m.minuteTs=captureTs; m.periodLabel=periodLabel;
-      if(ev.date){
-        const brtMs=new Date(ev.date).getTime()-3*3600000;
-        const bd=new Date(brtMs);
-        m.brt=`${padNum(bd.getUTCHours())}h`;
-        m.date=`${padNum(bd.getUTCDate())}/${padNum(bd.getUTCMonth()+1)}`;
-      }
+      patchDate(m);
       updated=true;
     }
 
@@ -1360,8 +1367,10 @@ async function syncScheduleFromESPN(){
       )
     );
     results.forEach(r=>{
-      if(r.status==='fulfilled'&&r.value?.events)
-        if(applyESPNEvents(r.value.events)) anyUpdated=true;
+      if(r.status==='fulfilled'&&r.value?.events){
+        try { if(applyESPNEvents(r.value.events)) anyUpdated=true; }
+        catch(e){ console.warn('syncSchedule batch error:',e); }
+      }
     });
   }
   if(anyUpdated){ renderCurrent(); updateLiveBanner(); }

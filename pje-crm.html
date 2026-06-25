@@ -15,31 +15,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   box-shadow: 0 2px 8px rgba(0,0,0,.25);
 }
 #topbar h1 { font-size: 18px; font-weight: 600; }
-#topbar .tabs { display: flex; gap: 4px; margin-left: auto; }
-#topbar .tab-btn {
+.tabs { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+.tab-btn {
   padding: 6px 14px; border: none; border-radius: 6px;
   cursor: pointer; font-size: 13px; font-weight: 500;
   background: rgba(255,255,255,.15); color: #fff; transition: background .15s;
 }
-#topbar .tab-btn.active { background: rgba(255,255,255,.95); color: #1a56db; }
-#topbar .tab-btn:hover:not(.active) { background: rgba(255,255,255,.25); }
-
-#app { display: flex; position: fixed; left: 0; right: 0; }
-
-/* ===== CHAMADOS TAB ===== */
+.tab-btn.active { background: rgba(255,255,255,.95); color: #1a56db; }
+.tab-btn:hover:not(.active) { background: rgba(255,255,255,.25); }
+.btn-csv {
+  padding: 6px 12px; background: rgba(255,255,255,.15); color: #fff;
+  border: 1px solid rgba(255,255,255,.3); border-radius: 6px;
+  cursor: pointer; font-size: 12px; font-weight: 500; margin-left: 8px;
+}
+.btn-csv:hover { background: rgba(255,255,255,.25); }
+#app { display: flex; position: fixed; left: 0; right: 0; top: 52px; }
 #tab-chamados { display: flex; width: 100%; height: 100%; }
 #tab-kb { display: none; width: 100%; height: 100%; }
 
 /* Sidebar */
 .sidebar {
-  width: 200px; min-width: 200px; background: #fff;
-  border-right: 1px solid #e5e7eb; overflow-y: auto;
-  padding: 12px 0;
+  width: 210px; min-width: 210px; background: #fff;
+  border-right: 1px solid #e5e7eb; overflow-y: auto; padding: 12px 0;
 }
 .sidebar-section { padding: 8px 12px 4px; font-size: 11px; font-weight: 700;
   text-transform: uppercase; color: #6b7280; letter-spacing: .6px; }
 .sidebar-item {
-  display: flex; align-items: center; gap-width: 8px;
+  display: flex; align-items: center;
   padding: 7px 16px; cursor: pointer; font-size: 13px;
   color: #374151; transition: background .12s; border-left: 3px solid transparent;
 }
@@ -53,12 +55,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 /* List panel */
 .list-panel {
   width: 320px; min-width: 320px; background: #fff;
-  border-right: 1px solid #e5e7eb; overflow-y: auto;
-  display: flex; flex-direction: column;
+  border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden;
 }
 .list-header {
   padding: 12px 14px; border-bottom: 1px solid #e5e7eb;
-  display: flex; align-items: center; gap: 8px; position: sticky; top: 0; background: #fff; z-index: 10;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
 .list-header h2 { font-size: 14px; font-weight: 600; flex: 1; }
 .btn-new {
@@ -66,9 +67,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;
 }
 .btn-new:hover { background: #1648c0; }
-.search-box {
-  padding: 8px 14px; border-bottom: 1px solid #e5e7eb;
-}
+.search-box { padding: 8px 14px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; }
 .search-box input {
   width: 100%; padding: 6px 10px; border: 1px solid #d1d5db;
   border-radius: 6px; font-size: 13px; outline: none;
@@ -80,40 +79,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   cursor: pointer; transition: background .1s;
 }
 .ticket-item:hover { background: #f9fafb; }
-.ticket-item.selected { background: #eff6ff; border-left: 3px solid #1a56db; }
+.ticket-item.selected { background: #eff6ff; border-left: 3px solid #1a56db; padding-left: 11px; }
 .ticket-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticket-resp { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
 .ticket-meta { display: flex; gap: 6px; align-items: center; }
 .badge-status, .badge-prio {
   font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600;
 }
-.s-aberto { background: #dbeafe; color: #1d4ed8; }
+.s-aberto     { background: #dbeafe; color: #1d4ed8; }
 .s-em_analise { background: #fef9c3; color: #854d0e; }
-.s-resolvido { background: #dcfce7; color: #166534; }
-.s-fechado { background: #f3f4f6; color: #6b7280; }
-.p-baixa { background: #f0fdf4; color: #15803d; }
-.p-normal { background: #eff6ff; color: #1d4ed8; }
-.p-alta { background: #fff7ed; color: #c2410c; }
+.s-resolvido  { background: #dcfce7; color: #166534; }
+.s-fechado    { background: #f3f4f6; color: #6b7280; }
+.p-baixa   { background: #f0fdf4; color: #15803d; }
+.p-normal  { background: #eff6ff; color: #1d4ed8; }
+.p-alta    { background: #fff7ed; color: #c2410c; }
 .p-urgente { background: #fef2f2; color: #dc2626; }
 .ticket-date { font-size: 11px; color: #9ca3af; margin-left: auto; }
 
-/* Detail / Form panel */
-.detail-panel {
-  flex: 1; overflow-y: auto; background: #f9fafb;
-  padding: 24px 28px;
-}
-.detail-panel .empty-state {
+/* Detail panel */
+.detail-panel { flex: 1; overflow-y: auto; background: #f9fafb; padding: 24px 28px; }
+.empty-state {
   height: 100%; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; color: #9ca3af;
-  gap: 12px;
+  align-items: center; justify-content: center; color: #9ca3af; gap: 12px;
 }
 .empty-state .icon { font-size: 48px; }
-.empty-state p { font-size: 14px; }
 
 /* Form */
-.form-card {
-  background: #fff; border-radius: 10px; padding: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.08); max-width: 700px;
-}
+.form-card { background: #fff; border-radius: 10px; padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08); max-width: 700px; }
 .form-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
 .form-row { margin-bottom: 16px; }
 .form-row label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
@@ -125,124 +118,133 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .form-row textarea { resize: vertical; min-height: 90px; }
 .form-row .hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
 .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-actions { display: flex; gap: 10px; margin-top: 20px; }
-.btn-primary { padding: 8px 18px; background: #1a56db; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+.form-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.btn-primary   { padding: 8px 18px; background: #1a56db; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
 .btn-primary:hover { background: #1648c0; }
 .btn-secondary { padding: 8px 18px; background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; font-size: 13px; }
 .btn-secondary:hover { background: #f9fafb; }
-.btn-danger { padding: 8px 18px; background: #ef4444; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+.btn-danger    { padding: 8px 18px; background: #ef4444; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
 .btn-danger:hover { background: #dc2626; }
 
 /* Detail view */
 .detail-view { max-width: 700px; }
-.detail-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
-.detail-header h2 { font-size: 18px; font-weight: 600; flex: 1; }
-.detail-header .actions { display: flex; gap: 8px; }
+.detail-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.detail-header h2 { font-size: 18px; font-weight: 600; flex: 1; line-height: 1.3; }
+.detail-header .actions { display: flex; gap: 8px; flex-shrink: 0; }
 .detail-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-.meta-chip {
-  padding: 4px 10px; background: #f3f4f6; border-radius: 6px;
-  font-size: 12px; color: #374151;
-}
+.meta-chip { padding: 4px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px; color: #374151; }
 .meta-chip strong { color: #111827; }
-.section-card {
-  background: #fff; border-radius: 8px; padding: 16px 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 16px;
-}
+.section-card { background: #fff; border-radius: 8px; padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 16px; }
 .section-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase;
   color: #6b7280; letter-spacing: .5px; margin-bottom: 10px; }
-.section-card p, .section-card .content { font-size: 13px; line-height: 1.6; white-space: pre-wrap; color: #374151; }
-.section-card .md-content h1,.section-card .md-content h2,.section-card .md-content h3 { margin-top: 10px; }
-.section-card .md-content ul,.section-card .md-content ol { margin-left: 20px; }
+.section-card p { font-size: 13px; line-height: 1.6; white-space: pre-wrap; color: #374151; }
+.section-card .md-content h1,.section-card .md-content h2,.section-card .md-content h3 { margin-top: 10px; margin-bottom:4px; }
+.section-card .md-content ul,.section-card .md-content ol { margin-left: 20px; margin-top:4px; }
+.section-card .md-content li { line-height:1.6; }
 .artigo-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
-  color: #1a56db; text-decoration: none; margin-top: 6px; }
+  color: #1a56db; text-decoration: none; margin-top: 6px; cursor: pointer; }
 .artigo-link:hover { text-decoration: underline; }
+
+/* Histórico */
+.hist-list { list-style: none; }
+.hist-item { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; }
+.hist-item:last-child { border-bottom: none; }
+.hist-dot { width: 8px; height: 8px; border-radius: 50%; background: #1a56db; margin-top: 4px; flex-shrink: 0; }
+.hist-text { flex: 1; color: #374151; line-height: 1.5; }
+.hist-date { color: #9ca3af; flex-shrink: 0; }
 
 /* Toast */
 #toast {
   position: fixed; bottom: 24px; right: 24px;
   background: #1f2937; color: #fff; padding: 10px 18px;
   border-radius: 8px; font-size: 13px; z-index: 999;
-  opacity: 0; transform: translateY(10px); transition: all .25s;
-  pointer-events: none;
+  opacity: 0; transform: translateY(10px); transition: all .25s; pointer-events: none;
 }
 #toast.show { opacity: 1; transform: translateY(0); }
 
-/* Loading overlay */
-.loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+/* Email config modal */
+#email-modal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 200; align-items: center; justify-content: center;
+}
+#email-modal.open { display: flex; }
+.modal-box { background: #fff; border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; }
+.modal-box h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.modal-box p { font-size: 12px; color: #6b7280; margin-bottom: 20px; line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
 
-/* ===== KNOWLEDGE BASE TAB ===== */
-#tab-kb { display: none; }
-.kb-sidebar {
-  width: 240px; min-width: 240px; background: #fff;
-  border-right: 1px solid #e5e7eb; overflow-y: auto; padding: 12px 0;
-}
-.kb-list-panel {
-  width: 300px; min-width: 300px; background: #fff;
-  border-right: 1px solid #e5e7eb; overflow-y: auto;
-}
+/* KB */
+.kb-sidebar { width: 200px; min-width: 200px; background: #fff;
+  border-right: 1px solid #e5e7eb; overflow-y: auto; padding: 12px 0; }
+.kb-list-panel { width: 300px; min-width: 300px; background: #fff;
+  border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; }
+.kb-search { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; }
+.kb-search input { width: 100%; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; outline: none; }
+.kb-search input:focus { border-color: #1a56db; }
+.kb-art-list { flex: 1; overflow-y: auto; }
 .kb-detail { flex: 1; overflow-y: auto; padding: 28px 32px; background: #f9fafb; }
 .kb-detail-inner { max-width: 720px; }
 .kb-detail-inner h1 { font-size: 22px; font-weight: 700; margin-bottom: 16px; color: #111827; }
 .kb-detail-inner .md-content h1 { font-size: 20px; }
-.kb-detail-inner .md-content h2 { font-size: 17px; margin-top: 18px; }
-.kb-detail-inner .md-content h3 { font-size: 15px; margin-top: 14px; }
+.kb-detail-inner .md-content h2 { font-size: 17px; margin-top: 18px; margin-bottom: 6px; }
+.kb-detail-inner .md-content h3 { font-size: 15px; margin-top: 14px; margin-bottom: 4px; }
 .kb-detail-inner .md-content ul,.kb-detail-inner .md-content ol { margin-left: 24px; margin-top: 6px; }
 .kb-detail-inner .md-content li { margin-bottom: 4px; line-height: 1.6; }
 .kb-detail-inner .md-content p { margin-bottom: 10px; line-height: 1.7; }
 .kb-detail-inner .md-content code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
 .kb-detail-inner .md-content pre { background: #1f2937; color: #e5e7eb; padding: 14px; border-radius: 6px; overflow-x: auto; margin: 10px 0; }
 .kb-detail-inner .md-content blockquote { border-left: 3px solid #d1d5db; padding-left: 12px; color: #6b7280; }
-.kb-art-item {
-  padding: 10px 14px; border-bottom: 1px solid #f3f4f6;
-  cursor: pointer; font-size: 13px; color: #374151;
-}
+.kb-art-item { padding: 10px 14px; border-bottom: 1px solid #f3f4f6;
+  cursor: pointer; font-size: 13px; color: #374151; }
 .kb-art-item:hover { background: #f9fafb; }
 .kb-art-item.selected { background: #eff6ff; color: #1a56db; font-weight: 600; }
-.kb-search { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
-.kb-search input { width: 100%; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; outline: none; }
-.kb-search input:focus { border-color: #1a56db; }
 .kb-empty { padding: 40px 16px; text-align: center; color: #9ca3af; font-size: 13px; }
+.loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
 </style>
 </head>
 <body>
+
 <div id="topbar">
   <h1>⚖️ PJe CRM</h1>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('chamados')">🎫 Chamados</button>
     <button class="tab-btn" onclick="switchTab('kb')">📚 Base de Conhecimento</button>
+    <button class="btn-csv" onclick="exportCSV()" title="Exportar chamados para CSV">⬇ CSV</button>
+    <button class="btn-csv" onclick="openEmailConfig()" title="Configurar notificações por e-mail">✉ E-mail</button>
   </div>
 </div>
+
 <div id="app">
   <!-- CHAMADOS TAB -->
   <div id="tab-chamados">
-    <!-- Sidebar filters -->
-    <div class="sidebar" id="sidebar-chamados">
+    <div class="sidebar">
       <div class="sidebar-section">Status</div>
-      <div class="sidebar-item active" onclick="filterStatus('')" id="sf-all">Todos <span class="badge" id="badge-all">0</span></div>
-      <div class="sidebar-item" onclick="filterStatus('aberto')" id="sf-aberto">Aberto <span class="badge" id="badge-aberto">0</span></div>
+      <div class="sidebar-item active" onclick="filterStatus('')"  id="sf-all">Todos <span class="badge" id="badge-all">0</span></div>
+      <div class="sidebar-item" onclick="filterStatus('aberto')"     id="sf-aberto">Aberto <span class="badge" id="badge-aberto">0</span></div>
       <div class="sidebar-item" onclick="filterStatus('em_analise')" id="sf-em_analise">Em análise <span class="badge" id="badge-em_analise">0</span></div>
-      <div class="sidebar-item" onclick="filterStatus('resolvido')" id="sf-resolvido">Resolvido <span class="badge" id="badge-resolvido">0</span></div>
-      <div class="sidebar-item" onclick="filterStatus('fechado')" id="sf-fechado">Fechado <span class="badge" id="badge-fechado">0</span></div>
+      <div class="sidebar-item" onclick="filterStatus('resolvido')"  id="sf-resolvido">Resolvido <span class="badge" id="badge-resolvido">0</span></div>
+      <div class="sidebar-item" onclick="filterStatus('fechado')"    id="sf-fechado">Fechado <span class="badge" id="badge-fechado">0</span></div>
       <div class="sidebar-section" style="margin-top:12px">Prioridade</div>
-      <div class="sidebar-item" onclick="filterPrio('urgente')" id="pf-urgente">Urgente</div>
-      <div class="sidebar-item" onclick="filterPrio('alta')" id="pf-alta">Alta</div>
-      <div class="sidebar-item" onclick="filterPrio('normal')" id="pf-normal">Normal</div>
-      <div class="sidebar-item" onclick="filterPrio('baixa')" id="pf-baixa">Baixa</div>
+      <div class="sidebar-item" onclick="filterPrio('urgente')" id="pf-urgente">🔴 Urgente</div>
+      <div class="sidebar-item" onclick="filterPrio('alta')"    id="pf-alta">🟠 Alta</div>
+      <div class="sidebar-item" onclick="filterPrio('normal')"  id="pf-normal">🔵 Normal</div>
+      <div class="sidebar-item" onclick="filterPrio('baixa')"   id="pf-baixa">🟢 Baixa</div>
     </div>
-    <!-- List panel -->
-    <div class="list-panel" id="list-panel">
+
+    <div class="list-panel">
       <div class="list-header">
         <h2>Chamados</h2>
         <button class="btn-new" onclick="openNewForm()">+ Novo</button>
       </div>
       <div class="search-box">
-        <input type="text" id="search-chamados" placeholder="Buscar chamados..." oninput="renderList()">
+        <input type="text" id="search-chamados" placeholder="Buscar por título, descrição, responsável..." oninput="renderList()">
       </div>
       <div class="ticket-list" id="ticket-list">
         <div class="loading">Carregando...</div>
       </div>
     </div>
-    <!-- Detail panel -->
+
     <div class="detail-panel" id="detail-panel">
       <div class="empty-state">
         <div class="icon">🎫</div>
@@ -256,7 +258,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="kb-sidebar" id="kb-sidebar"></div>
     <div class="kb-list-panel">
       <div class="kb-search"><input type="text" id="kb-search" placeholder="Buscar artigos..." oninput="kbRenderList()"></div>
-      <div id="kb-art-list"></div>
+      <div class="kb-art-list" id="kb-art-list"></div>
     </div>
     <div class="kb-detail">
       <div class="kb-detail-inner" id="kb-detail-inner">
@@ -265,6 +267,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <p style="margin-top:12px;font-size:14px">Selecione um artigo para visualizar</p>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL CONFIG MODAL -->
+<div id="email-modal">
+  <div class="modal-box">
+    <h3>✉ Notificações por E-mail</h3>
+    <p>Configure o <strong>EmailJS</strong> para receber notificações ao criar ou atualizar chamados.
+    Crie uma conta gratuita em <strong>emailjs.com</strong>, configure um serviço e template, e preencha abaixo.</p>
+    <div class="form-row">
+      <label>Service ID</label>
+      <input type="text" id="ejs-service" placeholder="service_xxxxxxx">
+    </div>
+    <div class="form-row">
+      <label>Template ID</label>
+      <input type="text" id="ejs-template" placeholder="template_xxxxxxx">
+    </div>
+    <div class="form-row">
+      <label>Public Key</label>
+      <input type="text" id="ejs-pubkey" placeholder="xxxxxxxxxxxxxxx">
+    </div>
+    <div class="form-row">
+      <label>E-mail de destino</label>
+      <input type="email" id="ejs-to" placeholder="equipe@exemplo.com">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeEmailConfig()">Cancelar</button>
+      <button class="btn-primary" onclick="saveEmailConfig()">Salvar</button>
     </div>
   </div>
 </div>
@@ -3081,35 +3112,47 @@ agrupamentos descritos a seguir.
 };
 </script>
 <script>
-// ===== CONFIG =====
+// =========================================================
+// CONFIG
+// =========================================================
 const SUPA_URL = 'https://czfabgdnxkpptthzjqqn.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6ZmFiZ2RueGtwcHR0aHpqcXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzODU2MTYsImV4cCI6MjA5Nzk2MTYxNn0.tefE3_8LdqdZkyeC2xMYInQ90GeXAz0WvH9aqvXBMLE';
 
-// ===== STATE =====
+// =========================================================
+// STATE
+// =========================================================
 let allChamados = [];
 let activeFilter = { status: '', prio: '' };
-let selectedId = null;
-let editingId = null;
+let selectedId   = null;
 
-// ===== TABS =====
-function switchTab(tab) {
-  document.getElementById('tab-chamados').style.display = tab === 'chamados' ? 'flex' : 'none';
-  document.getElementById('tab-kb').style.display = tab === 'kb' ? 'flex' : 'none';
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (i === 0) === (tab === 'chamados')));
-  if (tab === 'kb') kbInit();
-}
-
-// ===== RESIZE =====
+// =========================================================
+// LAYOUT
+// =========================================================
 function setHeight() {
   const h = (window.innerHeight - 52) + 'px';
   document.getElementById('app').style.height = h;
-  document.getElementById('app').style.top = '52px';
-  ['tab-chamados','tab-kb'].forEach(id => { const el = document.getElementById(id); if(el) el.style.height = h; });
+  ['tab-chamados','tab-kb'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.height = h;
+  });
 }
 window.addEventListener('resize', setHeight);
 setHeight();
 
-// ===== SUPABASE HELPERS =====
+// =========================================================
+// TABS
+// =========================================================
+function switchTab(tab) {
+  document.getElementById('tab-chamados').style.display = tab === 'chamados' ? 'flex' : 'none';
+  document.getElementById('tab-kb').style.display       = tab === 'kb'       ? 'flex' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b, i) =>
+    b.classList.toggle('active', (i === 0) === (tab === 'chamados')));
+  if (tab === 'kb') kbInit();
+}
+
+// =========================================================
+// SUPABASE
+// =========================================================
 async function supaFetch(path, opts = {}) {
   const url = SUPA_URL + '/rest/v1/' + path;
   const headers = {
@@ -3117,62 +3160,84 @@ async function supaFetch(path, opts = {}) {
     'Authorization': 'Bearer ' + SUPA_KEY,
     'Content-Type': 'application/json',
     'Prefer': opts.prefer || 'return=representation',
-    ...opts.headers
+    ...(opts.headers || {})
   };
-  const res = await fetch(url, { method: opts.method || 'GET', headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  const res = await fetch(url, {
+    method: opts.method || 'GET',
+    headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
   if (!res.ok) { const t = await res.text(); throw new Error(t); }
-  if (res.status === 204 || res.headers.get('content-length') === '0') return [];
+  if (res.status === 204) return [];
   return res.json();
 }
 
-// ===== LOAD CHAMADOS =====
+// =========================================================
+// LOAD CHAMADOS
+// =========================================================
 async function loadChamados() {
   try {
     allChamados = await supaFetch('chamados?select=*&order=criado_em.desc');
     updateBadges();
     renderList();
-  } catch(e) {
-    document.getElementById('ticket-list').innerHTML = '<div class="loading" style="color:#ef4444">Erro ao carregar chamados</div>';
-    console.error(e);
+  } catch (e) {
+    document.getElementById('ticket-list').innerHTML =
+      '<div class="loading" style="color:#ef4444">Erro ao carregar: ' + e.message + '</div>';
   }
 }
 
 function updateBadges() {
   const counts = { aberto: 0, em_analise: 0, resolvido: 0, fechado: 0 };
-  allChamados.forEach(c => { if(counts[c.status] !== undefined) counts[c.status]++; });
+  allChamados.forEach(c => { if (counts[c.status] !== undefined) counts[c.status]++; });
   document.getElementById('badge-all').textContent = allChamados.length;
-  Object.keys(counts).forEach(s => { const el = document.getElementById('badge-' + s); if(el) el.textContent = counts[s]; });
+  Object.keys(counts).forEach(s => {
+    const el = document.getElementById('badge-' + s);
+    if (el) el.textContent = counts[s];
+  });
 }
 
+// =========================================================
+// FILTERS
+// =========================================================
 function filterStatus(s) {
-  activeFilter.status = s;
-  activeFilter.prio = '';
+  activeFilter = { status: s, prio: '' };
   document.querySelectorAll('.sidebar-item[id^="sf-"]').forEach(el => el.classList.remove('active'));
   document.getElementById('sf-' + (s || 'all')).classList.add('active');
   document.querySelectorAll('.sidebar-item[id^="pf-"]').forEach(el => el.classList.remove('active'));
   renderList();
 }
 function filterPrio(p) {
-  activeFilter.prio = activeFilter.prio === p ? '' : p;
-  activeFilter.status = '';
+  const same = activeFilter.prio === p;
+  activeFilter = { status: '', prio: same ? '' : p };
   document.querySelectorAll('.sidebar-item[id^="sf-"]').forEach(el => el.classList.remove('active'));
   document.getElementById('sf-all').classList.add('active');
   document.querySelectorAll('.sidebar-item[id^="pf-"]').forEach(el => el.classList.remove('active'));
-  if(activeFilter.prio) document.getElementById('pf-' + p).classList.add('active');
+  if (!same) document.getElementById('pf-' + p).classList.add('active');
   renderList();
 }
 
+// =========================================================
+// RENDER LIST
+// =========================================================
 function renderList() {
   const q = document.getElementById('search-chamados').value.toLowerCase();
   let filtered = allChamados;
-  if(activeFilter.status) filtered = filtered.filter(c => c.status === activeFilter.status);
-  if(activeFilter.prio) filtered = filtered.filter(c => c.prioridade === activeFilter.prio);
-  if(q) filtered = filtered.filter(c => c.titulo.toLowerCase().includes(q) || c.descricao.toLowerCase().includes(q));
+  if (activeFilter.status) filtered = filtered.filter(c => c.status === activeFilter.status);
+  if (activeFilter.prio)   filtered = filtered.filter(c => c.prioridade === activeFilter.prio);
+  if (q) filtered = filtered.filter(c =>
+    c.titulo.toLowerCase().includes(q) ||
+    c.descricao.toLowerCase().includes(q) ||
+    (c.responsavel || '').toLowerCase().includes(q));
+
   const list = document.getElementById('ticket-list');
-  if(!filtered.length) { list.innerHTML = '<div class="kb-empty">Nenhum chamado encontrado</div>'; return; }
+  if (!filtered.length) {
+    list.innerHTML = '<div class="kb-empty">Nenhum chamado encontrado</div>';
+    return;
+  }
   list.innerHTML = filtered.map(c => `
     <div class="ticket-item${c.id === selectedId ? ' selected' : ''}" onclick="selectChamado(${c.id})">
       <div class="ticket-title">${esc(c.titulo)}</div>
+      ${c.responsavel ? `<div class="ticket-resp">👤 ${esc(c.responsavel)}</div>` : ''}
       <div class="ticket-meta">
         <span class="badge-status s-${c.status}">${statusLabel(c.status)}</span>
         <span class="badge-prio p-${c.prioridade}">${prioLabel(c.prioridade)}</span>
@@ -3181,23 +3246,55 @@ function renderList() {
     </div>`).join('');
 }
 
+// =========================================================
+// HELPERS
+// =========================================================
 function statusLabel(s) { return {aberto:'Aberto',em_analise:'Em análise',resolvido:'Resolvido',fechado:'Fechado'}[s]||s; }
-function prioLabel(p) { return {baixa:'Baixa',normal:'Normal',alta:'Alta',urgente:'Urgente'}[p]||p; }
-function fmtDate(iso) { if(!iso) return ''; return new Date(iso).toLocaleDateString('pt-BR'); }
-function esc(s) { if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ===== SELECT CHAMADO =====
-function selectChamado(id) {
-  selectedId = id;
-  editingId = null;
-  renderList();
-  const c = allChamados.find(x => x.id === id);
-  if(!c) return;
-  showDetail(c);
+function prioLabel(p)   { return {baixa:'Baixa',normal:'Normal',alta:'Alta',urgente:'Urgente'}[p]||p; }
+function fmtDate(iso)   { return iso ? new Date(iso).toLocaleDateString('pt-BR') : ''; }
+function fmtDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+}
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function showDetail(c) {
+// =========================================================
+// SELECT CHAMADO
+// =========================================================
+function selectChamado(id) {
+  selectedId = id;
+  renderList();
+  const c = allChamados.find(x => x.id === id);
+  if (c) showDetail(c);
+}
+
+async function showDetail(c) {
   const panel = document.getElementById('detail-panel');
+  // Load history
+  let hist = [];
+  try { hist = await supaFetch(`chamados_historico?chamado_id=eq.${c.id}&order=alterado_em.desc`); } catch(e) {}
+
+  const histHTML = hist.length ? `
+    <div class="section-card">
+      <h4>Histórico de Alterações</h4>
+      <ul class="hist-list">
+        ${hist.map(h => `
+          <li class="hist-item">
+            <div class="hist-dot"></div>
+            <div class="hist-text">
+              <strong>${campoLabel(h.campo)}</strong>:
+              ${h.valor_anterior ? `<span style="color:#ef4444;text-decoration:line-through">${esc(h.valor_anterior)}</span> → ` : ''}
+              <span style="color:#166534">${esc(h.valor_novo||'')}</span>
+            </div>
+            <div class="hist-date">${fmtDateTime(h.alterado_em)}</div>
+          </li>`).join('')}
+      </ul>
+    </div>` : '';
+
   panel.innerHTML = `
     <div class="detail-view">
       <div class="detail-header">
@@ -3208,10 +3305,11 @@ function showDetail(c) {
         </div>
       </div>
       <div class="detail-meta">
-        <span class="meta-chip"><strong>Status:</strong> <span class="badge-status s-${c.status}">${statusLabel(c.status)}</span></span>
-        <span class="meta-chip"><strong>Prioridade:</strong> <span class="badge-prio p-${c.prioridade}">${prioLabel(c.prioridade)}</span></span>
-        ${c.categoria ? `<span class="meta-chip"><strong>Categoria:</strong> ${esc(c.categoria)}</span>` : ''}
-        <span class="meta-chip"><strong>Criado em:</strong> ${fmtDate(c.criado_em)}</span>
+        <span class="meta-chip">Status: <span class="badge-status s-${c.status}">${statusLabel(c.status)}</span></span>
+        <span class="meta-chip">Prioridade: <span class="badge-prio p-${c.prioridade}">${prioLabel(c.prioridade)}</span></span>
+        ${c.categoria ? `<span class="meta-chip">Categoria: <strong>${esc(c.categoria)}</strong></span>` : ''}
+        ${c.responsavel ? `<span class="meta-chip">👤 <strong>${esc(c.responsavel)}</strong></span>` : ''}
+        <span class="meta-chip">Criado: <strong>${fmtDate(c.criado_em)}</strong></span>
       </div>
       <div class="section-card">
         <h4>Descrição do Erro</h4>
@@ -3225,153 +3323,264 @@ function showDetail(c) {
       ${c.artigo_titulo ? `
       <div class="section-card">
         <h4>Artigo Vinculado</h4>
-        <a class="artigo-link" href="#" onclick="viewArticle('${c.artigo_path}','${esc(c.artigo_titulo)}');return false;">📄 ${esc(c.artigo_titulo)}</a>
+        <span class="artigo-link" onclick="viewArticle('${c.artigo_path}')">📄 ${esc(c.artigo_titulo)}</span>
       </div>` : ''}
+      ${histHTML}
     </div>`;
 }
 
-function viewArticle(path, titulo) {
-  switchTab('kb');
-  setTimeout(() => kbSelectByPath(path), 100);
+function campoLabel(campo) {
+  return {status:'Status',prioridade:'Prioridade',responsavel:'Responsável',solucao:'Solução',titulo:'Título',descricao:'Descrição',categoria:'Categoria'}[campo]||campo;
 }
 
-// ===== FORMS =====
+function viewArticle(path) {
+  switchTab('kb');
+  setTimeout(() => kbSelect(path), 120);
+}
+
+// =========================================================
+// FORMS
+// =========================================================
 function openNewForm() {
   selectedId = null;
-  editingId = null;
   renderList();
   showForm(null);
 }
-
 function openEditForm(id) {
-  editingId = id;
   const c = allChamados.find(x => x.id === id);
   showForm(c);
 }
 
+function buildArtigoOptions(selected) {
+  let opts = '<option value="">-- Nenhum --</option>';
+  opts += Object.keys(EMBEDDED).map(k => {
+    const label = k.split('/').pop().replace(/-/g,' ');
+    return `<option value="${k}"${k === selected ? ' selected' : ''}>${label}</option>`;
+  }).join('');
+  return opts;
+}
+
 function showForm(c) {
   const isEdit = !!c;
-  const panel = document.getElementById('detail-panel');
-  const artigoOptions = buildArtigoOptions(c ? c.artigo_path : '');
-  panel.innerHTML = `
+  const categorias = ['geral','acesso','protocolo','assinatura','certidao','audiencia','prazo','outros'];
+  document.getElementById('detail-panel').innerHTML = `
     <div class="form-card">
-      <h3>${isEdit ? 'Editar Chamado' : 'Novo Chamado'}</h3>
+      <h3>${isEdit ? 'Editar Chamado #' + c.id : 'Novo Chamado'}</h3>
       <div class="form-row">
         <label>Título *</label>
         <input type="text" id="f-titulo" value="${esc(c ? c.titulo : '')}" placeholder="Descreva o problema resumidamente">
       </div>
       <div class="form-row">
         <label>Descrição do Erro *</label>
-        <textarea id="f-descricao" rows="4" placeholder="Detalhe o erro, passos para reproduzir, mensagens de erro...">${c ? esc(c.descricao) : ''}</textarea>
+        <textarea id="f-descricao" rows="4" placeholder="Detalhe o erro, passos para reproduzir, mensagens...">${c ? esc(c.descricao) : ''}</textarea>
       </div>
       <div class="form-2col">
         <div class="form-row">
+          <label>Responsável</label>
+          <input type="text" id="f-responsavel" value="${esc(c ? c.responsavel||'' : '')}" placeholder="Nome do responsável">
+        </div>
+        <div class="form-row">
           <label>Categoria</label>
           <select id="f-categoria">
-            ${['geral','acesso','protocolo','assinatura','certidao','audiencia','prazo','outros'].map(cat =>
-              `<option value="${cat}"${c && c.categoria === cat ? ' selected' : ''}>${cat.charAt(0).toUpperCase()+cat.slice(1)}</option>`
-            ).join('')}
+            ${categorias.map(cat => `<option value="${cat}"${c && c.categoria===cat?' selected':''}>${cat.charAt(0).toUpperCase()+cat.slice(1)}</option>`).join('')}
           </select>
         </div>
+      </div>
+      <div class="form-2col">
         <div class="form-row">
           <label>Prioridade</label>
           <select id="f-prioridade">
-            ${['baixa','normal','alta','urgente'].map(p =>
-              `<option value="${p}"${c && c.prioridade === p ? ' selected' : ''}${!c && p==='normal' ? ' selected' : ''}>${prioLabel(p)}</option>`
-            ).join('')}
+            ${['baixa','normal','alta','urgente'].map(p => `<option value="${p}"${(c?c.prioridade:p)===(c?c.prioridade:'normal')&&(!c&&p==='normal'||c&&c.prioridade===p)?' selected':''}>${prioLabel(p)}</option>`).join('')}
           </select>
         </div>
+        ${isEdit ? `
+        <div class="form-row">
+          <label>Status</label>
+          <select id="f-status">
+            ${['aberto','em_analise','resolvido','fechado'].map(s => `<option value="${s}"${c.status===s?' selected':''}>${statusLabel(s)}</option>`).join('')}
+          </select>
+        </div>` : '<div></div>'}
       </div>
       ${isEdit ? `
       <div class="form-row">
-        <label>Status</label>
-        <select id="f-status">
-          ${['aberto','em_analise','resolvido','fechado'].map(s =>
-            `<option value="${s}"${c.status === s ? ' selected' : ''}>${statusLabel(s)}</option>`
-          ).join('')}
-        </select>
-      </div>
-      <div class="form-row">
         <label>Orientação / Solução</label>
-        <textarea id="f-solucao" rows="5" placeholder="Descreva a solução encontrada (suporta Markdown)...">${c ? esc(c.solucao||'') : ''}</textarea>
-        <div class="hint">Suporta Markdown: **negrito**, *itálico*, listas, etc.</div>
+        <textarea id="f-solucao" rows="5" placeholder="Descreva a solução (suporta Markdown)...">${c ? esc(c.solucao||'') : ''}</textarea>
+        <div class="hint">Suporta Markdown: **negrito**, *itálico*, listas, blocos de código...</div>
       </div>` : ''}
       <div class="form-row">
         <label>Artigo da Base de Conhecimento</label>
-        <select id="f-artigo">${artigoOptions}</select>
+        <select id="f-artigo">${buildArtigoOptions(c ? c.artigo_path||'' : '')}</select>
       </div>
       <div class="form-actions">
-        <button class="btn-primary" onclick="saveChamado(${isEdit ? c.id : 'null'})">${isEdit ? 'Salvar' : 'Criar Chamado'}</button>
-        <button class="btn-secondary" onclick="${isEdit ? 'selectChamado(' + c.id + ')' : 'cancelForm()'}">Cancelar</button>
+        <button class="btn-primary" onclick="saveChamado(${isEdit ? c.id : 'null'})">${isEdit ? 'Salvar Alterações' : 'Criar Chamado'}</button>
+        <button class="btn-secondary" onclick="${isEdit ? 'selectChamado('+c.id+')' : 'cancelForm()'}">Cancelar</button>
       </div>
     </div>`;
-}
 
-function buildArtigoOptions(selectedPath) {
-  const keys = Object.keys(EMBEDDED);
-  let opts = '<option value="">-- Nenhum --</option>';
-  opts += keys.map(k => {
-    const label = k.split('/').pop().replace(/-/g,' ');
-    return `<option value="${k}"${k === selectedPath ? ' selected' : ''}>${label}</option>`;
-  }).join('');
-  return opts;
+  // Set prioridade select correctly
+  if (document.getElementById('f-prioridade')) {
+    document.getElementById('f-prioridade').value = c ? c.prioridade : 'normal';
+  }
 }
 
 function cancelForm() {
-  document.getElementById('detail-panel').innerHTML = '<div class="empty-state"><div class="icon">🎫</div><p>Selecione um chamado ou crie um novo</p></div>';
+  document.getElementById('detail-panel').innerHTML =
+    '<div class="empty-state"><div class="icon">🎫</div><p>Selecione um chamado ou crie um novo</p></div>';
 }
 
 async function saveChamado(id) {
-  const titulo = document.getElementById('f-titulo').value.trim();
-  const descricao = document.getElementById('f-descricao').value.trim();
-  if(!titulo || !descricao) { toast('Título e descrição são obrigatórios', 'error'); return; }
-  const artPath = document.getElementById('f-artigo').value;
+  const titulo     = document.getElementById('f-titulo').value.trim();
+  const descricao  = document.getElementById('f-descricao').value.trim();
+  if (!titulo || !descricao) { toast('Título e descrição são obrigatórios', 'error'); return; }
+
+  const artPath   = document.getElementById('f-artigo').value;
   const artTitulo = artPath ? artPath.split('/').pop().replace(/-/g,' ') : '';
+
   const body = {
     titulo,
     descricao,
-    categoria: document.getElementById('f-categoria').value,
-    prioridade: document.getElementById('f-prioridade').value,
-    artigo_path: artPath || null,
+    responsavel: document.getElementById('f-responsavel').value.trim() || null,
+    categoria:   document.getElementById('f-categoria').value,
+    prioridade:  document.getElementById('f-prioridade').value,
+    artigo_path:   artPath || null,
     artigo_titulo: artTitulo || null,
   };
-  if(id !== null) {
-    body.status = document.getElementById('f-status').value;
-    const sol = document.getElementById('f-solucao').value.trim();
+
+  const oldChamado = id !== null ? allChamados.find(x => x.id === id) : null;
+
+  if (id !== null) {
+    body.status  = document.getElementById('f-status').value;
+    const sol    = document.getElementById('f-solucao').value.trim();
     body.solucao = sol || null;
   }
+
   try {
     let result;
-    if(id === null) {
+    if (id === null) {
       result = await supaFetch('chamados', { method: 'POST', body, prefer: 'return=representation' });
-      toast('Chamado criado com sucesso!');
+      toast('Chamado criado!');
+      sendEmailNotification('novo', result[0]);
     } else {
-      result = await supaFetch('chamados?id=eq.' + id, { method: 'PATCH', body, prefer: 'return=representation' });
+      result = await supaFetch(`chamados?id=eq.${id}`, { method: 'PATCH', body, prefer: 'return=representation' });
       toast('Chamado atualizado!');
+      // Log history
+      if (oldChamado) await logHistory(id, oldChamado, body);
+      sendEmailNotification('atualizado', result[0]);
     }
     await loadChamados();
     const saved = result[0];
-    if(saved) { selectedId = saved.id; renderList(); showDetail(saved); }
-  } catch(e) {
+    if (saved) { selectedId = saved.id; renderList(); showDetail(saved); }
+  } catch (e) {
     toast('Erro ao salvar: ' + e.message, 'error');
     console.error(e);
   }
 }
 
-async function deleteChamado(id) {
-  if(!confirm('Excluir este chamado?')) return;
+async function logHistory(chamadoId, oldData, newData) {
+  const campos = ['status','prioridade','responsavel','solucao','titulo','descricao','categoria'];
+  const entries = [];
+  for (const campo of campos) {
+    const ant = (oldData[campo] || '').toString();
+    const nov = (newData[campo] || '').toString();
+    if (ant !== nov) {
+      entries.push({ chamado_id: chamadoId, campo, valor_anterior: ant || null, valor_novo: nov || null });
+    }
+  }
+  if (!entries.length) return;
   try {
-    await supaFetch('chamados?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
+    await supaFetch('chamados_historico', { method: 'POST', body: entries, prefer: 'return=minimal' });
+  } catch(e) { console.warn('History log failed:', e); }
+}
+
+async function deleteChamado(id) {
+  if (!confirm('Excluir este chamado permanentemente?')) return;
+  try {
+    await supaFetch(`chamados?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
     selectedId = null;
     toast('Chamado excluído');
     await loadChamados();
     cancelForm();
-  } catch(e) {
-    toast('Erro ao excluir: ' + e.message, 'error');
-  }
+  } catch (e) { toast('Erro ao excluir: ' + e.message, 'error'); }
 }
 
-// ===== TOAST =====
+// =========================================================
+// EXPORT CSV
+// =========================================================
+function exportCSV() {
+  if (!allChamados.length) { toast('Nenhum chamado para exportar', 'error'); return; }
+  const cols = ['id','titulo','descricao','responsavel','categoria','status','prioridade','solucao','artigo_titulo','criado_em','atualizado_em'];
+  const header = cols.join(';');
+  const rows = allChamados.map(c =>
+    cols.map(col => {
+      const v = c[col] == null ? '' : String(c[col]);
+      return '"' + v.replace(/"/g, '""') + '"';
+    }).join(';')
+  );
+  const csv = '﻿' + [header, ...rows].join('\r\n'); // BOM for Excel
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'chamados_pje_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV exportado!');
+}
+
+// =========================================================
+// EMAIL NOTIFICATIONS (EmailJS)
+// =========================================================
+let emailConfig = JSON.parse(localStorage.getItem('pje_email_cfg') || 'null') || {};
+
+function openEmailConfig() {
+  const m = document.getElementById('email-modal');
+  document.getElementById('ejs-service').value  = emailConfig.service  || '';
+  document.getElementById('ejs-template').value = emailConfig.template || '';
+  document.getElementById('ejs-pubkey').value   = emailConfig.pubkey   || '';
+  document.getElementById('ejs-to').value       = emailConfig.to       || '';
+  m.classList.add('open');
+}
+function closeEmailConfig() { document.getElementById('email-modal').classList.remove('open'); }
+function saveEmailConfig() {
+  emailConfig = {
+    service:  document.getElementById('ejs-service').value.trim(),
+    template: document.getElementById('ejs-template').value.trim(),
+    pubkey:   document.getElementById('ejs-pubkey').value.trim(),
+    to:       document.getElementById('ejs-to').value.trim(),
+  };
+  localStorage.setItem('pje_email_cfg', JSON.stringify(emailConfig));
+  closeEmailConfig();
+  if (emailConfig.pubkey) loadEmailJS();
+  toast('Configuração de e-mail salva!');
+}
+
+function loadEmailJS() {
+  if (window.emailjs) { emailjs.init(emailConfig.pubkey); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+  s.onload = () => emailjs.init(emailConfig.pubkey);
+  document.head.appendChild(s);
+}
+
+function sendEmailNotification(tipo, chamado) {
+  if (!emailConfig.service || !emailConfig.template || !emailConfig.pubkey || !chamado) return;
+  if (!window.emailjs) { loadEmailJS(); return; }
+  emailjs.send(emailConfig.service, emailConfig.template, {
+    to_email:   emailConfig.to,
+    tipo:       tipo === 'novo' ? 'Novo chamado criado' : 'Chamado atualizado',
+    titulo:     chamado.titulo,
+    descricao:  chamado.descricao,
+    responsavel: chamado.responsavel || '—',
+    status:     statusLabel(chamado.status),
+    prioridade: prioLabel(chamado.prioridade),
+    chamado_id: chamado.id,
+  }).catch(err => console.warn('Email failed:', err));
+}
+
+// Init EmailJS if already configured
+if (emailConfig.pubkey) loadEmailJS();
+
+// =========================================================
+// TOAST
+// =========================================================
 let toastTimer;
 function toast(msg, type) {
   const el = document.getElementById('toast');
@@ -3382,59 +3591,55 @@ function toast(msg, type) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// ===== KB =====
+// =========================================================
+// KB
+// =========================================================
 let kbInited = false;
 let kbSelectedPath = null;
-
-const KB_INDEX = {
-  'Acesso': ['acesso/configuracao','acesso/interno','acesso/externo'],
-  'Protocolo': ['protocolo/originario','protocolo/resposta','protocolo/documentos'],
-  'Assinatura': ['assinatura/configuracao','assinatura/problemas'],
-};
+let _kbCat = '';
+let _kbCatMap = {};
 
 function kbInit() {
-  if(kbInited) return;
+  if (kbInited) return;
   kbInited = true;
   const keys = Object.keys(EMBEDDED);
-  // Build category map
   const catMap = {};
   keys.forEach(k => {
-    const parts = k.split('/');
-    const cat = parts[0] || 'Geral';
-    if(!catMap[cat]) catMap[cat] = [];
+    const cat = k.split('/')[0] || 'geral';
+    if (!catMap[cat]) catMap[cat] = [];
     catMap[cat].push(k);
   });
-  // Sidebar
+  _kbCatMap = catMap;
   const sidebar = document.getElementById('kb-sidebar');
-  sidebar.innerHTML = '<div class="sidebar-section">Categorias</div>' +
+  sidebar.innerHTML =
+    '<div class="sidebar-section">Categorias</div>' +
+    `<div class="sidebar-item active" onclick="kbFilterCat('')" id="kbcat-all">Todos <span class="badge">${keys.length}</span></div>` +
     Object.keys(catMap).map(cat =>
       `<div class="sidebar-item" onclick="kbFilterCat('${cat}')" id="kbcat-${cat}">${cat.charAt(0).toUpperCase()+cat.slice(1)} <span class="badge">${catMap[cat].length}</span></div>`
-    ).join('') +
-    `<div class="sidebar-item active" onclick="kbFilterCat('')" id="kbcat-all">Todos <span class="badge">${keys.length}</span></div>`;
-  window._kbCatMap = catMap;
-  window._kbCat = '';
+    ).join('');
   kbRenderList();
 }
 
 function kbFilterCat(cat) {
-  window._kbCat = cat;
+  _kbCat = cat;
   document.querySelectorAll('.sidebar-item[id^="kbcat-"]').forEach(el => el.classList.remove('active'));
-  document.getElementById('kbcat-' + (cat || 'all')).classList.add('active');
+  const el = document.getElementById('kbcat-' + (cat || 'all'));
+  if (el) el.classList.add('active');
   kbRenderList();
 }
 
 function kbRenderList() {
-  const q = (document.getElementById('kb-search') ? document.getElementById('kb-search').value : '').toLowerCase();
-  const cat = window._kbCat || '';
-  let keys = Object.keys(EMBEDDED);
-  if(cat) keys = keys.filter(k => k.split('/')[0] === cat);
-  if(q) keys = keys.filter(k => {
-    const title = k.split('/').pop().replace(/-/g,' ');
+  const qEl = document.getElementById('kb-search');
+  const q   = qEl ? qEl.value.toLowerCase() : '';
+  let keys  = Object.keys(EMBEDDED);
+  if (_kbCat) keys = keys.filter(k => k.split('/')[0] === _kbCat);
+  if (q) keys = keys.filter(k => {
+    const title   = k.split('/').pop().replace(/-/g,' ');
     const content = (EMBEDDED[k] || '').toLowerCase();
     return title.toLowerCase().includes(q) || content.includes(q);
   });
   const list = document.getElementById('kb-art-list');
-  if(!keys.length) { list.innerHTML = '<div class="kb-empty">Nenhum artigo encontrado</div>'; return; }
+  if (!keys.length) { list.innerHTML = '<div class="kb-empty">Nenhum artigo encontrado</div>'; return; }
   list.innerHTML = keys.map(k => {
     const title = k.split('/').pop().replace(/-/g,' ');
     return `<div class="kb-art-item${k === kbSelectedPath ? ' selected' : ''}" onclick="kbSelect('${k}')">${title}</div>`;
@@ -3445,21 +3650,18 @@ function kbSelect(path) {
   kbSelectedPath = path;
   kbRenderList();
   const content = EMBEDDED[path];
-  const title = path.split('/').pop().replace(/-/g,' ');
-  const detail = document.getElementById('kb-detail-inner');
-  if(!content) {
-    detail.innerHTML = `<h1>${title}</h1><p style="color:#9ca3af">Conteúdo não disponível offline.</p>`;
+  const title   = path.split('/').pop().replace(/-/g,' ');
+  const detail  = document.getElementById('kb-detail-inner');
+  if (!content) {
+    detail.innerHTML = `<h1>${title}</h1><p style="color:#9ca3af">Conteúdo não disponível.</p>`;
     return;
   }
   detail.innerHTML = `<h1>${title}</h1><div class="md-content">${marked.parse(content)}</div>`;
 }
 
-function kbSelectByPath(path) {
-  if(!kbInited) kbInit();
-  kbSelect(path);
-}
-
-// ===== INIT =====
+// =========================================================
+// INIT
+// =========================================================
 loadChamados();
 </script>
 </body>

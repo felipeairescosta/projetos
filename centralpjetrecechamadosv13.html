@@ -44,8 +44,6 @@
   [data-theme="dark"] .kbase-layout .list { background:#162032; }
   [data-theme="dark"] .content-view { background:var(--card); }
   [data-theme="dark"] .md-content code { background:#0f172a; }
-  [data-theme="dark"] .tags-input{background:#0f172a;}
-  [data-theme="dark"] .kanban-col.drag-over{background:#1e3a5f;}
   .sla-ok{color:var(--success);font-weight:700;} .sla-warn{color:var(--accent);font-weight:700;} .sla-late{color:var(--danger);font-weight:700;}
   .age-badge{font-size:11px;padding:2px 6px;border-radius:999px;white-space:nowrap;}
   .age-badge.ok{background:#e8f7ed;color:#166534;} .age-badge.warn{background:#fff4d6;color:#7a5200;} .age-badge.late{background:#ffecec;color:#9c1c14;}
@@ -67,6 +65,44 @@
   #toastContainer{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
   .toast{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;box-shadow:var(--shadow);font-size:13px;min-width:220px;animation:toastIn .25s ease;}
   @keyframes toastIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  /* Kanban */
+  .kanban-board{display:flex;gap:12px;overflow-x:auto;height:100%;padding-bottom:8px;align-items:flex-start;}
+  .kanban-col{min-width:220px;max-width:260px;background:var(--soft);border-radius:14px;display:flex;flex-direction:column;flex-shrink:0;}
+  .kanban-col-header{padding:10px 12px;font-size:12px;font-weight:800;color:var(--primary);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);}
+  .kanban-col-body{padding:8px;overflow-y:auto;flex:1;min-height:60px;}
+  .kanban-col-body.drag-over{background:rgba(31,90,158,.08);border-radius:10px;}
+  .kanban-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:7px;cursor:grab;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.05);}
+  .kanban-card:active{cursor:grabbing;opacity:.7;}
+  .kanban-card .kc-id{color:var(--muted);font-size:10px;margin-bottom:3px;}
+  .kanban-card .kc-title{font-weight:700;line-height:1.3;margin-bottom:5px;}
+  .kanban-card .kc-unit{color:var(--muted);font-size:11px;}
+  .kanban-card .kc-footer{display:flex;gap:5px;margin-top:6px;align-items:center;flex-wrap:wrap;}
+  /* Star rating */
+  .stars{display:inline-flex;gap:3px;font-size:22px;cursor:pointer;}
+  .stars span{opacity:.3;transition:.1s;}
+  .stars span.on{opacity:1;}
+  .star-readonly{display:inline-flex;gap:2px;font-size:14px;}
+  .star-readonly span.on{color:#f0b429;}
+  .star-readonly span.off{color:#ddd;}
+  /* Tags input (multi-responsável) */
+  .tags-input{border:1px solid var(--line);background:white;border-radius:10px;padding:6px 8px;display:flex;flex-wrap:wrap;gap:5px;min-height:42px;cursor:text;position:relative;}
+  .tags-input:focus-within{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(31,90,158,.12);}
+  .tags-input .tag{background:var(--soft);color:var(--primary);border-radius:6px;padding:2px 7px;font-size:12px;display:inline-flex;align-items:center;gap:4px;}
+  .tags-input .tag button{background:none;border:none;cursor:pointer;color:var(--muted);padding:0;font-size:13px;line-height:1;}
+  .tags-input input{border:none;outline:none;background:transparent;min-width:80px;flex:1;font:inherit;padding:2px 4px;color:var(--text);}
+  .tags-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);z-index:100;max-height:160px;overflow-y:auto;margin-top:3px;}
+  .tags-dropdown-item{padding:8px 12px;cursor:pointer;font-size:13px;}
+  .tags-dropdown-item:hover{background:var(--soft);}
+  [data-theme="dark"] .tags-input{background:#0f172a;}
+  /* Rating modal */
+  #ratingModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998;place-items:center;}
+  #ratingModal.open{display:grid;}
+  #ratingModal .modal-box{background:var(--card);border-radius:18px;padding:28px;max-width:360px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;}
+  #ratingModal h2{margin:0 0 8px;color:var(--primary);}
+  #ratingModal p{color:var(--muted);font-size:13px;margin:0 0 20px;}
+  /* PDF print */
+  @media print{.no-print{display:none!important;} .print-only{display:block!important;}}
+  .print-only{display:none;}
   * { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); background: var(--bg); }
   body { overflow: hidden; }
@@ -85,6 +121,7 @@
   .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
   .pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.14); color: white; white-space: nowrap; }
   .pill.warn { background: var(--accent); color: #111827; }
+
   .layout { min-height: 0; display: grid; grid-template-columns: var(--sidebar) 1fr; }
   nav { background: var(--card); border-right: 1px solid var(--line); overflow-y: auto; padding: 12px; }
   .nav-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: .9px; color: var(--muted); font-weight: 800; padding: 10px 10px 7px; }
@@ -93,6 +130,7 @@
   .nav-item.active { background: #e6eef9; color: var(--primary); font-weight: 800; box-shadow: inset 3px 0 var(--accent); }
   .nav-item .nav-icon { width: 22px; text-align: center; }
   .nav-foot { margin-top: 18px; border-top: 1px solid var(--line); padding: 12px 10px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+
   main { overflow: hidden; min-width: 0; }
   .view { display: none; height: 100%; overflow: hidden; }
   .view.active { display: flex; flex-direction: column; }
@@ -136,14 +174,15 @@
   .notice.warn { background: var(--soft-yellow); border-color: #f4dea3; color: #674a00; }
   .badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 850; background: #eef2f7; color: #334155; white-space: nowrap; }
   .badge.status-aberto { background: #ffecec; color: #9c1c14; }
-  .badge.status-em-triagem, .badge.status-em-analise { background: #fff4d6; color: #7a5200; }
-  .badge.status-orientacao-enviada, .badge.status-aguardando-retorno-da-unidade { background: #e9f3ff; color: #075c95; }
+  .badge.status-em-triagem, .badge.status-em-análise { background: #fff4d6; color: #7a5200; }
+  .badge.status-orientação-enviada, .badge.status-aguardando-retorno-da-unidade { background: #e9f3ff; color: #075c95; }
   .badge.status-resolvido, .badge.status-encerrado { background: #e8f7ed; color: #166534; }
   .badge.status-reaberto { background: #f3e8ff; color: #6b21a8; }
   .priority-Crítica { background: #fde2e0; color: #9b1c15; }
   .priority-Alta { background: #fff0d8; color: #8a5200; }
   .priority-Média { background: #e9f3ff; color: #075c95; }
   .priority-Baixa { background: #edf7ed; color: #166534; }
+
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { text-align: left; color: var(--muted); background: #f7f9fc; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; padding: 10px; border-bottom: 1px solid var(--line); }
   td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -216,23 +255,6 @@
     .view:not(.active) { display: none; }
     .card { box-shadow: none; }
   }
-  /* v1.3 new styles */
-  .tags-input{display:flex;flex-wrap:wrap;gap:4px;border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:white;min-height:42px;cursor:text;position:relative;}
-  .tags-input .tag{display:inline-flex;align-items:center;gap:4px;background:var(--soft);border-radius:999px;padding:2px 8px;font-size:12px;}
-  .tags-input .tag .remove{cursor:pointer;color:var(--muted);}
-  .tags-input input{border:0;outline:0;min-width:100px;flex:1;background:transparent;padding:2px 4px;}
-  .rating-modal{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:10px 0;text-align:center;}
-  .star-btn{font-size:28px;background:none;border:none;cursor:pointer;color:#ccc;transition:.1s;}
-  .star-btn.active,.star-btn:hover~.star-btn,.star-btn:hover{color:#f59e0b;}
-  .kanban-col{min-width:220px;max-width:280px;background:var(--soft);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
-  .kanban-col.drag-over{background:#dbeafe;}
-  .kanban-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;font-size:12px;}
-  .kanban-card:hover{box-shadow:var(--shadow);}
-  .autocomplete-dropdown{position:absolute;z-index:100;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:180px;max-height:200px;overflow-y:auto;}
-  .autocomplete-item{padding:8px 12px;cursor:pointer;font-size:13px;}
-  .autocomplete-item:hover{background:var(--soft);}
-  .supabase-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--muted);}
-  .supabase-badge.cloud{background:#e0f2fe;color:#0369a1;}
 </style>
 </head>
 <body>
@@ -252,7 +274,6 @@
     <div class="header-actions">
       <span class="pill warn"><span id="openCounter">0</span> abertos</span>
       <span class="pill"><span id="ticketCounter">0</span> chamados</span>
-      <span id="supabaseBadge" class="supabase-badge">💾 Local</span>
       <button class="btn secondary" style="background:rgba(255,255,255,.14);color:white;border:0;" onclick="toggleDark()" title="Alternar modo escuro" id="darkBtn">🌙</button>
       <button class="btn secondary" style="background:rgba(255,255,255,.14);color:white;border:0;" onclick="toggleShortcuts()" title="Atalhos de teclado">⌨️</button>
     </div>
@@ -270,13 +291,12 @@
       <button class="nav-item" data-view="relatorios"><span class="nav-icon">📈</span>Relatórios</button>
       <button class="nav-item" data-view="config"><span class="nav-icon">⚙️</span>Configurações</button>
       <div class="nav-foot">
-        <strong>v1.3</strong><br>
-        Dados gravados no navegador via localStorage. Use exportação JSON para backup ou compartilhamento controlado.
+        <strong>v1.3</strong> <span id="storageModeBadge" style="font-size:10px;padding:1px 5px;border-radius:5px;background:#e2e8f0;">💾 Local</span><br>
+        Dados no navegador (localStorage). Supabase opcional em Configurações.
       </div>
     </nav>
 
     <main>
-      <!-- DASHBOARD -->
       <section id="view-dashboard" class="view active">
         <div class="view-header">
           <div>
@@ -289,7 +309,7 @@
           </div>
         </div>
         <div class="view-body">
-          <div class="grid cards" id="metricCards"></div>
+          <div class="grid cards" style="grid-template-columns:repeat(5,minmax(0,1fr));" id="metricCards"></div>
           <div class="grid two" style="margin-top:14px;">
             <div class="card pad">
               <h2 class="card-title">Erros mais recorrentes</h2>
@@ -308,14 +328,13 @@
             <div class="card pad">
               <h2 class="card-title">Avisos de validação</h2>
               <div class="notice warn">
-                Esta versão é indicada para homologação funcional. Evite registrar dados pessoais sensíveis ou prints com conteúdo sigiloso. Para uso em produção, recomenda-se backend com autenticação, trilha de auditoria e política de retenção.
+                Esta primeira versão é indicada para homologação funcional. Evite registrar dados pessoais sensíveis ou prints com conteúdo sigiloso. Para uso em produção, recomenda-se backend com autenticação, trilha de auditoria e política de retenção.
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- NOVO CHAMADO -->
       <section id="view-novo" class="view">
         <div class="view-header">
           <div>
@@ -382,8 +401,12 @@
                   <select id="canal"></select>
                 </div>
                 <div class="field full">
-                  <label>Responsáveis</label>
-                  <div id="responsaveisTagsNew" class="tags-input" onclick="focusTagInput('responsaveisTagsNew')"></div>
+                  <label>Responsáveis (digite e pressione Enter ou vírgula)</label>
+                  <div class="tags-input" id="responsaveisInput" onclick="document.getElementById('responsaveisText').focus()">
+                    <input id="responsaveisText" placeholder="Ex.: Ana Lima" autocomplete="off" oninput="handleTagInput(event)" onkeydown="handleTagKey(event)">
+                    <div class="tags-dropdown hidden" id="responsaveisDropdown"></div>
+                  </div>
+                  <input id="responsavel" type="hidden" value="Equipe de atendimento PJe">
                 </div>
                 <div class="field full">
                   <label for="artigoVinculado">Artigo/orientação vinculada</label>
@@ -411,7 +434,6 @@
         </div>
       </section>
 
-      <!-- CHAMADOS -->
       <section id="view-chamados" class="view">
         <div class="view-header">
           <div>
@@ -448,18 +470,19 @@
         </div>
       </section>
 
-      <!-- KANBAN -->
       <section id="view-kanban" class="view">
         <div class="view-header">
-          <div>
-            <h1>Kanban de chamados</h1>
-            <p>Visualize e mova chamados entre status arrastando os cards.</p>
+          <div><h1>Kanban de chamados</h1><p>Arraste os cards entre colunas para atualizar o status. Reflete os filtros de origem e prioridade.</p></div>
+          <div class="toolbar">
+            <select id="kanbanFilterPrioridade" onchange="renderKanban()" style="width:170px;"></select>
+            <button class="btn" onclick="goView('novo')">➕ Novo chamado</button>
           </div>
         </div>
-        <div id="kanbanBoard" style="display:flex;gap:12px;overflow-x:auto;padding:18px 22px;flex:1;min-height:0;align-items:flex-start;"></div>
+        <div class="view-body" style="padding:12px 14px;">
+          <div class="kanban-board" id="kanbanBoard"></div>
+        </div>
       </section>
 
-      <!-- CATÁLOGO -->
       <section id="view-catalogo" class="view">
         <div class="view-header">
           <div>
@@ -490,7 +513,6 @@
         </div>
       </section>
 
-      <!-- BASE -->
       <section id="view-base" class="view">
         <div class="view-header">
           <div>
@@ -506,7 +528,6 @@
         </div>
       </section>
 
-      <!-- RELATÓRIOS -->
       <section id="view-relatorios" class="view">
         <div class="view-header">
           <div>
@@ -520,10 +541,6 @@
             <div class="card metric"><span class="label">Tempo médio de resolução</span><span class="value" id="avgResolveTime">—</span><span class="hint">chamados encerrados</span></div>
             <div class="card metric warn"><span class="label">Abertos há +48h</span><span class="value" id="countOverdue">0</span><span class="hint">exigem atenção</span></div>
             <div class="card metric"><span class="label">Taxa de resolução</span><span class="value" id="resolveRate">—</span><span class="hint">% do total</span></div>
-          </div>
-          <div class="card pad" style="margin-bottom:14px;">
-            <h2 class="card-title">Satisfação média</h2>
-            <div id="satisfactionReport"></div>
           </div>
           <div class="card pad" style="margin-bottom:14px;">
             <h2 class="card-title">Chamados por semana (últimas 8 semanas)</h2>
@@ -541,10 +558,18 @@
             <div class="card pad"><h2 class="card-title">Reabertos e críticos</h2><div id="reportCritical"></div></div>
             <div class="card pad"><h2 class="card-title">Por responsável</h2><div id="reportResponsavel"></div></div>
           </div>
+          <div class="card pad" style="margin-top:14px;">
+            <h2 class="card-title">Avaliação de satisfação ⭐</h2>
+            <div class="grid cards" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px;">
+              <div class="card metric success"><span class="label">Média geral</span><span class="value" id="avgRating">—</span><span class="hint">de 5 estrelas</span></div>
+              <div class="card metric"><span class="label">Chamados avaliados</span><span class="value" id="ratingCount">0</span><span class="hint">com nota</span></div>
+              <div class="card metric"><span class="label">% avaliados</span><span class="value" id="ratingPct">—</span><span class="hint">do total encerrado</span></div>
+            </div>
+            <div id="ratingDist"></div>
+          </div>
         </div>
       </section>
 
-      <!-- CONFIGURAÇÕES -->
       <section id="view-config" class="view">
         <div class="view-header">
           <div>
@@ -567,58 +592,56 @@
               </form>
               <div id="unitList" style="margin-top:12px;"></div>
             </div>
-            <div>
-              <div class="card pad" style="margin-bottom:14px;">
-                <h2 class="card-title">Backup e importação</h2>
-                <div class="notice warn">Na validação, todos os dados ficam no navegador. Antes de limpar cache ou mudar de computador, exporte o JSON.</div>
-                <div class="toolbar" style="margin-top:12px;"><button class="btn" onclick="exportAllJSON()">Exportar tudo em JSON</button><button class="btn secondary" onclick="document.getElementById('importFile').click()">Importar JSON</button></div>
-                <input id="importFile" type="file" accept="application/json,.json" class="hidden" onchange="importAllJSON(event)">
-                <hr style="border:0;border-top:1px solid var(--line);margin:18px 0;">
-                <h2 class="card-title">Ações de validação</h2>
-                <div class="toolbar"><button class="btn secondary" onclick="seedDemoTickets()">Inserir chamados de exemplo</button><button class="btn danger" onclick="resetAllData()">Limpar dados locais</button></div>
-              </div>
-              <div class="card pad" style="margin-bottom:14px;">
-                <h2 class="card-title">SLA por prioridade</h2>
-                <div class="form-grid">
-                  <div class="field"><label>Crítica (horas)</label><input type="number" id="slaCritica" value="4" min="1"></div>
-                  <div class="field"><label>Alta (horas)</label><input type="number" id="slaAlta" value="24" min="1"></div>
-                  <div class="field"><label>Média (horas)</label><input type="number" id="slaMedia" value="72" min="1"></div>
-                  <div class="field"><label>Baixa (horas)</label><input type="number" id="slaBaixa" value="168" min="1"></div>
-                </div>
-                <div class="toolbar"><button class="btn" onclick="saveSlaConfig()">Salvar SLA</button></div>
-              </div>
-              <div class="card pad" style="margin-bottom:14px;">
-                <h2 class="card-title">Webhook de alertas</h2>
-                <div class="field"><label>URL do webhook</label><input type="url" id="webhookUrl" placeholder="https://..."></div>
-                <div class="field"><label>Evento</label>
-                  <select id="webhookEvent">
-                    <option value="all">Todos críticos</option>
-                    <option value="novo_critico">Novo crítico</option>
-                    <option value="indisponibilidade">Indisponibilidade</option>
-                    <option value="reaberto">Reaberto</option>
-                  </select>
-                </div>
-                <div class="toolbar"><button class="btn" onclick="saveWebhookConfig()">Salvar webhook</button><button class="btn secondary" onclick="testWebhook()">Testar</button></div>
-              </div>
-              <div class="card pad" style="margin-bottom:14px;">
-                <h2 class="card-title">Importar chamados via CSV</h2>
-                <p class="help">Colunas: titulo;unidadeNome;tipoCliente;canal;categoria;prioridade;impacto;sistema;solicitante;descricaoErro;status</p>
-                <div class="toolbar" style="margin-top:8px;">
-                  <button class="btn secondary" onclick="downloadCsvTemplate()">Baixar modelo CSV</button>
-                  <button class="btn" onclick="document.getElementById('csvImportFile').click()">Importar CSV</button>
-                </div>
-                <input type="file" id="csvImportFile" accept=".csv,text/csv" class="hidden" onchange="importTicketsCsv(event)">
-              </div>
-              <div class="card pad">
-                <h2 class="card-title">Backend Supabase (produção)</h2>
-                <div class="field"><label>URL do projeto</label><input type="url" id="supabaseUrl" placeholder="https://xxx.supabase.co"></div>
-                <div class="field"><label>Anon key</label><input type="text" id="supabaseKey" placeholder="eyJ..."></div>
-                <div class="toolbar">
-                  <button class="btn" onclick="saveSupabaseConfig()">Salvar configuração</button>
-                  <button class="btn secondary" onclick="syncToSupabase()">Sincronizar com Supabase</button>
-                </div>
-              </div>
+            <div class="card pad">
+              <h2 class="card-title">Backup e importação</h2>
+              <div class="notice warn">Na validação, todos os dados ficam no navegador. Antes de limpar cache ou mudar de computador, exporte o JSON.</div>
+              <div class="toolbar" style="margin-top:12px;"><button class="btn" onclick="exportAllJSON()">Exportar tudo em JSON</button><button class="btn secondary" onclick="document.getElementById('importFile').click()">Importar JSON</button></div>
+              <input id="importFile" type="file" accept="application/json,.json" class="hidden" onchange="importAllJSON(event)">
+              <hr style="border:0;border-top:1px solid var(--line);margin:18px 0;">
+              <h2 class="card-title">Importar chamados via CSV</h2>
+              <p class="help" style="margin-bottom:8px;">Colunas esperadas: titulo; unidadeNome; tipoCliente; canal; categoria; prioridade; impacto; sistema; solicitante; descricaoErro; status</p>
+              <div class="toolbar"><button class="btn secondary" onclick="downloadCSVTemplate()">Baixar modelo CSV</button><button class="btn secondary" onclick="document.getElementById('importCsvFile').click()">Importar CSV</button></div>
+              <input id="importCsvFile" type="file" accept=".csv,text/csv" class="hidden" onchange="importCSV(event)">
+              <hr style="border:0;border-top:1px solid var(--line);margin:18px 0;">
+              <h2 class="card-title">Ações de validação</h2>
+              <div class="toolbar"><button class="btn secondary" onclick="seedDemoTickets()">Inserir chamados de exemplo</button><button class="btn danger" onclick="resetAllData()">Limpar dados locais</button></div>
             </div>
+          </div>
+          <div class="grid two" style="margin-top:14px;">
+            <div class="card pad">
+              <h2 class="card-title">SLA por prioridade</h2>
+              <p class="help" style="margin-bottom:12px;">Defina o prazo máximo (em horas) para chamados abertos em cada nível de prioridade. Usado nos indicadores de idade e relatórios.</p>
+              <div class="form-grid">
+                <div class="field"><label>Crítica (horas)</label><input id="slaCritica" type="number" min="1" value="4"></div>
+                <div class="field"><label>Alta (horas)</label><input id="slaAlta" type="number" min="1" value="24"></div>
+                <div class="field"><label>Média (horas)</label><input id="slaMedia" type="number" min="1" value="72"></div>
+                <div class="field"><label>Baixa (horas)</label><input id="slaBaixa" type="number" min="1" value="168"></div>
+              </div>
+              <button class="btn" onclick="saveSlaConfig()">Salvar SLA</button>
+            </div>
+            <div class="card pad">
+              <h2 class="card-title">Webhook de alertas</h2>
+              <p class="help" style="margin-bottom:12px;">Envie notificações automáticas para um webhook (Telegram Bot via n8n, Discord, Zapier etc.) ao abrir chamados críticos ou reabrir chamados.</p>
+              <div class="field"><label>URL do webhook</label><input id="webhookUrl" type="url" placeholder="https://seu-webhook.exemplo.com/pje"></div>
+              <div class="field"><label>Disparar em</label>
+                <select id="webhookTrigger">
+                  <option value="critico">Novo chamado Crítico ou Indisponibilidade</option>
+                  <option value="reaberto">Status → Reaberto</option>
+                  <option value="todos">Qualquer novo chamado</option>
+                </select>
+              </div>
+              <div class="toolbar"><button class="btn" onclick="saveWebhookConfig()">Salvar webhook</button><button class="btn secondary" onclick="testWebhook()">Testar</button></div>
+            </div>
+          </div>
+          <div class="card pad" style="margin-top:14px;">
+            <h2 class="card-title">Backend Supabase <span style="font-size:11px;font-weight:400;color:var(--muted);">(opcional — para uso em produção multi-usuário)</span></h2>
+            <div class="notice" style="margin-bottom:12px;">Configure a URL e a chave anon do seu projeto Supabase. Crie as tabelas <code>tickets</code>, <code>catalog</code> e <code>units</code> com coluna <code>data jsonb</code> e <code>id text primary key</code>. Quando configurado, o botão "Sincronizar" faz upsert de todos os dados locais no Supabase.</div>
+            <div class="form-grid">
+              <div class="field"><label>URL do projeto Supabase</label><input id="supabaseUrl" type="url" placeholder="https://xxx.supabase.co"></div>
+              <div class="field"><label>Chave anon (pública)</label><input id="supabaseKey" type="password" placeholder="eyJ..."></div>
+            </div>
+            <div class="toolbar"><button class="btn" onclick="saveSupabaseConfig()">Salvar configuração</button><button class="btn secondary" onclick="syncSupabase()">☁️ Sincronizar agora</button></div>
+          </div>
           </div>
         </div>
       </section>
@@ -627,6 +650,21 @@
 </div>
 
 <div id="toastContainer"></div>
+
+<div id="ratingModal">
+  <div class="modal-box">
+    <h2>Avaliação de satisfação</h2>
+    <p>Como a unidade avaliou o atendimento recebido?</p>
+    <div class="stars" id="ratingStars">
+      <span data-v="1">⭐</span><span data-v="2">⭐</span><span data-v="3">⭐</span><span data-v="4">⭐</span><span data-v="5">⭐</span>
+    </div>
+    <p id="ratingLabel" style="font-size:13px;color:var(--muted);min-height:20px;margin-top:8px;"></p>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:center;">
+      <button class="btn" id="ratingConfirm" onclick="confirmRating()">Confirmar</button>
+      <button class="btn secondary" onclick="skipRating()">Pular</button>
+    </div>
+  </div>
+</div>
 
 <div id="shortcutsModal">
   <div class="modal-box">
@@ -676,6 +714,7 @@ const SECTIONS = [
   { id: 'wiki', label: 'Wiki', icon: '🌐', num: '23' },
 ];
 const ARTICLES = [
+  // Acesso
   { path: 'acesso/configuracao', title: 'Configuração do computador e pré-requisitos', section: 'acesso', keywords: ['pjé office','certificado','navegador','firefox','chrome','requisitos'] },
   { path: 'acesso/primeiro', title: 'Primeiro acesso ao PJe', section: 'acesso', keywords: ['primeiro acesso','popup','cadastro','advogado','certificado digital'] },
   { path: 'acesso/mfa', title: 'Autenticação multifator (MFA)', section: 'acesso', keywords: ['mfa','autenticação','qr code','google authenticator','microsoft authenticator','freeotp','pdpj'] },
@@ -684,15 +723,18 @@ const ARTICLES = [
   { path: 'acesso/certvirtual', title: 'Certificado Virtual (Arquivo P12)', section: 'acesso', keywords: ['certificado virtual','p12','pje office','descontinuado'] },
   { path: 'acesso/lentidao', title: 'Lentidão e erros de exibição das tarefas', section: 'acesso', keywords: ['lentidão','lento','travado','tarefas','erro','exibição'] },
   { path: 'acesso/erros', title: 'Erros de acesso', section: 'acesso', keywords: ['erro','login','certificado','piscando','não encontrado','sso','pdpj'] },
+  // Advogados
   { path: 'advogados/cnafora', title: 'CNA fora do estado', section: 'advogados', keywords: ['cna','fora','estado','oab','advogado'] },
   { path: 'advogados/nao_validado', title: 'Advogado não validado no PJe', section: 'advogados', keywords: ['não validado','advogado','cadastro','oab','receita federal'] },
   { path: 'advogados/situacao_oab', title: 'Situação OAB', section: 'advogados', keywords: ['oab','situação','regular','irregular','advogado'] },
+  // Atos
   { path: 'atos/atovulso', title: 'Minutar ato avulso', section: 'atos', keywords: ['ato avulso','magistrado','gabinete','minutar','assinar','paralelo'] },
   { path: 'atos/audiencias', title: 'Audiências', section: 'atos', keywords: ['audiência','marcação','sala','horário','designação','1g'] },
   { path: 'atos/minutar_lote', title: 'Minutar documentos em lote', section: 'atos', keywords: ['lote','minutar','documentos','batch','em massa'] },
   { path: 'atos/movimentacao_lote', title: 'Lançar movimentação em lote', section: 'atos', keywords: ['movimentação','lote','batch','lançar','zonas','tre'] },
   { path: 'atos/movimentos', title: 'Movimentações processuais', section: 'atos', keywords: ['movimentos','movimentação','sgt','cnj','estatística','magistrado'] },
   { path: 'atos/transito_lote', title: 'Trânsito em julgado em lote', section: 'atos', keywords: ['trânsito em julgado','lote','batch'] },
+  // Automação
   { path: 'automacao/certidao/certidao_ciencia', title: 'Certidão de ciência', section: 'automacao', keywords: ['certidão','ciência','automação','robô'] },
   { path: 'automacao/certidao/certidao_decurso', title: 'Certidão de decurso de prazo', section: 'automacao', keywords: ['certidão','decurso','prazo','automação'] },
   { path: 'automacao/certidao/certidao_disponibilizacao_dje', title: 'Certidão de disponibilização no DJe', section: 'automacao', keywords: ['certidão','dje','diário','disponibilização'] },
@@ -706,6 +748,7 @@ const ARTICLES = [
   { path: 'automacao/janus', title: 'Janus — Automação e Inteligência Artificial', section: 'automacao', keywords: ['janus','ia','inteligência artificial','robô','automação','despacho','edital'] },
   { path: 'automacao/judibot', title: 'Judi-bot (TRE-RJ)', section: 'automacao', keywords: ['judibot','robô','tre-rj','certidão','movimentação','automação'] },
   { path: 'automacao/pce_com_sinapses', title: 'PCE com Sinapses', section: 'automacao', keywords: ['pce','sinapses','automação','ia'] },
+  // Autos
   { path: 'autos/documentos/anexos', title: 'Anexos de documentos', section: 'autos', keywords: ['anexos','documentos','arquivo','petição'] },
   { path: 'autos/documentos/chave', title: 'Chave do documento', section: 'autos', keywords: ['chave','documento','identificador','hash'] },
   { path: 'autos/documentos/erros_exibicao', title: 'Erros na exibição de documentos', section: 'autos', keywords: ['erro','exibição','documento','pdf','visualização'] },
@@ -720,6 +763,7 @@ const ARTICLES = [
   { path: 'autos/movimento', title: 'Movimentos dos autos', section: 'autos', keywords: ['movimento','histórico','tramitação','autos'] },
   { path: 'autos/situacao', title: 'Situações processuais', section: 'autos', keywords: ['situação','processual','redistribuição','ciclo vida','etapa'] },
   { path: 'autos/tramitacao', title: 'Tramitação nos autos', section: 'autos', keywords: ['tramitação','encaminhar','tarefa','fluxo'] },
+  // Autuação
   { path: 'autuacao/classes', title: 'Classes processuais na autuação', section: 'autuacao', keywords: ['classes','autuação','protocolo','cadastro','processo'] },
   { path: 'autuacao/criminais', title: 'Processos criminais', section: 'autuacao', keywords: ['criminal','crime','autuação','processo penal'] },
   { path: 'autuacao/mp_zonas_tres', title: 'MP nas Zonas e TREs', section: 'autuacao', keywords: ['ministério público','mp','zona','tre','autuação'] },
@@ -727,11 +771,14 @@ const ARTICLES = [
   { path: 'autuacao/protocolo', title: 'Protocolo do processo', section: 'autuacao', keywords: ['protocolo','número','cnj','autuação','registro'] },
   { path: 'autuacao/sociedade', title: 'Cadastro de sociedade', section: 'autuacao', keywords: ['sociedade','pessoa jurídica','cnpj','autuação','parte'] },
   { path: 'autuacao/unificacao', title: 'Unificação de processos', section: 'autuacao', keywords: ['unificação','processos','conexão','autuação'] },
+  // Classes
   { path: 'classes/configuracao', title: 'Configuração de classes processuais', section: 'classes', keywords: ['configuração','classes','processual','cadastro','administrador'] },
   { path: 'classes/diasuteis', title: 'Dias úteis por classe', section: 'classes', keywords: ['dias úteis','prazo','classe','configuração'] },
   { path: 'classes/juizo100digital', title: 'Juízo 100% Digital', section: 'classes', keywords: ['100% digital','juízo digital','virtual','remoto','classe'] },
+  // Consulta
   { path: 'consulta/interna', title: 'Consulta interna ao sistema', section: 'consulta', keywords: ['consulta','busca','interna','pesquisa','processo'] },
   { path: 'consulta/publica/regras', title: 'Regras da consulta pública', section: 'consulta', keywords: ['consulta pública','sigilo','visualização','processo','acesso'] },
+  // Distribuição
   { path: 'distribuicao/260', title: 'Art. 260 do Código Eleitoral', section: 'distribuicao', keywords: ['art 260','código eleitoral','prevenção','distribuição','zona'] },
   { path: 'distribuicao/impedimento_suspeicao', title: 'Impedimento e suspeição', section: 'distribuicao', keywords: ['impedimento','suspeição','magistrado','distribuição','redistribuição'] },
   { path: 'distribuicao/pesos', title: 'Pesos processuais', section: 'distribuicao', keywords: ['peso','processual','distribuição','carga trabalho','órgão julgador','distância máxima'] },
@@ -740,16 +787,20 @@ const ARTICLES = [
   { path: 'distribuicao/revisor', title: 'Revisor na distribuição', section: 'distribuicao', keywords: ['revisor','distribuição','colegiado','relator'] },
   { path: 'distribuicao/sem_magistrado', title: 'Distribuição sem magistrado', section: 'distribuicao', keywords: ['sem magistrado','vago','distribuição','cargo','órgão julgador'] },
   { path: 'distribuicao/tela_informacoes_distribuicao', title: 'Tela de informações da distribuição', section: 'distribuicao', keywords: ['tela','informações','distribuição','acumulador','sorteio'] },
+  // Peticionamento
   { path: 'peticionamento/avulso', title: 'Peticionamento avulso', section: 'peticionamento', keywords: ['petição','avulsa','peticionamento','documento','juntada'] },
   { path: 'peticionamento/cand', title: 'Peticionamento CAND', section: 'peticionamento', keywords: ['cand','registro candidatura','peticionamento','eleitoral'] },
+  // Prazos
   { path: 'prazos/configuracao_calendario', title: 'Configuração do calendário de prazos', section: 'prazos', keywords: ['calendário','feriado','prazo','configuração','dias úteis'] },
   { path: 'prazos/contagem_horas', title: 'Contagem de prazos em horas', section: 'prazos', keywords: ['horas','prazo','contagem','tempestividade'] },
   { path: 'prazos/horas', title: 'Prazo em horas', section: 'prazos', keywords: ['horas','prazo','contagem'] },
   { path: 'prazos/tarefas', title: 'Controle de prazos (tarefas)', section: 'prazos', keywords: ['controle prazos','tarefa','prazo em curso','intimação','expediente'] },
+  // Procuradorias
   { path: 'procuradorias/caixas', title: 'Caixas de procuradorias', section: 'procuradorias', keywords: ['caixa','procuradoria','caixa de entrada','distribuição','petição'] },
   { path: 'procuradorias/filtros', title: 'Filtros nas procuradorias', section: 'procuradorias', keywords: ['filtro','procuradoria','busca','processo','caixa'] },
   { path: 'procuradorias/perfis', title: 'Perfis de procuradorias', section: 'procuradorias', keywords: ['perfil','procuradoria','papel','gestor','distribuidor'] },
   { path: 'procuradorias/tutoriais_videos', title: 'Tutoriais em vídeo — Procuradorias', section: 'procuradorias', keywords: ['vídeo','tutorial','procuradoria','treinamento'] },
+  // Recursos
   { path: 'recursos/classes', title: 'Classes dos recursos internos', section: 'recursos', keywords: ['classes','recurso','agravo','embargos','classe processual'] },
   { path: 'recursos/destaques', title: 'Destaques nos recursos', section: 'recursos', keywords: ['destaque','recurso','plenário','pauta','sessão'] },
   { path: 'recursos/faq', title: 'FAQ — Recursos internos', section: 'recursos', keywords: ['faq','perguntas','recurso','agravo','dúvidas'] },
@@ -760,6 +811,7 @@ const ARTICLES = [
   { path: 'recursos/rec_etiquetas', title: 'Etiquetas nos recursos', section: 'recursos', keywords: ['etiqueta','recurso','marcação','identificação'] },
   { path: 'recursos/regras_negocio', title: 'Regras de negócio dos recursos', section: 'recursos', keywords: ['regras negócio','recurso','configuração','lógica'] },
   { path: 'recursos/tramitacao', title: 'Tramitação dos recursos', section: 'recursos', keywords: ['tramitação','recurso','fluxo','tarefa'] },
+  // Remessa
   { path: 'remessa/devolucao_origem', title: 'Devolução à origem', section: 'remessa', keywords: ['devolução','origem','remessa','retorno','instância'] },
   { path: 'remessa/entre_instancias', title: 'Remessa entre instâncias', section: 'remessa', keywords: ['remessa','instâncias','tse','tre','zona','recurso','grau'] },
   { path: 'remessa/erros/correcoes', title: 'Correções de erros na remessa', section: 'remessa', keywords: ['erro','correção','remessa','instância','falha'] },
@@ -767,6 +819,7 @@ const ARTICLES = [
   { path: 'remessa/outros_orgaos', title: 'Remessa para outros órgãos', section: 'remessa', keywords: ['outros órgãos','remessa','externo','protocolo'] },
   { path: 'remessa/para_stf', title: 'Remessa para o STF', section: 'remessa', keywords: ['stf','supremo','remessa','recurso extraordinário'] },
   { path: 'remessa/para_tre', title: 'Remessa para o TRE', section: 'remessa', keywords: ['tre','remessa','instância','segundo grau'] },
+  // Sessão Julgamento
   { path: 'sessaojulg/alterar_data', title: 'Alterar data da sessão de julgamento', section: 'sessaojulg', keywords: ['alterar','data','sessão','julgamento','remarcar'] },
   { path: 'sessaojulg/encaminharsessao', title: 'Encaminhar para sessão', section: 'sessaojulg', keywords: ['encaminhar','sessão','pauta','gabinete','julgamento'] },
   { path: 'sessaojulg/paineis', title: 'Painéis da sessão de julgamento', section: 'sessaojulg', keywords: ['painel','sessão','julgamento','plenário','exibição'] },
@@ -778,14 +831,17 @@ const ARTICLES = [
   { path: 'sessaojulg/selecionar_documentos', title: 'Seleção de documentos para sessão', section: 'sessaojulg', keywords: ['selecionar','documentos','sessão','acórdão','voto'] },
   { path: 'sessaojulg/tramitacao', title: 'Tramitação na sessão', section: 'sessaojulg', keywords: ['tramitação','sessão','fluxo','julgamento','tarefa'] },
   { path: 'sessaojulg/voto_escrito', title: 'Voto escrito', section: 'sessaojulg', keywords: ['voto','escrito','documento','magistrado','julgamento'] },
+  // Sigilo
   { path: 'sigilo/documentos/docs_rcand', title: 'Documentos sigilosos do RCAND', section: 'sigilo', keywords: ['sigilo','rcand','documento','registro candidatura','acesso restrito'] },
   { path: 'sigilo/documentos/sigilo_documento', title: 'Sigilo de documentos', section: 'sigilo', keywords: ['sigilo','documento','acesso','restrito','confidencial'] },
   { path: 'sigilo/informacoes', title: 'Informações sobre sigilo', section: 'sigilo', keywords: ['sigilo','processo','acesso','restrito','informações'] },
   { path: 'sigilo/niveis', title: 'Níveis de sigilo', section: 'sigilo', keywords: ['nível','sigilo','acesso','papel','visualizador','zona','tre','tse'] },
   { path: 'sigilo/visualizacao', title: 'Visualização de processos sigilosos', section: 'sigilo', keywords: ['visualização','sigilo','acesso','processo','consulta'] },
+  // Tramitação
   { path: 'tramitacao/basico', title: 'Tramitação básica', section: 'tramitacao', keywords: ['tramitação','tarefa','encaminhar','fluxo','básico'] },
   { path: 'tramitacao/configurar', title: 'Configurar tramitação', section: 'tramitacao', keywords: ['configurar','tramitação','fluxo','tarefa','administrador'] },
   { path: 'tramitacao2grau', title: 'Tramitação no 2° grau', section: 'tramitacao', keywords: ['2º grau','segundo grau','tre','tse','tramitação','fluxo'] },
+  // Outros
   { path: 'regularizaje', title: 'Regulariza JE', section: 'wiki', keywords: ['regulariza','je','eleitoral','cadastro','regularização'] },
   { path: 'wiki/funcionalidades', title: 'Funcionalidades do PJe', section: 'wiki', keywords: ['funcionalidades','pje','wiki','features','recursos'] },
 ];
@@ -793,7 +849,10 @@ const ARTICLES = [
 const STORAGE_KEYS = {
   tickets: 'centralPjeTreceTicketsV1',
   catalog: 'centralPjeTreceCatalogV1',
-  units: 'centralPjeTreceUnitsV2'
+  units: 'centralPjeTreceUnitsV2',
+  sla: 'centralPjeSlaConfig',
+  webhook: 'centralPjeWebhookConfig',
+  supabase: 'centralPjeSupabaseConfig'
 };
 const STATUS = ['Aberto','Em triagem','Em análise','Orientação enviada','Aguardando retorno da unidade','Resolvido','Reaberto','Encerrado'];
 const PRIORIDADES = ['Baixa','Média','Alta','Crítica'];
@@ -801,5 +860,1138 @@ const IMPACTOS = ['Individual','Unidade','Várias unidades','Prazo sensível','I
 const ORIGENS = ['Zona Eleitoral','Segundo Grau TRE-CE','Gabinete','Força-tarefa','Outro'];
 const SISTEMAS = ['PJe','PJeOffice','PJe Mídias','PDPJ','CAND','Outro'];
 const CANAIS = ['WhatsApp','Telefone','E-mail','Sistema/chamado interno','Presencial','Outro'];
-const KANBAN_COLS = ['Aberto','Em triagem','Em análise','Orientação enviada','Aguardando retorno da unidade','Resolvido/Encerrado'];
-const PREDEFINED_RESPONSAVEIS = ['Equipe PJe','Ana Lima','Carlos Sousa','Fernanda Mota','João Ribeiro','Maria Silva'];
+const SLA_DEFAULTS = { 'Crítica':4, 'Alta':24, 'Média':72, 'Baixa':168 };
+const RATING_LABELS = ['','Muito insatisfeito','Insatisfeito','Regular','Satisfeito','Muito satisfeito'];
+const SUGGESTED_USERS = ['Equipe PJe','Ana Lima','Carlos Sousa','Fernanda Mota','João Ribeiro','Maria Silva'];
+const DEFAULT_UNITS = [
+  { id:'ZE-001', type:'Zona Eleitoral', name:'001ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3501' },
+  { id:'ZE-002', type:'Zona Eleitoral', name:'002ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99156-6563' },
+  { id:'ZE-003', type:'Zona Eleitoral', name:'003ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3643' },
+  { id:'ZE-004', type:'Zona Eleitoral', name:'004ª Zona Eleitoral', city:'MARANGUAPE/PALMÁCIA', email:'', notes:'Atendimento remoto TRE-CE: 85 99158-9348' },
+  { id:'ZE-005', type:'Zona Eleitoral', name:'005ª Zona Eleitoral', city:'BATURITÉ/GUARAMIRANGA/MULUNGU/PACOTI', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3505' },
+  { id:'ZE-006', type:'Zona Eleitoral', name:'006ª Zona Eleitoral', city:'QUIXADÁ/BANABUIÚ/CHORÓ/IBARETAMA', email:'', notes:'Atendimento remoto TRE-CE: 88 99237-1590' },
+  { id:'ZE-007', type:'Zona Eleitoral', name:'007ª Zona Eleitoral', city:'CASCAVEL/PINDORETAMA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3507' },
+  { id:'ZE-008', type:'Zona Eleitoral', name:'008ª Zona Eleitoral', city:'ARACATI/FORTIM/ICAPUÍ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3508' },
+  { id:'ZE-009', type:'Zona Eleitoral', name:'009ª Zona Eleitoral', city:'RUSSAS/PALHANO', email:'', notes:'Atendimento remoto TRE-CE: 88 99235-9135' },
+  { id:'ZE-010', type:'Zona Eleitoral', name:'010ª Zona Eleitoral', city:'JAGUARIBE/ERERÊ/PEREIRO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3510' },
+  { id:'ZE-011', type:'Zona Eleitoral', name:'011ª Zona Eleitoral', city:'QUIXERAMOBIM', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3511' },
+  { id:'ZE-012', type:'Zona Eleitoral', name:'012ª Zona Eleitoral', city:'SENADOR POMPEU/PIQUET CARNEIRO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3512' },
+  { id:'ZE-013', type:'Zona Eleitoral', name:'013ª Zona Eleitoral', city:'IGUATU/CEDRO/QUIXELÔ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3513' },
+  { id:'ZE-014', type:'Zona Eleitoral', name:'014ª Zona Eleitoral', city:'LAVRAS DA MANGABEIRA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3514' },
+  { id:'ZE-015', type:'Zona Eleitoral', name:'015ª Zona Eleitoral', city:'ICÓ/ORÓS/UMARI', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3515' },
+  { id:'ZE-016', type:'Zona Eleitoral', name:'016ª Zona Eleitoral', city:'MISSÃO VELHA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3516' },
+  { id:'ZE-017', type:'Zona Eleitoral', name:'017ª Zona Eleitoral', city:'ITAPIPOCA/TURURU', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3517' },
+  { id:'ZE-018', type:'Zona Eleitoral', name:'018ª Zona Eleitoral', city:'ASSARÉ/ANTONINA DO NORTE/TARRAFAS', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3518' },
+  { id:'ZE-019', type:'Zona Eleitoral', name:'019ª Zona Eleitoral', city:'TAUÁ/PARAMBU', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3519' },
+  { id:'ZE-020', type:'Zona Eleitoral', name:'020ª Zona Eleitoral', city:'CRATÉUS/IPAPORANGA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3520' },
+  { id:'ZE-021', type:'Zona Eleitoral', name:'021ª Zona Eleitoral', city:'IPU/PIRES FERREIRA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3521' },
+  { id:'ZE-022', type:'Zona Eleitoral', name:'022ª Zona Eleitoral', city:'SÃO BENEDITO/CARNAUBAL', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3522' },
+  { id:'ZE-023', type:'Zona Eleitoral', name:'023ª Zona Eleitoral', city:'URUBURETAMA/SÃO LUIS DO CURU/UMIRIM', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3523' },
+  { id:'ZE-024', type:'Zona Eleitoral', name:'024ª Zona Eleitoral', city:'SOBRAL/ALCÂNTARAS/MERUOCA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3524' },
+  { id:'ZE-025', type:'Zona Eleitoral', name:'025ª Zona Eleitoral', city:'GRANJA/MARTINÓPOLE/URUOCA', email:'', notes:'Atendimento remoto TRE-CE: 88 99239-9472' },
+  { id:'ZE-026', type:'Zona Eleitoral', name:'026ª Zona Eleitoral', city:'MILAGRES/ABAIARA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3526' },
+  { id:'ZE-027', type:'Zona Eleitoral', name:'027ª Zona Eleitoral', city:'CRATO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3527' },
+  { id:'ZE-028', type:'Zona Eleitoral', name:'028ª Zona Eleitoral', city:'JUAZEIRO DO NORTE', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3628' },
+  { id:'ZE-029', type:'Zona Eleitoral', name:'029ª Zona Eleitoral', city:'LIMOEIRO DO NORTE/QUIXERÉ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3529' },
+  { id:'ZE-030', type:'Zona Eleitoral', name:'030ª Zona Eleitoral', city:'ACARAÚ/CRUZ/JIJOCA DE JERICOACOARA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3530' },
+  { id:'ZE-031', type:'Zona Eleitoral', name:'031ª Zona Eleitoral', city:'BARBALHA', email:'', notes:'Atendimento remoto TRE-CE: 88 99243-3015' },
+  { id:'ZE-032', type:'Zona Eleitoral', name:'032ª Zona Eleitoral', city:'CAMOCIM', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3532' },
+  { id:'ZE-033', type:'Zona Eleitoral', name:'033ª Zona Eleitoral', city:'CANINDÉ/ITATIRA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3533' },
+  { id:'ZE-035', type:'Zona Eleitoral', name:'035ª Zona Eleitoral', city:'VIÇOSA DO CEARÁ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3535' },
+  { id:'ZE-036', type:'Zona Eleitoral', name:'036ª Zona Eleitoral', city:'SÃO GONÇALO DO AMARANTE', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3536' },
+  { id:'ZE-037', type:'Zona Eleitoral', name:'037ª Zona Eleitoral', city:'CAUCAIA', email:'', notes:'Atendimento remoto TRE-CE: 85 99156-1332' },
+  { id:'ZE-038', type:'Zona Eleitoral', name:'038ª Zona Eleitoral', city:'CAMPOS SALES/SALITRE', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3538' },
+  { id:'ZE-039', type:'Zona Eleitoral', name:'039ª Zona Eleitoral', city:'INDEPENDÊNCIA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3539' },
+  { id:'ZE-040', type:'Zona Eleitoral', name:'040ª Zona Eleitoral', city:'IPUEIRAS/PORANGA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3540' },
+  { id:'ZE-041', type:'Zona Eleitoral', name:'041ª Zona Eleitoral', city:'ITAPAJÉ/IRAUÇUBA/TEJUÇUOCA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3541' },
+  { id:'ZE-043', type:'Zona Eleitoral', name:'043ª Zona Eleitoral', city:'JUCÁS/CARIÚS/SABOEIRO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3543' },
+  { id:'ZE-044', type:'Zona Eleitoral', name:'044ª Zona Eleitoral', city:'SANTANA DO ACARAÚ/MORRINHOS', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3544' },
+  { id:'ZE-045', type:'Zona Eleitoral', name:'045ª Zona Eleitoral', city:'MASSAPÊ/SENADOR SÁ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3545' },
+  { id:'ZE-046', type:'Zona Eleitoral', name:'046ª Zona Eleitoral', city:'MOMBAÇA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3546' },
+  { id:'ZE-047', type:'Zona Eleitoral', name:'047ª Zona Eleitoral', city:'MORADA NOVA/IBICUITINGA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3547' },
+  { id:'ZE-048', type:'Zona Eleitoral', name:'048ª Zona Eleitoral', city:'NOVA RUSSAS/ARARENDÁ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3548' },
+  { id:'ZE-049', type:'Zona Eleitoral', name:'049ª Zona Eleitoral', city:'PACAJUS/CHOROZINHO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3549' },
+  { id:'ZE-050', type:'Zona Eleitoral', name:'050ª Zona Eleitoral', city:'PENTECOSTE/APUIARÉS/GENERAL SAMPAIO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3550' },
+  { id:'ZE-052', type:'Zona Eleitoral', name:'052ª Zona Eleitoral', city:'REDENÇÃO/ACARAPE/BARREIRA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3552' },
+  { id:'ZE-053', type:'Zona Eleitoral', name:'053ª Zona Eleitoral', city:'NOVA OLINDA/ALTANEIRA/SANTANA DO CARIRI', email:'', notes:'Atendimento remoto TRE-CE: 88 99236-4660' },
+  { id:'ZE-054', type:'Zona Eleitoral', name:'054ª Zona Eleitoral', city:'SANTA QUITÉRIA/CATUNDA/HIDROLÂNDIA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3554' },
+  { id:'ZE-055', type:'Zona Eleitoral', name:'055ª Zona Eleitoral', city:'SOLONÓPOLE/DEPUTADO IRAPUAN PINHEIRO/MILHÃ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3555' },
+  { id:'ZE-057', type:'Zona Eleitoral', name:'057ª Zona Eleitoral', city:'PACATUBA/GUAIÚBA', email:'', notes:'Atendimento remoto TRE-CE: 85 99156-7184' },
+  { id:'ZE-059', type:'Zona Eleitoral', name:'059ª Zona Eleitoral', city:'PEDRA BRANCA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3559' },
+  { id:'ZE-060', type:'Zona Eleitoral', name:'060ª Zona Eleitoral', city:'ACOPIARA/CATARINA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3560' },
+  { id:'ZE-061', type:'Zona Eleitoral', name:'061ª Zona Eleitoral', city:'TAMBORIL/MONSENHOR TABOSA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3561' },
+  { id:'ZE-062', type:'Zona Eleitoral', name:'062ª Zona Eleitoral', city:'VÁRZEA ALEGRE/FARIAS BRITO/GRANJEIRO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3562' },
+  { id:'ZE-063', type:'Zona Eleitoral', name:'063ª Zona Eleitoral', city:'BOA VIAGEM/MADALENA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3563' },
+  { id:'ZE-064', type:'Zona Eleitoral', name:'064ª Zona Eleitoral', city:'COREAÚ/MORAÚJO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3564' },
+  { id:'ZE-065', type:'Zona Eleitoral', name:'065ª Zona Eleitoral', city:'CARIRÉ/GROAÍRAS/VARJOTA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3565' },
+  { id:'ZE-066', type:'Zona Eleitoral', name:'066ª Zona Eleitoral', city:'AQUIRAZ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3566' },
+  { id:'ZE-067', type:'Zona Eleitoral', name:'067ª Zona Eleitoral', city:'ARACOIABA/OCARA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3567' },
+  { id:'ZE-068', type:'Zona Eleitoral', name:'068ª Zona Eleitoral', city:'ARARIPE/POTENGI', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3568' },
+  { id:'ZE-069', type:'Zona Eleitoral', name:'069ª Zona Eleitoral', city:'AURORA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3569' },
+  { id:'ZE-070', type:'Zona Eleitoral', name:'070ª Zona Eleitoral', city:'BREJO SANTO/JATI/PENAFORTE/PORTEIRAS', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3570' },
+  { id:'ZE-071', type:'Zona Eleitoral', name:'071ª Zona Eleitoral', city:'CARIRIAÇU', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3571' },
+  { id:'ZE-072', type:'Zona Eleitoral', name:'072ª Zona Eleitoral', city:'JAGUARETAMA/JAGUARIBARA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3572' },
+  { id:'ZE-073', type:'Zona Eleitoral', name:'073ª Zona Eleitoral', city:'IBIAPINA/UBAJARA', email:'', notes:'Atendimento remoto TRE-CE: 88 99236-3253' },
+  { id:'ZE-074', type:'Zona Eleitoral', name:'074ª Zona Eleitoral', city:'GUARACIABA DO NORTE/CROATÁ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3574' },
+  { id:'ZE-075', type:'Zona Eleitoral', name:'075ª Zona Eleitoral', city:'JAGUARUANA/ITAIÇABA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3575' },
+  { id:'ZE-076', type:'Zona Eleitoral', name:'076ª Zona Eleitoral', city:'MAURITI', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3576' },
+  { id:'ZE-078', type:'Zona Eleitoral', name:'078ª Zona Eleitoral', city:'HORIZONTE/ITAITINGA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3578' },
+  { id:'ZE-079', type:'Zona Eleitoral', name:'079ª Zona Eleitoral', city:'RERIUTABA/GRAÇA/MUCAMBO/PACUJÁ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3579' },
+  { id:'ZE-080', type:'Zona Eleitoral', name:'080ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3580' },
+  { id:'ZE-081', type:'Zona Eleitoral', name:'081ª Zona Eleitoral', city:'TIANGUÁ/FRECHEIRINHA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3581' },
+  { id:'ZE-082', type:'Zona Eleitoral', name:'082ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3582' },
+  { id:'ZE-083', type:'Zona Eleitoral', name:'083ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99157-3170' },
+  { id:'ZE-084', type:'Zona Eleitoral', name:'084ª Zona Eleitoral', city:'BEBERIBE', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3584' },
+  { id:'ZE-085', type:'Zona Eleitoral', name:'085ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3585' },
+  { id:'ZE-086', type:'Zona Eleitoral', name:'086ª Zona Eleitoral', city:'ALTO SANTO/IRACEMA/POTIRETAMA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3586' },
+  { id:'ZE-088', type:'Zona Eleitoral', name:'088ª Zona Eleitoral', city:'EUSÉBIO', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3588' },
+  { id:'ZE-089', type:'Zona Eleitoral', name:'089ª Zona Eleitoral', city:'AMONTADA/MIRAÍMA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3589' },
+  { id:'ZE-091', type:'Zona Eleitoral', name:'091ª Zona Eleitoral', city:'TABULEIRO DO NORTE/SÃO JOÃO DO JAGUARIBE', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3591' },
+  { id:'ZE-092', type:'Zona Eleitoral', name:'092ª Zona Eleitoral', city:'BARRO/BAIXIO/IPAUMIRIM', email:'', notes:'Atendimento remoto TRE-CE: 88 99238-1627' },
+  { id:'ZE-093', type:'Zona Eleitoral', name:'093ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3663' },
+  { id:'ZE-094', type:'Zona Eleitoral', name:'094ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3594' },
+  { id:'ZE-095', type:'Zona Eleitoral', name:'095ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3665' },
+  { id:'ZE-096', type:'Zona Eleitoral', name:'096ª Zona Eleitoral', city:'BELA CRUZ/MARCO', email:'', notes:'Atendimento remoto TRE-CE: 88 99238-5564' },
+  { id:'ZE-097', type:'Zona Eleitoral', name:'097ª Zona Eleitoral', city:'TRAIRI', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3597' },
+  { id:'ZE-098', type:'Zona Eleitoral', name:'098ª Zona Eleitoral', city:'ITAREMA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3598' },
+  { id:'ZE-099', type:'Zona Eleitoral', name:'099ª Zona Eleitoral', city:'NOVO ORIENTE/QUITERIANÓPOLIS', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3599' },
+  { id:'ZE-101', type:'Zona Eleitoral', name:'101ª Zona Eleitoral', city:'AIUABA/ARNEIROZ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3601' },
+  { id:'ZE-104', type:'Zona Eleitoral', name:'104ª Zona Eleitoral', city:'MARACANAÚ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3655' },
+  { id:'ZE-105', type:'Zona Eleitoral', name:'105ª Zona Eleitoral', city:'CAPISTRANO/ARATUBA/ITAPIÚNA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3605' },
+  { id:'ZE-108', type:'Zona Eleitoral', name:'108ª Zona Eleitoral', city:'CHAVAL/BARROQUINHA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3608' },
+  { id:'ZE-109', type:'Zona Eleitoral', name:'109ª Zona Eleitoral', city:'PARACURU/PARAIPABA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3609' },
+  { id:'ZE-111', type:'Zona Eleitoral', name:'111ª Zona Eleitoral', city:'CARIDADE/PARAMOTI', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3611' },
+  { id:'ZE-112', type:'Zona Eleitoral', name:'112ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99158-5085' },
+  { id:'ZE-113', type:'Zona Eleitoral', name:'113ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99157-1177' },
+  { id:'ZE-114', type:'Zona Eleitoral', name:'114ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99158-2628' },
+  { id:'ZE-115', type:'Zona Eleitoral', name:'115ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3615' },
+  { id:'ZE-116', type:'Zona Eleitoral', name:'116ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99158-6697' },
+  { id:'ZE-117', type:'Zona Eleitoral', name:'117ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99158-0162' },
+  { id:'ZE-118', type:'Zona Eleitoral', name:'118ª Zona Eleitoral', city:'FORTALEZA', email:'', notes:'Atendimento remoto TRE-CE: 85 99157-7623' },
+  { id:'ZE-119', type:'Zona Eleitoral', name:'119ª Zona Eleitoral', city:'JUAZEIRO DO NORTE/JARDIM', email:'', notes:'Atendimento remoto TRE-CE: 88 99236-1627' },
+  { id:'ZE-120', type:'Zona Eleitoral', name:'120ª Zona Eleitoral', city:'CAUCAIA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3620' },
+  { id:'ZE-121', type:'Zona Eleitoral', name:'121ª Zona Eleitoral', city:'SOBRAL/FORQUILHA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3621' },
+  { id:'ZE-122', type:'Zona Eleitoral', name:'122ª Zona Eleitoral', city:'MARACANAÚ', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3622' },
+  { id:'ZE-123', type:'Zona Eleitoral', name:'123ª Zona Eleitoral', city:'CAUCAIA', email:'', notes:'Atendimento remoto TRE-CE: 85 3453-3623' },
+  { id:'2G-SJU', type:'Segundo Grau TRE-CE', name:'Secretaria Judiciária Única', city:'SJU', email:'', notes:'' },
+  { id:'2G-CPROC', type:'Segundo Grau TRE-CE', name:'Coordenadoria de Processamento', city:'CPROC/SJU', email:'', notes:'' },
+  { id:'2G-SPRO1', type:'Segundo Grau TRE-CE', name:'Seção de Processamento I', city:'SPRO1/CPROC/SJU', email:'', notes:'' },
+  { id:'2G-SPRO2', type:'Segundo Grau TRE-CE', name:'Seção de Processamento II', city:'SPRO2/CPROC/SJU', email:'', notes:'' },
+  { id:'2G-GAB', type:'Gabinete', name:'Gabinete de Membro do TRE-CE', city:'2º Grau', email:'', notes:'' },
+  { id:'FT-PJE', type:'Força-tarefa', name:'Força-tarefa PJe', city:'TRE-CE', email:'', notes:'' }
+];
+const DEFAULT_CATALOG = [
+  { id:'CAT-001', code:'PJE-001', title:'Erro de autenticação multifator MFA', category:'acesso', keywords:['mfa','autenticador','qr code','código inválido','login','pdpj'], cause:'Falha na configuração do autenticador, divergência de horário do dispositivo ou credencial não sincronizada.', guidance:'Verificar se o horário do aparelho está em modo automático; confirmar o aplicativo autenticador utilizado; tentar novo acesso; se persistir, registrar print da tela e dados mínimos do usuário institucional.', article:'acesso/mfa' },
+  { id:'CAT-002', code:'PJE-002', title:'Lentidão ou tarefas não carregam', category:'acesso', keywords:['lentidão','lento','tarefa','travado','carregar','exibição'], cause:'Instabilidade local, cache do navegador, sessão expirada ou indisponibilidade momentânea.', guidance:'Orientar atualização da página, limpeza de cache, teste em navegador homologado e verificação se há indisponibilidade geral. Registrar unidade, horário e comportamento observado.', article:'acesso/lentidao' },
+  { id:'CAT-003', code:'PJE-003', title:'Documento não abre ou não é exibido', category:'autos', keywords:['documento','pdf','não abre','exibição','visualização','erro'], cause:'Falha de visualização, permissão, arquivo corrompido ou bloqueio do navegador.', guidance:'Conferir permissões de acesso, testar outro navegador, verificar se o documento é sigiloso e, quando cabível, solicitar novo envio ou validação do arquivo.', article:'autos/documentos/erros_exibicao' },
+  { id:'CAT-004', code:'PJE-004', title:'Processo não aparece na tarefa esperada', category:'tramitacao', keywords:['tarefa','nó atual','tramitação','processo não aparece','encaminhar'], cause:'Processo em nó diverso, perfil inadequado, órgão julgador incorreto ou regra de fluxo não atendida.', guidance:'Conferir nó atual, órgão julgador, perfil do usuário e histórico de tramitação. Se necessário, registrar o número do processo e a tarefa esperada.', article:'tramitacao/basico' },
+  { id:'CAT-005', code:'PJE-005', title:'Erro na remessa entre instâncias ou órgãos', category:'remessa', keywords:['remessa','devolução','instância','tre','tse','erro'], cause:'Falha de configuração, competência, pendência de movimentação ou destino inadequado.', guidance:'Verificar tipo de remessa, destino, pendências processuais, movimentação e regra aplicável. Usar orientação da base antes de reprocessar.', article:'remessa/erros/correcoes' }
+];
+let tickets = load(STORAGE_KEYS.tickets, []);
+let catalog = load(STORAGE_KEYS.catalog, DEFAULT_CATALOG);
+let units = load(STORAGE_KEYS.units, DEFAULT_UNITS);
+let slaConfig = load(STORAGE_KEYS.sla, SLA_DEFAULTS);
+let webhookConfig = load(STORAGE_KEYS.webhook, {url:'', trigger:'critico'});
+let supabaseConfig = load(STORAGE_KEYS.supabase, {url:'https://czfabgdnxkpptthzjqqn.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6ZmFiZ2RueGtwcHR0aHpqcXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzODU2MTYsImV4cCI6MjA5Nzk2MTYxNn0.tefE3_8LdqdZkyeC2xMYInQ90GeXAz0WvH9aqvXBMLE'});
+let selectedTicketId = null;
+let kbSection = 'all';
+let kbArticle = null;
+let contentCache = {};
+let currentRatingTicketId = null;
+let currentRatingValue = 0;
+let currentRatingCallback = null;
+let currentTagsValue = ['Equipe PJe'];
+
+function load(key, fallback){ try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : structuredClone(fallback); } catch { return structuredClone(fallback); } }
+function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+function persist(){ save(STORAGE_KEYS.tickets, tickets); save(STORAGE_KEYS.catalog, catalog); save(STORAGE_KEYS.units, units); refreshAll(); }
+function sanitizeStatus(s){ return 'status-' + String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function escapeHtml(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(value){ if(!value) return '—'; const d = new Date(value); return isNaN(d) ? value : d.toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' }); }
+function todayId(){ const d = new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function nextTicketId(){ const n = tickets.length + 1; return `CH-${todayId()}-${String(n).padStart(4,'0')}`; }
+function normalize(str){ return String(str||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function sectionLabel(id){ return SECTIONS.find(s => s.id === id)?.label || id || '—'; }
+function articleTitle(path){ return ARTICLES.find(a => a.path === path)?.title || path || 'Sem artigo vinculado'; }
+function unitById(id){ return units.find(u => u.id === id); }
+function download(filename, text, type='application/json'){ const blob = new Blob([text], {type}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
+function copyText(id){ const el = document.getElementById(id); el.select(); document.execCommand('copy'); toast('Texto copiado!'); }
+
+function ticketAgeHours(t){ return (Date.now() - new Date(t.dataAbertura).getTime()) / 3600000; }
+function slaHours(t){ return slaConfig[t.prioridade] || SLA_DEFAULTS[t.prioridade] || 72; }
+function ageBadge(t){
+  if(['Resolvido','Encerrado'].includes(t.status)) return '<span class="age-badge ok">encerrado</span>';
+  const h = ticketAgeHours(t);
+  const sla = slaHours(t);
+  const label = h < 1 ? 'agora' : h < 24 ? `${Math.round(h)}h` : `${Math.floor(h/24)}d`;
+  const pct = h / sla;
+  const cls = pct < 0.8 ? 'ok' : pct < 1 ? 'warn' : 'late';
+  return `<span class="age-badge ${cls}" title="SLA: ${sla}h">${label}</span>`;
+}
+function fmtDuration(ms){ if(!ms||ms<0) return '—'; const h=Math.round(ms/3600000); return h<24?h+'h':Math.round(h/24)+'d'; }
+
+function toast(msg, dur=2800){ const el=document.createElement('div'); el.className='toast'; el.textContent=msg; const c=document.getElementById('toastContainer'); if(c){ c.appendChild(el); setTimeout(()=>el.remove(), dur); } }
+
+function toggleDark(){ const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',next); localStorage.setItem('pje-theme',next); document.getElementById('darkBtn').textContent=next==='dark'?'☀️':'🌙'; }
+function applyTheme(){ const t=localStorage.getItem('pje-theme'); if(t){ document.documentElement.setAttribute('data-theme',t); if(t==='dark'&&document.getElementById('darkBtn')) document.getElementById('darkBtn').textContent='☀️'; } }
+
+function toggleShortcuts(){ document.getElementById('shortcutsModal').classList.toggle('open'); }
+
+function shareTicket(id){ history.replaceState(null,'','#'+id); navigator.clipboard?.writeText(location.href).then(()=>toast('Link copiado!')).catch(()=>toast('Link: '+location.href)); }
+
+function handleDeepLink(){ const hash=location.hash.replace('#',''); if(hash&&tickets.find(t=>t.id===hash)){ goView('chamados'); setTimeout(()=>renderTicketDetail(hash),50); } }
+
+/* ===== WEBHOOK ===== */
+function notifyWebhook(ticket, event){
+  if(!webhookConfig.url) return;
+  const trig = webhookConfig.trigger;
+  const shouldFire = (trig==='todos') || (trig==='critico' && (ticket.prioridade==='Crítica'||ticket.impacto==='Indisponibilidade')) || (trig==='reaberto' && event==='reaberto');
+  if(!shouldFire) return;
+  const body = { evento: event, id: ticket.id, titulo: ticket.titulo, unidade: ticket.unidadeNome, prioridade: ticket.prioridade, status: ticket.status, canal: ticket.canal, dataAbertura: ticket.dataAbertura };
+  fetch(webhookConfig.url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(()=>toast('📡 Webhook enviado'))
+    .catch(()=>toast('⚠️ Falha ao enviar webhook'));
+}
+function saveSlaConfig(){
+  slaConfig = { 'Crítica': +document.getElementById('slaCritica').value||4, 'Alta': +document.getElementById('slaAlta').value||24, 'Média': +document.getElementById('slaMedia').value||72, 'Baixa': +document.getElementById('slaBaixa').value||168 };
+  save(STORAGE_KEYS.sla, slaConfig); toast('SLA salvo!');
+}
+function saveWebhookConfig(){
+  webhookConfig = { url: document.getElementById('webhookUrl').value.trim(), trigger: document.getElementById('webhookTrigger').value };
+  save(STORAGE_KEYS.webhook, webhookConfig); toast('Webhook salvo!');
+}
+function testWebhook(){
+  const url = document.getElementById('webhookUrl').value.trim();
+  if(!url){ toast('Informe a URL do webhook.'); return; }
+  fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({evento:'teste', mensagem:'Teste de webhook da Central PJe TRE-CE v1.3', timestamp: new Date().toISOString()}) })
+    .then(()=>toast('✅ Webhook respondeu com sucesso!'))
+    .catch(()=>toast('❌ Erro ao alcançar o webhook. Verifique a URL e o CORS.'));
+}
+function saveSupabaseConfig(){
+  supabaseConfig = { url: document.getElementById('supabaseUrl').value.trim(), key: document.getElementById('supabaseKey').value.trim() };
+  save(STORAGE_KEYS.supabase, supabaseConfig);
+  updateStorageBadge();
+  toast('Configuração Supabase salva!');
+}
+function updateStorageBadge(){
+  const el = document.getElementById('storageModeBadge');
+  if(!el) return;
+  if(supabaseConfig.url && supabaseConfig.key){ el.textContent='☁️ Supabase'; el.style.background='#dbeafe'; }
+  else { el.textContent='💾 Local'; el.style.background='#e2e8f0'; }
+}
+async function syncSupabase(){
+  if(!supabaseConfig.url||!supabaseConfig.key){ toast('Configure o Supabase primeiro.'); return; }
+  const base = supabaseConfig.url.replace(/\/$/, '');
+  const headers = { 'Content-Type':'application/json', 'apikey': supabaseConfig.key, 'Authorization': 'Bearer '+supabaseConfig.key, 'Prefer':'resolution=merge-duplicates' };
+  const tables = [['tickets',tickets],['catalog',catalog],['units',units]];
+  let ok=0, fail=0;
+  for(const [table, data] of tables){
+    const rows = data.map(item=>({id:item.id||crypto.randomUUID(), data:item}));
+    try {
+      const r = await fetch(`${base}/rest/v1/${table}`, { method:'POST', headers, body: JSON.stringify(rows) });
+      if(r.ok||r.status===201) ok++; else fail++;
+    } catch { fail++; }
+  }
+  toast(fail===0 ? `☁️ Sincronizado! ${ok} tabelas.` : `⚠️ ${ok} ok, ${fail} falha(s). Verifique tabelas/permissões.`);
+}
+
+/* ===== KANBAN ===== */
+const KANBAN_COLS = ['Aberto','Em triagem','Em análise','Orientação enviada','Aguardando retorno da unidade','Resolvido'];
+let kanbanDragId = null;
+function renderKanban(){
+  const board = document.getElementById('kanbanBoard'); if(!board) return;
+  const fp = document.getElementById('kanbanFilterPrioridade')?.value||'Todas as prioridades';
+  const filtered = tickets.filter(t => fp==='Todas as prioridades'||t.prioridade===fp);
+  const groups = {};
+  KANBAN_COLS.forEach(s=>groups[s]=[]);
+  filtered.forEach(t=>{ const col = KANBAN_COLS.includes(t.status)?t.status:(t.status==='Encerrado'?'Resolvido':'Aberto'); (groups[col]||(groups['Aberto'])).push(t); });
+  board.innerHTML = KANBAN_COLS.map(col=>`
+    <div class="kanban-col" ondragover="allowDrop(event)" ondrop="dropOnCol(event,'${col}')">
+      <div class="kanban-col-header"><span>${col}</span><span class="badge">${groups[col].length}</span></div>
+      <div class="kanban-col-body" id="kcol-${col.replace(/\s+/g,'-')}">
+        ${groups[col].map(t=>`<div class="kanban-card" draggable="true" ondragstart="dragStart(event,'${t.id}')" onclick="goView('chamados');renderTicketDetail('${t.id}')">
+          <div class="kc-id">${escapeHtml(t.id)}</div>
+          <div class="kc-title">${escapeHtml(t.titulo)}</div>
+          <div class="kc-unit">${escapeHtml(t.unidadeNome)}</div>
+          <div class="kc-footer"><span class="badge priority-${escapeHtml(t.prioridade)}">${escapeHtml(t.prioridade)}</span>${ageBadge(t)}</div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function dragStart(e,id){ kanbanDragId=id; e.dataTransfer.effectAllowed='move'; }
+function allowDrop(e){ e.preventDefault(); e.currentTarget.querySelector('.kanban-col-body')?.classList.add('drag-over'); }
+function dropOnCol(e,col){
+  e.preventDefault();
+  e.currentTarget.querySelector('.kanban-col-body')?.classList.remove('drag-over');
+  if(!kanbanDragId) return;
+  const t = tickets.find(x=>x.id===kanbanDragId); kanbanDragId=null;
+  if(!t||t.status===col) return;
+  const old=t.status; t.status=col; t.dataAtualizacao=new Date().toISOString();
+  if(['Resolvido','Encerrado'].includes(col)&&!t.dataEncerramento) t.dataEncerramento=t.dataAtualizacao;
+  t.historico.push({data:t.dataAtualizacao, usuario:'Kanban', acao:`Status alterado de ${old} para ${col}`});
+  if(col==='Reaberto') notifyWebhook(t,'reaberto');
+  persist(); renderKanban();
+}
+
+/* ===== PDF ===== */
+function printTicketPDF(id){
+  const t = tickets.find(x=>x.id===id); if(!t) return;
+  const unit = unitById(t.unidadeId)||{};
+  const w = window.open('','_blank');
+  const stars = t.avaliacao ? '⭐'.repeat(t.avaliacao) : 'Não avaliado';
+  const hist = (t.historico||[]).map(h=>`<tr><td style="white-space:nowrap;color:#555;font-size:11px;">${fmtDate(h.data)}</td><td style="font-size:12px;">${escapeHtml(h.usuario||'Sistema')}</td><td style="font-size:12px;">${escapeHtml(h.acao)}</td></tr>`).join('');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${t.id} — Central PJe TRE-CE</title><style>
+    body{font-family:Arial,sans-serif;font-size:13px;color:#111;margin:24px;} h1{font-size:18px;color:#123866;margin:0 0 4px;} .sub{color:#555;font-size:12px;margin:0 0 16px;} table{border-collapse:collapse;width:100%;} th{text-align:left;background:#f0f4ff;padding:7px;font-size:11px;text-transform:uppercase;} td{padding:7px;border-bottom:1px solid #ddd;vertical-align:top;} .section{margin:18px 0 8px;font-weight:700;font-size:14px;color:#123866;border-bottom:2px solid #123866;padding-bottom:3px;} .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;} header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #123866;padding-bottom:12px;margin-bottom:16px;} @media print{button{display:none;}}
+  </style></head><body>
+  <header><div><h1>⚖️ Central PJe TRE-CE — Chamado ${escapeHtml(t.id)}</h1><p class="sub">Impresso em ${fmtDate(new Date().toISOString())}</p></div><div><span class="badge" style="background:#ffecec;color:#9c1c14;">${escapeHtml(t.status)}</span></div></header>
+  <div class="section">Dados do chamado</div>
+  <table><tr><th>Campo</th><th>Valor</th></tr>
+  <tr><td>Unidade</td><td>${escapeHtml(t.unidadeNome)} — ${escapeHtml(t.tipoCliente)}</td></tr>
+  <tr><td>Solicitante</td><td>${escapeHtml(t.solicitante||'—')}</td></tr>
+  <tr><td>Canal</td><td>${escapeHtml(t.canal||'—')}</td></tr>
+  <tr><td>Sistema</td><td>${escapeHtml(t.sistema||'—')}</td></tr>
+  <tr><td>Categoria</td><td>${escapeHtml(sectionLabel(t.categoria))}</td></tr>
+  <tr><td>Prioridade</td><td>${escapeHtml(t.prioridade)}</td></tr>
+  <tr><td>Impacto</td><td>${escapeHtml(t.impacto)}</td></tr>
+  <tr><td>Processo</td><td>${escapeHtml(t.processo||'—')}</td></tr>
+  <tr><td>Abertura</td><td>${fmtDate(t.dataAbertura)}</td></tr>
+  <tr><td>Encerramento</td><td>${fmtDate(t.dataEncerramento)||'—'}</td></tr>
+  <tr><td>Responsável</td><td>${escapeHtml(t.responsavel||'—')}</td></tr>
+  <tr><td>Avaliação</td><td>${stars}</td></tr>
+  </table>
+  <div class="section">Descrição do erro</div><p>${escapeHtml(t.descricaoErro||'—')}</p>
+  ${t.mensagemErro?`<p><strong>Mensagem do sistema:</strong> ${escapeHtml(t.mensagemErro)}</p>`:''}
+  <div class="section">Orientação prestada</div><p>${escapeHtml(t.orientacaoPrestada||'—')}</p>
+  ${t.artigoVinculado?`<p><strong>Artigo vinculado:</strong> ${escapeHtml(articleTitle(t.artigoVinculado))}</p>`:''}
+  <div class="section">Histórico</div>
+  <table><thead><tr><th>Data</th><th>Usuário</th><th>Ação</th></tr></thead><tbody>${hist}</tbody></table>
+  <script>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+/* ===== CSV IMPORT ===== */
+function downloadCSVTemplate(){
+  const header = 'titulo;unidadeNome;tipoCliente;canal;categoria;prioridade;impacto;sistema;solicitante;descricaoErro;status';
+  const ex = 'Erro de autenticação MFA;001ª Zona Eleitoral;Zona Eleitoral;WhatsApp;acesso;Alta;Individual;PJe;João Silva;Código inválido no autenticador;Aberto';
+  download(`modelo-chamados-pje-${todayId()}.csv`, header+'\n'+ex, 'text/csv;charset=utf-8');
+}
+function importCSV(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = reader.result.split(/\r?\n/).filter(Boolean);
+    if(lines.length<2){ toast('CSV inválido ou vazio.'); return; }
+    const headers = lines[0].split(';').map(h=>h.trim());
+    let count=0;
+    lines.slice(1).forEach(line=>{
+      const vals = line.split(';').map(v=>v.trim().replace(/^"|"$/g,''));
+      const row = {};
+      headers.forEach((h,i)=>row[h]=vals[i]||'');
+      if(!row.titulo) return;
+      const now = new Date().toISOString();
+      const uid = units.find(u=>normalize(u.name).includes(normalize(row.unidadeNome||'')));
+      tickets.unshift({ id:nextTicketId(), dataAbertura:now, dataAtualizacao:now, dataEncerramento:'',
+        tipoCliente:row.tipoCliente||'Outro', unidadeId:uid?.id||'', unidadeNome:row.unidadeNome||'',
+        unidadeMunicipio:uid?.city||'', solicitante:row.solicitante||'', emailSolicitante:'',
+        sistema:row.sistema||'PJe', canal:row.canal||'Outro', categoria:row.categoria||'acesso',
+        titulo:row.titulo, descricaoErro:row.descricaoErro||'', mensagemErro:'', processo:'',
+        prioridade:row.prioridade||'Média', impacto:row.impacto||'Individual',
+        status:row.status||'Aberto', responsavel:'Equipe PJe', responsaveis:['Equipe PJe'],
+        artigoVinculado:'', orientacaoPrestada:'', solucaoConfirmada:false, avaliacao:0,
+        historico:[{data:now,usuario:'Importação CSV',acao:'Chamado importado via CSV'}] });
+      count++;
+    });
+    persist(); toast(`${count} chamado(s) importado(s) do CSV!`);
+  };
+  reader.readAsText(file,'utf-8');
+  event.target.value='';
+}
+
+/* ===== SATISFACTION RATING ===== */
+let _ratingResolve = null;
+function openRatingModal(id){
+  return new Promise(resolve=>{
+    currentRatingTicketId=id; currentRatingValue=0; _ratingResolve=resolve;
+    renderRatingStars(0);
+    document.getElementById('ratingLabel').textContent='Clique em uma estrela para avaliar.';
+    document.getElementById('ratingModal').classList.add('open');
+  });
+}
+function renderRatingStars(v){
+  document.querySelectorAll('#ratingStars span').forEach((el,i)=>{ el.classList.toggle('on', i<v); el.style.opacity=i<v?1:0.3; });
+  currentRatingValue=v;
+  if(v) document.getElementById('ratingLabel').textContent = RATING_LABELS[v]||'';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('#ratingStars span').forEach(el=>{ el.addEventListener('click',()=>renderRatingStars(+el.dataset.v)); el.addEventListener('mouseenter',()=>renderRatingStars(+el.dataset.v)); });
+  document.getElementById('ratingStars')?.addEventListener('mouseleave',()=>renderRatingStars(currentRatingValue));
+});
+function confirmRating(){ document.getElementById('ratingModal').classList.remove('open'); if(_ratingResolve) _ratingResolve(currentRatingValue||0); _ratingResolve=null; }
+function skipRating(){ document.getElementById('ratingModal').classList.remove('open'); if(_ratingResolve) _ratingResolve(0); _ratingResolve=null; }
+function renderStarReadonly(n){ return `<span class="star-readonly">${[1,2,3,4,5].map(i=>`<span class="${i<=n?'on':'off'}">★</span>`).join('')}</span>`; }
+
+/* ===== MULTI-ASSIGNEE TAGS ===== */
+function getTagUsers(){ return [...new Set([...SUGGESTED_USERS, ...tickets.flatMap(t=>t.responsaveis||[t.responsavel]).filter(Boolean)])].sort(); }
+function handleTagInput(e){
+  const val = e.target.value;
+  const dropdown = document.getElementById('responsaveisDropdown');
+  if(!val.trim()){ dropdown.classList.add('hidden'); return; }
+  const users = getTagUsers().filter(u=>normalize(u).includes(normalize(val)) && !currentTagsValue.includes(u));
+  if(!users.length){ dropdown.classList.add('hidden'); return; }
+  dropdown.innerHTML = users.slice(0,6).map(u=>`<div class="tags-dropdown-item" onmousedown="addTag('${escapeHtml(u)}')">${escapeHtml(u)}</div>`).join('');
+  dropdown.classList.remove('hidden');
+}
+function handleTagKey(e){
+  if(e.key==='Enter'||e.key===','){ e.preventDefault(); const v=e.target.value.trim().replace(/,$/,''); if(v) addTag(v); }
+  if(e.key==='Backspace'&&!e.target.value&&currentTagsValue.length){ removeTag(currentTagsValue[currentTagsValue.length-1]); }
+}
+function addTag(val){ if(!val||currentTagsValue.includes(val)) return; currentTagsValue.push(val); document.getElementById('responsaveisText').value=''; document.getElementById('responsaveisDropdown').classList.add('hidden'); renderTagsInput(); }
+function removeTag(val){ currentTagsValue=currentTagsValue.filter(t=>t!==val); renderTagsInput(); }
+function renderTagsInput(){
+  const container = document.getElementById('responsaveisInput'); if(!container) return;
+  const inp = document.getElementById('responsaveisText');
+  const dd = document.getElementById('responsaveisDropdown');
+  container.innerHTML='';
+  currentTagsValue.forEach(t=>{ const tag=document.createElement('span'); tag.className='tag'; tag.innerHTML=`${escapeHtml(t)}<button type="button" onclick="removeTag('${escapeHtml(t)}')" title="Remover">×</button>`; container.appendChild(tag); });
+  container.appendChild(inp); container.appendChild(dd);
+  document.getElementById('responsavel').value = currentTagsValue.join(', ') || 'Equipe PJe';
+}
+
+function init(){
+  applyTheme();
+  bindNavigation();
+  populateStaticSelects();
+  fillUnitOptions();
+  fillArticleSelects();
+  renderKbSections();
+  renderKbArticles();
+  clearTicketForm();
+  clearCatalogForm();
+  renderUnits();
+  refreshAll();
+  document.getElementById('globalSearch').addEventListener('input', e => {
+    document.getElementById('ticketSearch').value = e.target.value;
+    goView('chamados'); renderTickets();
+  });
+  document.addEventListener('keydown', e => {
+    const tag = document.activeElement?.tagName;
+    if(['INPUT','TEXTAREA','SELECT'].includes(tag)) {
+      if(e.key==='Escape'){ document.activeElement.blur(); document.getElementById('globalSearch').value=''; document.getElementById('ticketSearch').value=''; renderTickets(); }
+      return;
+    }
+    const map = { 'd':'dashboard','n':'novo','c':'chamados','k':'kanban','e':'catalogo','b':'base','r':'relatorios' };
+    if(map[e.key]) { goView(map[e.key]); return; }
+    if(e.key==='x') { toggleDark(); return; }
+    if(e.key==='/') { e.preventDefault(); document.getElementById('globalSearch').focus(); return; }
+    if(e.key==='?') { toggleShortcuts(); return; }
+    if(e.key==='Escape') { document.getElementById('shortcutsModal').classList.remove('open'); }
+  });
+  handleDeepLink();
+  renderTagsInput();
+  updateStorageBadge();
+}
+function bindNavigation(){ document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => goView(btn.dataset.view))); }
+function goView(view){
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view===view));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  if(view==='dashboard') renderDashboard();
+  if(view==='chamados') renderTickets();
+  if(view==='kanban') renderKanban();
+  if(view==='catalogo') renderCatalog();
+  if(view==='relatorios') renderReports();
+  if(view==='config'){ renderUnits(); loadConfigForms(); }
+}
+function refreshAll(){
+  document.getElementById('ticketCounter').textContent = tickets.length;
+  document.getElementById('openCounter').textContent = tickets.filter(t => !['Resolvido','Encerrado'].includes(t.status)).length;
+  renderDashboard(); renderTickets(); renderCatalog(); renderReports(); renderUnits();
+}
+
+function populateStaticSelects(){
+  setOptions('tipoCliente', ORIGENS);
+  setOptions('sistema', SISTEMAS);
+  setOptions('prioridade', PRIORIDADES, 'Média');
+  setOptions('impacto', IMPACTOS, 'Individual');
+  setOptions('canal', CANAIS, 'WhatsApp');
+  setOptions('filterStatus', ['Todos os status', ...STATUS]);
+  setOptions('filterOrigem', ['Todas as origens', ...ORIGENS]);
+  setOptions('filterPrioridade', ['Todas as prioridades', ...PRIORIDADES]);
+  setOptions('kanbanFilterPrioridade', ['Todas as prioridades', ...PRIORIDADES]);
+  setOptions('unitType', ORIGENS);
+  populateCategorySelect('categoria');
+  populateCategorySelect('filterCategoria', true);
+  populateCategorySelect('catalogCategory');
+  populateCategorySelect('catalogCategoryFilter', true);
+}
+function setOptions(id, arr, selected){ const el = document.getElementById(id); if(!el) return; el.innerHTML = arr.map(v => `<option value="${escapeHtml(v)}" ${v===selected?'selected':''}>${escapeHtml(v)}</option>`).join(''); }
+function populateCategorySelect(id, withAll=false){ const el = document.getElementById(id); if(!el) return; const opts = withAll ? [{id:'all', label:'Todas as categorias'}] : []; SECTIONS.filter(s => s.id !== 'all').forEach(s => opts.push({id:s.id,label:s.label})); el.innerHTML = opts.map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`).join(''); }
+function fillUnitOptions(){ const type = document.getElementById('tipoCliente').value || ORIGENS[0]; const opts = units.filter(u => u.type === type || type === 'Outro'); const list = opts.length ? opts : units; document.getElementById('unidadeId').innerHTML = list.map(u => `<option value="${u.id}">${escapeHtml(u.name)}${u.city ? ' — '+escapeHtml(u.city):''}</option>`).join(''); }
+function fillArticleSelects(){
+  const html = '<option value="">Sem vínculo</option>' + ARTICLES.map(a => `<option value="${a.path}">${escapeHtml(a.title)} · ${escapeHtml(sectionLabel(a.section))}</option>`).join('');
+  ['artigoVinculado','catalogArticle'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = html; });
+}
+
+function clearTicketForm(){
+  document.getElementById('ticketForm').reset();
+  document.getElementById('prioridade').value = 'Média';
+  document.getElementById('impacto').value = 'Individual';
+  currentTagsValue = ['Equipe PJe'];
+  renderTagsInput();
+  fillUnitOptions(); updateSuggestions(); document.getElementById('responseModel').value = '';
+}
+function getFormText(){ return [tituloChamado.value, descricaoErro.value, mensagemErro.value].join(' '); }
+function computeSuggestions(text, limit=5){
+  const q = normalize(text); if(!q.trim()) return [];
+  const tokens = q.split(/\s+/).filter(w => w.length > 2);
+  const scored = [];
+  catalog.forEach(c => { const hay = normalize([c.title, c.category, c.cause, c.guidance, ...(c.keywords||[])].join(' ')); let score = 0; tokens.forEach(t => { if(hay.includes(t)) score += 3; }); (c.keywords||[]).forEach(k => { if(q.includes(normalize(k))) score += 8; }); if(score>0) scored.push({type:'catalog', score, item:c}); });
+  ARTICLES.forEach(a => { const hay = normalize([a.title, a.section, ...(a.keywords||[])].join(' ')); let score = 0; tokens.forEach(t => { if(hay.includes(t)) score += 2; }); (a.keywords||[]).forEach(k => { if(q.includes(normalize(k))) score += 5; }); if(score>0) scored.push({type:'article', score, item:a}); });
+  return scored.sort((a,b)=>b.score-a.score).slice(0, limit);
+}
+function updateSuggestions(){
+  const box = document.getElementById('suggestionsBox'); if(!box) return;
+  const suggestions = computeSuggestions(getFormText());
+  if(!suggestions.length){ box.innerHTML = '<div class="empty" style="min-height:110px;"><span class="big">🔎</span>Digite a descrição do erro para ver sugestões.</div>'; return; }
+  box.innerHTML = suggestions.map((s,i) => {
+    if(s.type==='catalog'){
+      const c=s.item; return `<div class="suggestion"><span class="score">score ${s.score}</span><strong>${escapeHtml(c.code)} · ${escapeHtml(c.title)}</strong><br><small>${escapeHtml(sectionLabel(c.category))}</small><p class="help">${escapeHtml(c.guidance)}</p><div class="toolbar"><button class="btn small secondary" type="button" onclick="applyCatalogSuggestion('${c.id}')">Usar solução</button></div></div>`;
+    }
+    const a=s.item; return `<div class="suggestion"><span class="score">score ${s.score}</span><strong>${escapeHtml(a.title)}</strong><br><small>${escapeHtml(sectionLabel(a.section))}</small><p class="help">Artigo da base de orientações.</p><div class="toolbar"><button class="btn small secondary" type="button" onclick="applyArticleSuggestion('${a.path}')">Vincular artigo</button></div></div>`;
+  }).join('');
+}
+function applyCatalogSuggestion(id){ const c = catalog.find(x=>x.id===id); if(!c) return; document.getElementById('categoria').value = c.category; document.getElementById('artigoVinculado').value = c.article || ''; document.getElementById('orientacaoPrestada').value = c.guidance || ''; generateAnswerFromForm(); }
+function applyArticleSuggestion(path){ const a = ARTICLES.find(x=>x.path===path); if(!a) return; document.getElementById('categoria').value = a.section; document.getElementById('artigoVinculado').value = a.path; generateAnswerFromForm(); }
+function generateAnswerFromForm(){
+  const unit = unitById(document.getElementById('unidadeId').value);
+  const title = tituloChamado.value || 'chamado registrado';
+  const orientation = orientacaoPrestada.value || 'Após análise, encaminhamos a orientação vinculada à base de conhecimento do PJe.';
+  const article = artigoVinculado.value ? `\n\nOrientação vinculada: ${articleTitle(artigoVinculado.value)}.` : '';
+  responseModel.value = `Prezada unidade,\n\nEm atenção ao chamado referente a "${title}", registrado para ${unit?.name || 'a unidade atendida'}, orientamos:\n\n${orientation}${article}\n\nSolicitamos confirmar se a orientação solucionou a ocorrência. Caso o problema persista, encaminhar a mensagem de erro atualizada, horário da tentativa e, quando indispensável, print sem exposição de dados sensíveis.\n\nStatus sugerido: Orientação enviada.`;
+}
+function saveTicketFromForm(event){
+  event.preventDefault();
+  const unit = unitById(unidadeId.value) || {};
+  const now = new Date().toISOString();
+  const ticket = {
+    id: nextTicketId(), dataAbertura: now, dataAtualizacao: now, dataEncerramento: '',
+    tipoCliente: tipoCliente.value, unidadeId: unidadeId.value, unidadeNome: unit.name || '', unidadeMunicipio: unit.city || '',
+    solicitante: solicitante.value.trim(), emailSolicitante: emailSolicitante.value.trim(), sistema: sistema.value,
+    canal: document.getElementById('canal').value,
+    categoria: categoria.value, titulo: tituloChamado.value.trim(), descricaoErro: descricaoErro.value.trim(), mensagemErro: mensagemErro.value.trim(),
+    processo: processo.value.trim(), prioridade: prioridade.value, impacto: impacto.value, status: 'Aberto',
+    responsavel: document.getElementById('responsavel').value || 'Equipe PJe',
+    responsaveis: [...currentTagsValue],
+    artigoVinculado: artigoVinculado.value, orientacaoPrestada: orientacaoPrestada.value.trim(), solucaoConfirmada: false, avaliacao: 0,
+    historico: [{ data: now, usuario: 'Atendimento', acao: 'Chamado aberto' }]
+  };
+  tickets.unshift(ticket); selectedTicketId = ticket.id;
+  notifyWebhook(ticket, 'novo');
+  persist(); clearTicketForm(); goView('chamados'); renderTicketDetail(ticket.id);
+}
+
+function filterTickets(){
+  const q = normalize(document.getElementById('ticketSearch')?.value || '');
+  const fs = document.getElementById('filterStatus')?.value || 'Todos os status';
+  const fo = document.getElementById('filterOrigem')?.value || 'Todas as origens';
+  const fc = document.getElementById('filterCategoria')?.value || 'all';
+  const fp = document.getElementById('filterPrioridade')?.value || 'Todas as prioridades';
+  const fr = document.getElementById('filterResponsavel')?.value || 'Todos os responsáveis';
+  const fd = document.getElementById('filterDateFrom')?.value || '';
+  const fdt = document.getElementById('filterDateTo')?.value || '';
+  return tickets.filter(t => {
+    const hay = normalize([t.id,t.titulo,t.unidadeNome,t.unidadeMunicipio,t.solicitante,t.categoria,t.descricaoErro,t.mensagemErro,t.processo,t.responsavel,t.orientacaoPrestada].join(' '));
+    const dt = t.dataAbertura ? t.dataAbertura.slice(0,10) : '';
+    return (!q||hay.includes(q)) && (fs==='Todos os status'||t.status===fs) && (fo==='Todas as origens'||t.tipoCliente===fo) && (fc==='all'||t.categoria===fc) && (fp==='Todas as prioridades'||t.prioridade===fp) && (fr==='Todos os responsáveis'||t.responsavel===fr) && (!fd||dt>=fd) && (!fdt||dt<=fdt);
+  });
+}
+function updateResponsavelFilter(){ const set = [...new Set(tickets.map(t=>t.responsavel).filter(Boolean))].sort(); setOptions('filterResponsavel', ['Todos os responsáveis', ...set]); }
+function renderTickets(){
+  if(!document.getElementById('ticketsTable')) return;
+  updateResponsavelFilter();
+  const list = filterTickets();
+  const tbody = document.getElementById('ticketsTable');
+  tbody.innerHTML = list.length ? list.map(t => `<tr class="clickable" onclick="renderTicketDetail('${t.id}')"><td><strong>${escapeHtml(t.id)}</strong></td><td>${escapeHtml(t.titulo)}</td><td>${escapeHtml(t.unidadeNome)}<br><small>${escapeHtml(t.tipoCliente)}</small></td><td>${escapeHtml(t.canal||'—')}</td><td><span class="badge priority-${escapeHtml(t.prioridade)}">${escapeHtml(t.prioridade)}</span></td><td><span class="badge ${sanitizeStatus(t.status)}">${escapeHtml(t.status)}</span></td><td>${ageBadge(t)}</td></tr>`).join('') : '<tr><td colspan="7"><div class="empty"><span class="big">🎫</span>Nenhum chamado encontrado.</div></td></tr>';
+  if(selectedTicketId && !tickets.find(t=>t.id===selectedTicketId)) selectedTicketId = null;
+  if(selectedTicketId) renderTicketDetail(selectedTicketId, false); else document.getElementById('ticketDetail').innerHTML = '<div class="empty"><span class="big">👈</span>Selecione um chamado para ver detalhes.</div>';
+}
+function renderTicketDetail(id, setSelected=true){
+  const t = tickets.find(x=>x.id===id); if(!t) return; if(setSelected) selectedTicketId = id;
+  const detail = document.getElementById('ticketDetail'); if(!detail) return;
+  detail.innerHTML = `<h2 class="card-title"><span>${escapeHtml(t.id)}</span><span class="badge ${sanitizeStatus(t.status)}">${escapeHtml(t.status)}</span></h2>
+    <h3 style="margin:0 0 8px;color:var(--primary);">${escapeHtml(t.titulo)}</h3>
+    <p class="help"><strong>Unidade:</strong> ${escapeHtml(t.unidadeNome)} · ${escapeHtml(t.tipoCliente)}<br><strong>Canal:</strong> ${escapeHtml(t.canal||'—')} · <strong>Categoria:</strong> ${escapeHtml(sectionLabel(t.categoria))}<br><strong>Prioridade:</strong> ${escapeHtml(t.prioridade)} · <strong>Impacto:</strong> ${escapeHtml(t.impacto)}<br><strong>Responsável:</strong> ${escapeHtml(t.responsavel)} · <strong>Idade:</strong> ${ageBadge(t)||'encerrado'}</p>
+    <div class="notice"><strong>Erro informado:</strong><br>${escapeHtml(t.descricaoErro || '—')} ${t.mensagemErro ? '<br><br><strong>Mensagem:</strong><br>'+escapeHtml(t.mensagemErro):''}</div>
+    <div class="field" style="margin-top:12px;"><label>Status</label><select id="detailStatus">${STATUS.map(s=>`<option ${s===t.status?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><label>Orientação prestada</label><textarea id="detailOrientacao">${escapeHtml(t.orientacaoPrestada||'')}</textarea></div>
+    <div class="field"><label>Nova anotação no histórico</label><textarea id="detailNote" placeholder="Ex.: Unidade confirmou solução; solicitado novo print; chamado reaberto..."></textarea></div>
+    <div class="field"><label>Artigo vinculado</label><select id="detailArticle"><option value="">Sem vínculo</option>${ARTICLES.map(a=>`<option value="${a.path}" ${a.path===t.artigoVinculado?'selected':''}>${escapeHtml(a.title)} · ${escapeHtml(sectionLabel(a.section))}</option>`).join('')}</select></div>
+    ${t.avaliacao ? `<div style="margin:8px 0;"><strong style="font-size:12px;color:var(--muted);">Avaliação:</strong> ${renderStarReadonly(t.avaliacao)} <span style="font-size:12px;color:var(--muted);">${RATING_LABELS[t.avaliacao]||''}</span></div>` : ''}
+    <div class="toolbar"><button class="btn" onclick="saveTicketDetail('${t.id}')">Salvar</button><button class="btn success" onclick="resolveTicket('${t.id}')">✅ Resolver</button><button class="btn secondary" onclick="copyTicketAnswer('${t.id}')">Copiar resposta</button></div>
+    <div class="toolbar" style="margin-top:8px;"><button class="btn secondary" onclick="shareTicket('${t.id}')">🔗 Compartilhar</button><button class="btn secondary" onclick="printTicketPDF('${t.id}')">🖨️ PDF</button><button class="btn secondary" onclick="convertTicketToCatalog('${t.id}')">Catalogar</button><button class="btn danger" onclick="deleteTicket('${t.id}')">Excluir</button></div>
+    <h2 class="card-title" style="margin-top:18px;">Histórico</h2><div class="timeline">${(t.historico||[]).map(h=>`<div class="timeline-item"><span class="when">${fmtDate(h.data)} · ${escapeHtml(h.usuario||'Sistema')}</span>${escapeHtml(h.acao)}</div>`).join('')}</div>`;
+}
+function saveTicketDetail(id){ const t=tickets.find(x=>x.id===id); if(!t) return; const now = new Date().toISOString(); const old = t.status; t.status = detailStatus.value; t.orientacaoPrestada = detailOrientacao.value.trim(); t.artigoVinculado = detailArticle.value; t.dataAtualizacao = now; const note = detailNote.value.trim(); if(old !== t.status){ t.historico.push({data:now, usuario:'Atendimento', acao:`Status alterado de ${old} para ${t.status}`}); if(t.status==='Reaberto') notifyWebhook(t,'reaberto'); } if(note) t.historico.push({data:now, usuario:'Atendimento', acao:note}); if(['Resolvido','Encerrado'].includes(t.status) && !t.dataEncerramento) t.dataEncerramento = now; persist(); renderTicketDetail(id); }
+async function resolveTicket(id){
+  const t=tickets.find(x=>x.id===id); if(!t) return;
+  detailStatus.value='Resolvido';
+  detailNote.value = detailNote.value || 'Chamado marcado como resolvido.';
+  const rating = await openRatingModal(id);
+  t.avaliacao = rating;
+  saveTicketDetail(id);
+}
+function deleteTicket(id){ if(!confirm('Excluir este chamado?')) return; tickets = tickets.filter(t=>t.id!==id); selectedTicketId=null; persist(); }
+function copyTicketAnswer(id){ const t=tickets.find(x=>x.id===id); if(!t) return; const text = `Prezada unidade,\n\nEm atenção ao chamado ${t.id}, referente a "${t.titulo}", orientamos:\n\n${t.orientacaoPrestada || 'Encaminhamos orientação para tratamento da ocorrência informada.'}\n\n${t.artigoVinculado ? 'Orientação vinculada: '+articleTitle(t.artigoVinculado)+'.\n\n' : ''}Solicitamos confirmar se a ocorrência foi solucionada. Caso persista, encaminhar mensagem de erro atualizada, horário da tentativa e evidência sem exposição de dados sensíveis.\n\nStatus atual: ${t.status}.`; navigator.clipboard?.writeText(text).then(()=>alert('Resposta copiada.'),()=>prompt('Copie o texto:', text)); }
+function convertTicketToCatalog(id){ const t=tickets.find(x=>x.id===id); if(!t) return; goView('catalogo'); catalogId.value=''; catalogCode.value = `PJE-${String(catalog.length+1).padStart(3,'0')}`; catalogTitle.value = t.titulo; catalogCategory.value = t.categoria; catalogKeywords.value = [t.titulo, t.mensagemErro].join(', '); catalogCause.value = 'Causa provável a validar a partir do chamado ' + t.id + '.'; catalogGuidance.value = t.orientacaoPrestada || ''; catalogArticle.value = t.artigoVinculado || ''; }
+
+function renderDashboard(){
+  if(!document.getElementById('metricCards')) return;
+  const open = tickets.filter(t=>!['Resolvido','Encerrado'].includes(t.status)).length;
+  const resolved = tickets.filter(t=>['Resolvido','Encerrado'].includes(t.status)).length;
+  const critical = tickets.filter(t=>t.prioridade==='Crítica' || t.impacto==='Indisponibilidade').length;
+  const reopened = tickets.filter(t=>t.status==='Reaberto').length;
+  const outsideSla = tickets.filter(t=>!['Resolvido','Encerrado'].includes(t.status) && ticketAgeHours(t) > slaHours(t)).length;
+  metricCards.innerHTML = [
+    {label:'Chamados totais', value:tickets.length, hint:'base local'},
+    {label:'Abertos/pendentes', value:open, hint:'exigem providência', cls:'danger'},
+    {label:'Resolvidos/encerrados', value:resolved, hint:'com solução registrada', cls:'success'},
+    {label:'Fora do SLA', value:outsideSla, hint:'prazo estourado', cls: outsideSla>0?'danger':''},
+    {label:'Críticos/reabertos', value:critical+reopened, hint:'atenção prioritária', cls:'warn'}
+  ].map(m=>`<div class="card metric ${m.cls||''}"><span class="label">${m.label}</span><span class="value">${m.value}</span><span class="hint">${m.hint}</span></div>`).join('');
+  renderRank('topErrors', groupBy(tickets, t=>sectionLabel(t.categoria)), 'Sem chamados por categoria.');
+  renderRank('byOrigin', groupBy(tickets, t=>t.tipoCliente), 'Sem chamados por origem.');
+  recentTickets.innerHTML = tickets.slice(0,7).map(t=>`<tr class="clickable" onclick="goView('chamados');renderTicketDetail('${t.id}')"><td><strong>${escapeHtml(t.id)}</strong></td><td>${escapeHtml(t.titulo)}</td><td>${escapeHtml(t.unidadeNome)}</td><td><span class="badge ${sanitizeStatus(t.status)}">${escapeHtml(t.status)}</span></td></tr>`).join('') || '<tr><td colspan="4">Nenhum chamado registrado.</td></tr>';
+}
+function groupBy(arr, fn){ const map = {}; arr.forEach(x=>{ const k=fn(x)||'—'; map[k]=(map[k]||0)+1; }); return Object.entries(map).sort((a,b)=>b[1]-a[1]); }
+function renderRank(id, data, empty){ const el=document.getElementById(id); if(!el) return; if(!data.length){ el.innerHTML = `<div class="empty" style="min-height:120px;">${empty}</div>`; return; } const max=Math.max(...data.map(x=>x[1])); el.innerHTML = data.slice(0,8).map(([label,n])=>`<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:13px;"><strong>${escapeHtml(label)}</strong><span>${n}</span></div><div class="bar"><span style="width:${Math.round(n/max*100)}%"></span></div></div>`).join(''); }
+
+function renderCatalog(){
+  if(!document.getElementById('catalogList')) return;
+  const q=normalize(catalogSearch.value || ''); const cat = catalogCategoryFilter.value || 'all';
+  const list = catalog.filter(c => (!q || normalize([c.code,c.title,c.category,c.cause,c.guidance,(c.keywords||[]).join(' ')].join(' ')).includes(q)) && (cat==='all'||c.category===cat));
+  catalogList.innerHTML = list.length ? list.map(c=>`<div class="suggestion"><strong>${escapeHtml(c.code)} · ${escapeHtml(c.title)}</strong><br><small>${escapeHtml(sectionLabel(c.category))} ${c.article ? ' · '+escapeHtml(articleTitle(c.article)) : ''}</small><p class="help"><strong>Causa provável:</strong> ${escapeHtml(c.cause||'—')}<br><strong>Orientação:</strong> ${escapeHtml(c.guidance||'—')}</p><div class="toolbar"><button class="btn small secondary" onclick="editCatalogItem('${c.id}')">Editar</button><button class="btn small danger" onclick="deleteCatalogItem('${c.id}')">Excluir</button></div></div>`).join('') : '<div class="empty"><span class="big">🧩</span>Nenhum erro catalogado encontrado.</div>';
+}
+function openCatalogForm(){ goView('catalogo'); clearCatalogForm(); catalogCode.focus(); }
+function clearCatalogForm(){ if(!document.getElementById('catalogForm')) return; catalogForm.reset(); catalogId.value=''; catalogFormTitle.textContent='Novo erro catalogado'; catalogCode.value = `PJE-${String(catalog.length+1).padStart(3,'0')}`; }
+function editCatalogItem(id){ const c=catalog.find(x=>x.id===id); if(!c) return; catalogId.value=c.id; catalogCode.value=c.code; catalogTitle.value=c.title; catalogCategory.value=c.category; catalogKeywords.value=(c.keywords||[]).join(', '); catalogCause.value=c.cause||''; catalogGuidance.value=c.guidance||''; catalogArticle.value=c.article||''; catalogFormTitle.textContent='Editar erro catalogado'; }
+function saveCatalogItem(event){ event.preventDefault(); const obj = { id: catalogId.value || 'CAT-'+crypto.randomUUID().slice(0,8), code: catalogCode.value.trim(), title: catalogTitle.value.trim(), category: catalogCategory.value, keywords: catalogKeywords.value.split(',').map(x=>x.trim()).filter(Boolean), cause: catalogCause.value.trim(), guidance: catalogGuidance.value.trim(), article: catalogArticle.value };
+  const idx = catalog.findIndex(c=>c.id===obj.id); if(idx>=0) catalog[idx]=obj; else catalog.unshift(obj); save(STORAGE_KEYS.catalog, catalog); renderCatalog(); clearCatalogForm(); updateSuggestions(); }
+function deleteCatalogItem(id){ if(!confirm('Excluir erro catalogado?')) return; catalog = catalog.filter(c=>c.id!==id); save(STORAGE_KEYS.catalog, catalog); renderCatalog(); }
+
+function renderKbSections(){ const counts = {}; ARTICLES.forEach(a=>counts[a.section]=(counts[a.section]||0)+1); kbSections.innerHTML = SECTIONS.map(s=>{ const count=s.id==='all'?ARTICLES.length:(counts[s.id]||0); if(s.id!=='all' && !count) return ''; return `<div class="section-item ${kbSection===s.id?'active':''}" onclick="selectKbSection('${s.id}')"><span>${s.icon||'📁'} ${escapeHtml(s.label)}</span><span class="badge">${count}</span></div>`; }).join(''); }
+function selectKbSection(id){ kbSection=id; renderKbSections(); renderKbArticles(); }
+function kbFiltered(){ const q=normalize(kbSearch.value||''); return ARTICLES.filter(a => (kbSection==='all'||a.section===kbSection) && (!q || normalize([a.title, a.section, ...(a.keywords||[])].join(' ')).includes(q))); }
+function renderKbArticles(){ const list = kbFiltered(); kbArticleList.innerHTML = list.map(a=>`<div class="article-card ${kbArticle?.path===a.path?'active':''}" onclick="openKbArticle('${a.path}')"><h3>${escapeHtml(a.title)}</h3><small>${escapeHtml(sectionLabel(a.section))}</small></div>`).join('') || '<div class="empty"><span class="big">🔍</span>Nenhum artigo encontrado.</div>'; }
+function openKbArticle(path){ kbArticle = ARTICLES.find(a=>a.path===path); renderKbArticles(); if(!kbArticle) return; kbContent.innerHTML = `<div class="content-head"><div><small>${escapeHtml(sectionLabel(kbArticle.section))}</small><h2>${escapeHtml(kbArticle.title)}</h2></div><div class="toolbar"><button class="btn secondary" onclick="goView('novo');applyArticleSuggestion('${kbArticle.path}')">Usar em chamado</button><a class="btn" href="${BASE_URL}/${kbArticle.path}/" target="_blank">Abrir original</a></div></div><div class="content-body"><div class="empty"><span class="big">⏳</span>Carregando conteúdo...</div></div>`; if(contentCache[path]) { renderKbContent(contentCache[path]); return; } fetch(`${RAW_BASE}/${path}.md`).then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); }).then(md=>{ contentCache[path]=md; renderKbContent(md); }).catch(()=>{ kbContent.querySelector('.content-body').innerHTML = `<div class="notice warn">Não foi possível carregar o conteúdo remoto. Use o botão “Abrir original”.</div>`; }); }
+function renderKbContent(md){ let content = md.replace(/^---[\s\S]*?---\n?/m,'').replace(/^\+\+\+[\s\S]*?\+\+\+\n?/m,''); content = content.replace(/\{\{%\s*notice\s+(\w+)\s*%\}\}([\s\S]*?)\{\{%\s*\/notice\s*%\}\}/g, (_, type, inner)=>`> ${inner.trim()}`); content = content.replace(/\{\{[<%][^%>]*[%>]\}\}/g,'').replace(/\{%[^%]*%\}/g,'').replace(/\{\{<[^>]*>\}\}/g,''); const html = window.marked ? marked.parse(content) : '<pre>'+escapeHtml(content)+'</pre>'; kbContent.querySelector('.content-body').innerHTML = `<div class="md-content">${html}</div>`; }
+
+function renderReports(){
+  if(!document.getElementById('reportUnits')) return;
+  // SLA metrics
+  const resolved = tickets.filter(t=>t.dataEncerramento && t.dataAbertura);
+  const avgMs = resolved.length ? resolved.reduce((s,t)=>s+(new Date(t.dataEncerramento)-new Date(t.dataAbertura)),0)/resolved.length : null;
+  const el_avg = document.getElementById('avgResolveTime'); if(el_avg) el_avg.textContent = avgMs ? fmtDuration(avgMs) : '—';
+  const overdue = tickets.filter(t=>!['Resolvido','Encerrado'].includes(t.status) && ticketAgeHours(t)>48).length;
+  const el_od = document.getElementById('countOverdue'); if(el_od) el_od.textContent = overdue;
+  const rate = tickets.length ? Math.round(resolved.length/tickets.length*100) : null;
+  const el_rate = document.getElementById('resolveRate'); if(el_rate) el_rate.textContent = rate!=null ? rate+'%' : '—';
+  // Weekly chart
+  renderWeeklyChart();
+  // Tables
+  renderReportTable('reportUnits', groupBy(tickets, t=>t.unidadeNome || '—'), 'Unidade');
+  renderReportTable('reportCategories', groupBy(tickets, t=>sectionLabel(t.categoria)), 'Categoria');
+  renderReportTable('reportStatus', groupBy(tickets, t=>t.status), 'Status');
+  renderReportTable('reportCanais', groupBy(tickets, t=>t.canal||'—'), 'Canal');
+  renderReportTable('reportResponsavel', groupBy(tickets, t=>t.responsavel||'—'), 'Responsável');
+  // Satisfaction
+  const rated = tickets.filter(t=>t.avaliacao>0);
+  const avgR = rated.length ? (rated.reduce((s,t)=>s+t.avaliacao,0)/rated.length).toFixed(1) : null;
+  const el_ar=document.getElementById('avgRating'); if(el_ar) el_ar.textContent=avgR?avgR+'⭐':'—';
+  const el_rc=document.getElementById('ratingCount'); if(el_rc) el_rc.textContent=rated.length;
+  const closed=tickets.filter(t=>['Resolvido','Encerrado'].includes(t.status));
+  const el_rp=document.getElementById('ratingPct'); if(el_rp) el_rp.textContent=closed.length?Math.round(rated.length/closed.length*100)+'%':'—';
+  const dist=document.getElementById('ratingDist'); if(dist){
+    dist.innerHTML=[5,4,3,2,1].map(n=>{const c=rated.filter(t=>t.avaliacao===n).length; const pct=rated.length?Math.round(c/rated.length*100):0; return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;"><span style="width:60px;">${'★'.repeat(n)}</span><div class="bar" style="flex:1;"><span style="width:${pct}%"></span></div><span style="width:30px;text-align:right;">${c}</span></div>`; }).join('');
+  }
+  const crit = tickets.filter(t=>t.prioridade==='Crítica' || t.status==='Reaberto' || t.impacto==='Indisponibilidade');
+  reportCritical.innerHTML = crit.length ? `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Título</th><th>Prioridade</th><th>Status</th></tr></thead><tbody>${crit.map(t=>`<tr><td>${escapeHtml(t.id)}</td><td>${escapeHtml(t.titulo)}</td><td>${escapeHtml(t.prioridade)}</td><td>${escapeHtml(t.status)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><span class="big">✅</span>Sem críticos ou reabertos.</div>';
+}
+function renderWeeklyChart(){
+  const el = document.getElementById('weeklyChart'); if(!el) return;
+  const weeks = [];
+  const now = new Date(); now.setHours(0,0,0,0);
+  for(let i=7;i>=0;i--){
+    const start = new Date(now); start.setDate(start.getDate()-i*7);
+    const end = new Date(start); end.setDate(end.getDate()+7);
+    const label = `S${8-i}`;
+    const count = tickets.filter(t=>{ const d=new Date(t.dataAbertura); return d>=start && d<end; }).length;
+    weeks.push({label, count, start});
+  }
+  const max = Math.max(...weeks.map(w=>w.count), 1);
+  el.innerHTML = `<div class="week-bar-wrap">${weeks.map(w=>`<div class="week-bar-col"><span class="bar-val">${w.count||''}</span><div class="bar-fill" style="height:${Math.round(w.count/max*60)+4}px"></div><span class="bar-label">${w.label}</span></div>`).join('')}</div>`;
+}
+function renderReportTable(id, data, label){ const el=document.getElementById(id); if(!data.length){ el.innerHTML='<div class="empty">Sem dados.</div>'; return; } el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>${label}</th><th>Quantidade</th></tr></thead><tbody>${data.map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td><strong>${v}</strong></td></tr>`).join('')}</tbody></table></div>`; }
+
+function loadConfigForms(){
+  document.getElementById('slaCritica').value = slaConfig['Crítica']||4;
+  document.getElementById('slaAlta').value = slaConfig['Alta']||24;
+  document.getElementById('slaMedia').value = slaConfig['Média']||72;
+  document.getElementById('slaBaixa').value = slaConfig['Baixa']||168;
+  document.getElementById('webhookUrl').value = webhookConfig.url||'';
+  document.getElementById('webhookTrigger').value = webhookConfig.trigger||'critico';
+  document.getElementById('supabaseUrl').value = supabaseConfig.url||'';
+  document.getElementById('supabaseKey').value = supabaseConfig.key||'';
+}
+function renderUnits(){ if(!document.getElementById('unitList')) return; unitList.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Unidade</th><th>Município/setor</th><th></th></tr></thead><tbody>${units.map(u=>`<tr><td>${escapeHtml(u.type)}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.city||'—')}</td><td><button class="btn small secondary" onclick="editUnit('${u.id}')">Editar</button></td></tr>`).join('')}</tbody></table></div>`; }
+function clearUnitForm(){ unitForm.reset(); unitId.value=''; }
+function editUnit(id){ const u=units.find(x=>x.id===id); if(!u) return; unitId.value=u.id; unitType.value=u.type; unitName.value=u.name; unitCity.value=u.city||''; unitEmail.value=u.email||''; unitNotes.value=u.notes||''; }
+function saveUnit(event){ event.preventDefault(); const obj={ id: unitId.value || 'UN-'+crypto.randomUUID().slice(0,8), type: unitType.value, name: unitName.value.trim(), city: unitCity.value.trim(), email: unitEmail.value.trim(), notes: unitNotes.value.trim() }; const idx=units.findIndex(u=>u.id===obj.id); if(idx>=0) units[idx]=obj; else units.unshift(obj); save(STORAGE_KEYS.units, units); clearUnitForm(); fillUnitOptions(); renderUnits(); }
+
+function exportAllJSON(){ const payload={ exportedAt:new Date().toISOString(), app:'Central PJe TRE-CE v1.1', tickets, catalog, units }; download(`central-pje-trece-backup-${todayId()}.json`, JSON.stringify(payload,null,2)); }
+function importAllJSON(event){ const file=event.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=()=>{ try{ const data=JSON.parse(reader.result); if(data.tickets) tickets=data.tickets; if(data.catalog) catalog=data.catalog; if(data.units) units=data.units; persist(); fillUnitOptions(); fillArticleSelects(); alert('Importação concluída.'); }catch(e){ alert('Arquivo JSON inválido.'); } }; reader.readAsText(file); event.target.value=''; }
+function exportTicketsCSV(){ const headers=['id','dataAbertura','tipoCliente','unidadeNome','solicitante','sistema','categoria','titulo','processo','prioridade','impacto','status','responsavel','artigoVinculado']; const rows=[headers.join(';'), ...tickets.map(t=>headers.map(h=>`"${String(t[h]??'').replace(/"/g,'""')}"`).join(';'))]; download(`central-pje-chamados-${todayId()}.csv`, rows.join('\n'), 'text/csv;charset=utf-8'); }
+function resetAllData(){ if(!confirm('Limpar chamados, catálogo e unidades gravados neste navegador?')) return; localStorage.removeItem(STORAGE_KEYS.tickets); localStorage.removeItem(STORAGE_KEYS.catalog); localStorage.removeItem(STORAGE_KEYS.units); tickets=[]; catalog=structuredClone(DEFAULT_CATALOG); units=structuredClone(DEFAULT_UNITS); persist(); fillUnitOptions(); fillArticleSelects(); }
+function seedDemoTickets(){
+  const now = new Date();
+  const samples = [
+    { tipoCliente:'Zona Eleitoral', unidadeId:'ZE-001', titulo:'Código MFA não é aceito no acesso ao PJe', categoria:'acesso', descricaoErro:'Servidor informa código inválido no autenticador ao tentar acessar o PJe.', mensagemErro:'Código inválido', prioridade:'Média', impacto:'Individual', artigoVinculado:'acesso/mfa', orientacaoPrestada:'Verificar horário automático do celular, aplicativo autenticador e nova tentativa de acesso. Registrar print se persistir.' },
+    { tipoCliente:'Segundo Grau TRE-CE', unidadeId:'2G-SJU', titulo:'Processo não aparece na tarefa de tramitação', categoria:'tramitacao', descricaoErro:'Usuário do 2º grau informa que o processo não aparece na tarefa esperada.', mensagemErro:'', prioridade:'Alta', impacto:'Prazo sensível', artigoVinculado:'tramitacao/basico', orientacaoPrestada:'Conferir nó atual, órgão julgador, perfil do usuário e histórico de tramitação.' },
+    { tipoCliente:'Gabinete', unidadeId:'2G-GAB', titulo:'Documento não abre nos autos digitais', categoria:'autos', descricaoErro:'Documento PDF não carrega no visualizador do PJe.', mensagemErro:'Falha ao carregar documento', prioridade:'Média', impacto:'Unidade', artigoVinculado:'autos/documentos/erros_exibicao', orientacaoPrestada:'Testar outro navegador, conferir sigilo/permissão e verificar integridade do arquivo.' }
+  ];
+  samples.forEach((s,i)=>{ const unit=unitById(s.unidadeId)||{}; const dt = new Date(now.getTime()-i*3600000).toISOString(); tickets.unshift({ id: nextTicketId(), dataAbertura:dt, dataAtualizacao:dt, dataEncerramento:'', solicitante:'Validação', emailSolicitante:'', sistema:'PJe', processo:'', status:i===0?'Aberto':(i===1?'Em análise':'Orientação enviada'), responsavel:'Equipe de atendimento PJe', solucaoConfirmada:false, unidadeNome:unit.name||'', unidadeMunicipio:unit.city||'', historico:[{data:dt, usuario:'Sistema', acao:'Chamado de exemplo inserido para validação.'}], ...s }); });
+  persist(); goView('dashboard');
+}
+
+init();
+</script>
+</body>
+</html>
+let tickets = [];
+let catalog = [];
+let units = [];
+let selectedTicketId = null;
+let kbSection = 'all';
+let kbArticle = null;
+let contentCache = {};
+
+// ---- Core storage ----
+function getSlaConfig(){ try{ return JSON.parse(localStorage.getItem('centralPjeSlaConfig'))||{Crítica:4,Alta:24,Média:72,Baixa:168}; }catch{ return {Crítica:4,Alta:24,Média:72,Baixa:168}; } }
+function getWebhookConfig(){ try{ return JSON.parse(localStorage.getItem('centralPjeWebhookConfig'))||{url:'',event:'all'}; }catch{ return {url:'',event:'all'}; } }
+function getSupabaseConfig(){ try{ return JSON.parse(localStorage.getItem('centralPjeSupabaseConfig'))||{url:'',key:''}; }catch{ return {url:'',key:''}; } }
+
+function load(key, fallback){ try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : structuredClone(fallback); } catch { return structuredClone(fallback); } }
+function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+function persist(){ save(STORAGE_KEYS.tickets, tickets); save(STORAGE_KEYS.catalog, catalog); save(STORAGE_KEYS.units, units); refreshAll(); }
+
+function sanitizeStatus(s){ return 'status-' + String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function escapeHtml(value){ return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(value){ if(!value) return '—'; const d = new Date(value); return isNaN(d) ? value : d.toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' }); }
+function todayId(){ const d = new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function nextTicketId(){ const n = tickets.length + 1; return `CH-${todayId()}-${String(n).padStart(4,'0')}`; }
+function normalize(str){ return String(str||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function sectionLabel(id){ return SECTIONS.find(s => s.id === id)?.label || id || '—'; }
+function articleTitle(path){ return ARTICLES.find(a => a.path === path)?.title || path || 'Sem artigo vinculado'; }
+function unitById(id){ return units.find(u => u.id === id); }
+function download(filename, text, type='application/json'){ const blob = new Blob([text], {type}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
+function copyText(id){ const el = document.getElementById(id); el.select(); document.execCommand('copy'); toast('Texto copiado!'); }
+function ticketAgeHours(t){ return (Date.now() - new Date(t.dataAbertura).getTime()) / 3600000; }
+
+function ageBadge(t){
+  if(['Resolvido','Encerrado'].includes(t.status)) return '<span class="age-badge ok">encerrado</span>';
+  const h = ticketAgeHours(t);
+  const label = h < 1 ? 'agora' : h < 24 ? `${Math.round(h)}h` : `${Math.floor(h/24)}d`;
+  const sla = getSlaConfig();
+  const limit = sla[t.prioridade] || 72;
+  let cls;
+  if(h >= limit) cls = 'late';
+  else if(h >= limit * 0.8) cls = 'warn';
+  else cls = 'ok';
+  return `<span class="age-badge ${cls}">${label}</span>`;
+}
+function fmtDuration(ms){ if(!ms||ms<0) return '—'; const h=Math.round(ms/3600000); return h<24?h+'h':Math.round(h/24)+'d'; }
+function toast(msg, dur=2800){ const el=document.createElement('div'); el.className='toast'; el.textContent=msg; const c=document.getElementById('toastContainer'); if(c){ c.appendChild(el); setTimeout(()=>el.remove(), dur); } }
+function toggleDark(){ const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',next); localStorage.setItem('pje-theme',next); document.getElementById('darkBtn').textContent=next==='dark'?'☀️':'🌙'; }
+function applyTheme(){ const t=localStorage.getItem('pje-theme'); if(t){ document.documentElement.setAttribute('data-theme',t); if(t==='dark'&&document.getElementById('darkBtn')) document.getElementById('darkBtn').textContent='☀️'; } }
+function toggleShortcuts(){ document.getElementById('shortcutsModal').classList.toggle('open'); }
+function shareTicket(id){ history.replaceState(null,'','#'+id); navigator.clipboard?.writeText(location.href).then(()=>toast('Link copiado!')).catch(()=>toast('Link: '+location.href)); }
+function handleDeepLink(){ const hash=location.hash.replace('#',''); if(hash&&tickets.find(t=>t.id===hash)){ goView('chamados'); setTimeout(()=>renderTicketDetail(hash),50); } }
+
+// ---- Migration ----
+function migrateTickets(){
+  tickets.forEach(t => {
+    if(!t.responsaveis) {
+      t.responsaveis = t.responsavel ? [t.responsavel] : ['Equipe PJe'];
+    }
+    t.responsavel = t.responsaveis.join(', ');
+  });
+}
+
+// ---- SLA Config ----
+function saveSlaConfig(){
+  const cfg = {
+    Crítica: parseInt(document.getElementById('slaCritica').value)||4,
+    Alta: parseInt(document.getElementById('slaAlta').value)||24,
+    Média: parseInt(document.getElementById('slaMedia').value)||72,
+    Baixa: parseInt(document.getElementById('slaBaixa').value)||168
+  };
+  localStorage.setItem('centralPjeSlaConfig', JSON.stringify(cfg));
+  toast('SLA salvo com sucesso.');
+}
+function loadSlaInputs(){
+  const cfg = getSlaConfig();
+  const el = (id,v) => { const e=document.getElementById(id); if(e) e.value=v; };
+  el('slaCritica', cfg.Crítica||4); el('slaAlta', cfg.Alta||24); el('slaMedia', cfg.Média||72); el('slaBaixa', cfg.Baixa||168);
+}
+
+// ---- Webhook ----
+function saveWebhookConfig(){
+  const cfg = { url: document.getElementById('webhookUrl').value.trim(), event: document.getElementById('webhookEvent').value };
+  localStorage.setItem('centralPjeWebhookConfig', JSON.stringify(cfg));
+  toast('Webhook salvo.');
+}
+function loadWebhookInputs(){
+  const cfg = getWebhookConfig();
+  const u=document.getElementById('webhookUrl'); if(u) u.value=cfg.url||'';
+  const e=document.getElementById('webhookEvent'); if(e) e.value=cfg.event||'all';
+}
+function testWebhook(){ const cfg=getWebhookConfig(); if(!cfg.url){ toast('Configure a URL do webhook primeiro.'); return; } fireWebhook({id:'TESTE',titulo:'Webhook de teste',prioridade:'Crítica',status:'Aberto',unidadeNome:'Teste'},'teste'); }
+function fireWebhook(ticket, event){
+  const cfg = getWebhookConfig();
+  if(!cfg.url) return;
+  const wev = cfg.event;
+  if(wev==='novo_critico' && event!=='novo_critico') return;
+  if(wev==='indisponibilidade' && event!=='indisponibilidade') return;
+  if(wev==='reaberto' && event!=='reaberto') return;
+  const body = JSON.stringify({ event, ticket_id: ticket.id, titulo: ticket.titulo, prioridade: ticket.prioridade, status: ticket.status, unidade: ticket.unidadeNome, ts: new Date().toISOString() });
+  fetch(cfg.url, { method:'POST', headers:{'Content-Type':'application/json'}, body })
+    .then(r => toast(r.ok ? 'Webhook enviado.' : 'Webhook: erro '+r.status))
+    .catch(() => toast('Webhook: falha de conexão.'));
+}
+
+// ---- Supabase ----
+function saveSupabaseConfig(){
+  const cfg = { url: document.getElementById('supabaseUrl').value.trim(), key: document.getElementById('supabaseKey').value.trim() };
+  localStorage.setItem('centralPjeSupabaseConfig', JSON.stringify(cfg));
+  updateSupabaseBadge();
+  toast('Supabase configurado.');
+}
+function loadSupabaseInputs(){
+  const cfg = getSupabaseConfig();
+  const u=document.getElementById('supabaseUrl'); if(u) u.value=cfg.url||'';
+  const k=document.getElementById('supabaseKey'); if(k) k.value=cfg.key||'';
+}
+function updateSupabaseBadge(){
+  const cfg = getSupabaseConfig();
+  const badge = document.getElementById('supabaseBadge');
+  if(!badge) return;
+  if(cfg.url && cfg.key){ badge.textContent='☁️ Supabase'; badge.className='supabase-badge cloud'; }
+  else { badge.textContent='💾 Local'; badge.className='supabase-badge'; }
+}
+async function supabaseUpsert(table, data){
+  const cfg = getSupabaseConfig();
+  if(!cfg.url||!cfg.key) return false;
+  try {
+    const r = await fetch(`${cfg.url}/rest/v1/${table}`, {
+      method:'POST',
+      headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+      body: JSON.stringify({id:'main', data: JSON.stringify(data)})
+    });
+    return r.ok;
+  } catch { return false; }
+}
+async function supabaseFetch(table){
+  const cfg = getSupabaseConfig();
+  if(!cfg.url||!cfg.key) return null;
+  try {
+    const r = await fetch(`${cfg.url}/rest/v1/${table}?id=eq.main&select=data`, { headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key} });
+    if(!r.ok) return null;
+    const rows = await r.json();
+    if(rows&&rows[0]) return JSON.parse(rows[0].data);
+    return null;
+  } catch { return null; }
+}
+async function syncToSupabase(){
+  const cfg = getSupabaseConfig();
+  if(!cfg.url||!cfg.key){ toast('Configure o Supabase primeiro.'); return; }
+  toast('Sincronizando...');
+  const [a,b,c] = await Promise.all([
+    supabaseUpsert('pje_tickets', tickets),
+    supabaseUpsert('pje_catalog', catalog),
+    supabaseUpsert('pje_units', units)
+  ]);
+  toast(a&&b&&c ? '☁️ Supabase sincronizado!' : 'Supabase: erro parcial na sincronização.');
+}
+
+// ---- Tags-input widget ----
+function getResponsaveisSuggestions(){
+  const used = [...new Set(tickets.flatMap(t=>t.responsaveis||[]))];
+  return [...new Set([...PREDEFINED_RESPONSAVEIS, ...used])].sort();
+}
+
+function renderTagsInput(containerId, initialTags, onChange){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  let tags = [...(initialTags||['Equipe PJe'])];
+  let dropdownEl = null;
+
+  function render(){
+    container.innerHTML = '';
+    tags.forEach((tag,i) => {
+      const span = document.createElement('span');
+      span.className='tag';
+      span.innerHTML = `${escapeHtml(tag)} <span class="remove" data-i="${i}">×</span>`;
+      container.appendChild(span);
+    });
+    const inp = document.createElement('input');
+    inp.placeholder = 'Adicionar...';
+    inp.setAttribute('data-tags-input','1');
+    container.appendChild(inp);
+
+    container.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); tags.splice(parseInt(btn.dataset.i),1); render(); onChange(tags); });
+    });
+
+    inp.addEventListener('keydown', e => {
+      if((e.key==='Enter'||e.key===',') && inp.value.trim()){ e.preventDefault(); addTag(inp.value.trim()); }
+      if(e.key==='Backspace' && !inp.value && tags.length){ tags.pop(); render(); onChange(tags); }
+      if(e.key==='Escape'){ closeDropdown(); }
+    });
+    inp.addEventListener('input', () => { showDropdown(inp); });
+    inp.addEventListener('blur', () => { setTimeout(closeDropdown, 150); });
+  }
+
+  function addTag(val){
+    val = val.replace(/,/g,'').trim();
+    if(val && !tags.includes(val)){ tags.push(val); }
+    render(); onChange(tags);
+  }
+
+  function showDropdown(inp){
+    closeDropdown();
+    const q = normalize(inp.value);
+    const suggs = getResponsaveisSuggestions().filter(s => !tags.includes(s) && normalize(s).includes(q));
+    if(!suggs.length) return;
+    dropdownEl = document.createElement('div');
+    dropdownEl.className='autocomplete-dropdown';
+    dropdownEl.style.cssText='position:absolute;top:100%;left:0;';
+    suggs.slice(0,8).forEach(s => {
+      const item = document.createElement('div');
+      item.className='autocomplete-item';
+      item.textContent=s;
+      item.addEventListener('mousedown', e => { e.preventDefault(); addTag(s); });
+      dropdownEl.appendChild(item);
+    });
+    container.style.position='relative';
+    container.appendChild(dropdownEl);
+  }
+
+  function closeDropdown(){ if(dropdownEl){ dropdownEl.remove(); dropdownEl=null; } }
+  render();
+}
+
+function focusTagInput(containerId){
+  const inp = document.querySelector(`#${containerId} [data-tags-input]`);
+  if(inp) inp.focus();
+}
+
+function getTagsFromContainer(containerId){
+  const container = document.getElementById(containerId);
+  if(!container) return ['Equipe PJe'];
+  return [...container.querySelectorAll('.tag')].map(t => t.textContent.replace('×','').trim()).filter(Boolean);
+}
+
+// ---- @mention in textarea ----
+function bindMentionAutocomplete(textareaId, getNames){
+  const ta = document.getElementById(textareaId);
+  if(!ta) return;
+  let mentionDropdown = null;
+  ta.addEventListener('input', () => {
+    const pos = ta.selectionStart;
+    const before = ta.value.slice(0, pos);
+    const match = before.match(/@(\w*)$/);
+    if(!match){ closeMention(); return; }
+    const q = normalize(match[1]);
+    const names = getNames().filter(n => normalize(n).includes(q));
+    if(!names.length){ closeMention(); return; }
+    closeMention();
+    mentionDropdown = document.createElement('div');
+    mentionDropdown.className='autocomplete-dropdown';
+    mentionDropdown.style.cssText='position:absolute;bottom:100%;left:0;';
+    names.slice(0,6).forEach(n => {
+      const item = document.createElement('div');
+      item.className='autocomplete-item';
+      item.textContent='@'+n;
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        const before2 = ta.value.slice(0, pos);
+        const after2 = ta.value.slice(pos);
+        ta.value = before2.replace(/@\w*$/, '@'+n+' ') + after2;
+        closeMention();
+        ta.focus();
+      });
+      mentionDropdown.appendChild(item);
+    });
+    const wrap = ta.parentElement;
+    if(wrap) { wrap.style.position='relative'; wrap.appendChild(mentionDropdown); }
+  });
+  function closeMention(){ if(mentionDropdown){ mentionDropdown.remove(); mentionDropdown=null; } }
+  ta.addEventListener('blur', () => setTimeout(closeMention, 150));
+}
+
+// ---- Init ----
+function init(){
+  tickets = load(STORAGE_KEYS.tickets, []);
+  catalog = load(STORAGE_KEYS.catalog, DEFAULT_CATALOG);
+  units = load(STORAGE_KEYS.units, DEFAULT_UNITS);
+  migrateTickets();
+  applyTheme();
+  updateSupabaseBadge();
+  bindNavigation();
+  populateStaticSelects();
+  fillUnitOptions();
+  fillArticleSelects();
+  renderKbSections();
+  renderKbArticles();
+  clearTicketForm();
+  clearCatalogForm();
+  renderUnits();
+  loadSlaInputs();
+  loadWebhookInputs();
+  loadSupabaseInputs();
+  refreshAll();
+  document.getElementById('globalSearch').addEventListener('input', e => {
+    document.getElementById('ticketSearch').value = e.target.value;
+    goView('chamados'); renderTickets();
+  });
+  document.addEventListener('keydown', e => {
+    const tag = document.activeElement?.tagName;
+    if(['INPUT','TEXTAREA','SELECT'].includes(tag)) {
+      if(e.key==='Escape'){ document.activeElement.blur(); document.getElementById('globalSearch').value=''; document.getElementById('ticketSearch').value=''; renderTickets(); }
+      return;
+    }
+    const map = { 'd':'dashboard','n':'novo','c':'chamados','k':'kanban','e':'catalogo','b':'base','r':'relatorios' };
+    if(map[e.key]) { goView(map[e.key]); return; }
+    if(e.key==='x') { toggleDark(); return; }
+    if(e.key==='/') { e.preventDefault(); document.getElementById('globalSearch').focus(); return; }
+    if(e.key==='?') { toggleShortcuts(); return; }
+    if(e.key==='Escape') { document.getElementById('shortcutsModal').classList.remove('open'); }
+  });
+  handleDeepLink();
+}
+
+function bindNavigation(){ document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => goView(btn.dataset.view))); }
+
+function goView(view){
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view===view));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const sec = document.getElementById('view-'+view);
+  if(sec) sec.classList.add('active');
+  if(view==='dashboard') renderDashboard();
+  if(view==='chamados') renderTickets();
+  if(view==='catalogo') renderCatalog();
+  if(view==='relatorios') renderReports();
+  if(view==='config'){ renderUnits(); loadSlaInputs(); loadWebhookInputs(); loadSupabaseInputs(); }
+  if(view==='kanban') renderKanban();
+}
+
+function refreshAll(){
+  document.getElementById('ticketCounter').textContent = tickets.length;
+  document.getElementById('openCounter').textContent = tickets.filter(t => !['Resolvido','Encerrado'].includes(t.status)).length;
+  renderDashboard(); renderTickets(); renderCatalog(); renderReports(); renderUnits();
+  if(document.getElementById('view-kanban')?.classList.contains('active')) renderKanban();
+}
+
+function populateStaticSelects(){
+  setOptions('tipoCliente', ORIGENS);
+  setOptions('sistema', SISTEMAS);
+  setOptions('prioridade', PRIORIDADES, 'Média');
+  setOptions('impacto', IMPACTOS, 'Individual');
+  setOptions('canal', CANAIS, 'WhatsApp');
+  setOptions('filterStatus', ['Todos os status', ...STATUS]);
+  setOptions('filterOrigem', ['Todas as origens', ...ORIGENS]);
+  setOptions('filterPrioridade', ['Todas as prioridades', ...PRIORIDADES]);
+  setOptions('unitType', ORIGENS);
+  populateCategorySelect('categoria');
+  populateCategorySelect('filterCategoria', true);
+  populateCategorySelect('catalogCategory');
+  populateCategorySelect('catalogCategoryFilter', true);
+}
+function setOptions(id, arr, selected){ const el = document.getElementById(id); if(!el) return; el.innerHTML = arr.map(v => `<option value="${escapeHtml(v)}" ${v===selected?'selected':''}>${escapeHtml(v)}</option>`).join(''); }
+function populateCategorySelect(id, withAll=false){ const el = document.getElementById(id); if(!el) return; const opts = withAll ? [{id:'all', label:'Todas as categorias'}] : []; SECTIONS.filter(s => s.id !== 'all').forEach(s => opts.push({id:s.id,label:s.label})); el.innerHTML = opts.map(o => `<option value="${o.id}">${escapeHtml(o.label)}</option>`).join(''); }
+function fillUnitOptions(){ const type = document.getElementById('tipoCliente')?.value || ORIGENS[0]; const opts = units.filter(u => u.type === type || type === 'Outro'); const list = opts.length ? opts : units; const el=document.getElementById('unidadeId'); if(el) el.innerHTML = list.map(u => `<option value="${u.id}">${escapeHtml(u.name)}${u.city ? ' — '+escapeHtml(u.city):''}</option>`).join(''); }
+function fillArticleSelects(){
+  const html = '<option value="">Sem vínculo</option>' + ARTICLES.map(a => `<option value="${a.path}">${escapeHtml(a.title)} · ${escapeHtml(sectionLabel(a.section))}</option>`).join('');
+  ['artigoVinculado','catalogArticle'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = html; });
+}
+
+let _formResponsaveis = ['Equipe PJe'];
+function clearTicketForm(){
+  const form = document.getElementById('ticketForm');
+  if(form) form.reset();
+  const p = document.getElementById('prioridade'); if(p) p.value = 'Média';
+  const imp = document.getElementById('impacto'); if(imp) imp.value = 'Individual';
+  _formResponsaveis = ['Equipe PJe'];
+  renderTagsInput('responsaveisTagsNew', _formResponsaveis, tags => { _formResponsaveis = tags; });
+  fillUnitOptions(); updateSuggestions();
+  const rm = document.getElementById('responseModel'); if(rm) rm.value='';
+}
+
+function getFormText(){ return [document.getElementById('tituloChamado')?.value||'', document.getElementById('descricaoErro')?.value||'', document.getElementById('mensagemErro')?.value||''].join(' '); }
+
+function computeSuggestions(text, limit=5){
+  const q = normalize(text); if(!q.trim()) return [];
+  const tokens = q.split(/\s+/).filter(w => w.length > 2);
+  const scored = [];
+  catalog.forEach(c => { const hay = normalize([c.title, c.category, c.cause, c.guidance, ...(c.keywords||[])].join(' ')); let score = 0; tokens.forEach(t => { if(hay.includes(t)) score += 3; }); (c.keywords||[]).forEach(k => { if(q.includes(normalize(k))) score += 8; }); if(score>0) scored.push({type:'catalog', score, item:c}); });
+  ARTICLES.forEach(a => { const hay = normalize([a.title, a.section, ...(a.keywords||[])].join(' ')); let score = 0; tokens.forEach(t => { if(hay.includes(t)) score += 2; }); (a.keywords||[]).forEach(k => { if(q.includes(normalize(k))) score += 5; }); if(score>0) scored.push({type:'article', score, item:a}); });
+  return scored.sort((a,b)=>b.score-a.score).slice(0, limit);
+}
+function updateSuggestions(){
+  const box = document.getElementById('suggestionsBox'); if(!box) return;
+  const suggestions = computeSuggestions(getFormText());
+  if(!suggestions.length){ box.innerHTML = '<div class="empty" style="min-height:110px;"><span class="big">🔎</span>Digite a descrição do erro para ver sugestões.</div>'; return; }
+  box.innerHTML = suggestions.map((s,i) => {
+    if(s.type==='catalog'){
+      const c=s.item; return `<div class="suggestion"><span class="score">score ${s.score}</span><strong>${escapeHtml(c.code)} · ${escapeHtml(c.title)}</strong><br><small>${escapeHtml(sectionLabel(c.category))}</small><p class="help">${escapeHtml(c.guidance)}</p><div class="toolbar"><button class="btn small secondary" type="button" onclick="applyCatalogSuggestion('${escapeHtml(c.id)}')">Usar solução</button></div></div>`;
+    }
+    const a=s.item; return `<div class="suggestion"><span class="score">score ${s.score}</span><strong>${escapeHtml(a.title)}</strong><br><small>${escapeHtml(sectionLabel(a.section))}</small><p class="help">Artigo da base de orientações.</p><div class="toolbar"><button class="btn small secondary" type="button" onclick="applyArticleSuggestion('${escapeHtml(a.path)}')">Vincular artigo</button></div></div>`;
+  }).join('');
+}
+function applyCatalogSuggestion(id){ const c = catalog.find(x=>x.id===id); if(!c) return; const cat=document.getElementById('categoria'); if(cat) cat.value=c.category; const art=document.getElementById('artigoVinculado'); if(art) art.value=c.article||''; const ori=document.getElementById('orientacaoPrestada'); if(ori) ori.value=c.guidance||''; generateAnswerFromForm(); }
+function applyArticleSuggestion(path){ const a = ARTICLES.find(x=>x.path===path); if(!a) return; const cat=document.getElementById('categoria'); if(cat) cat.value=a.section; const art=document.getElementById('artigoVinculado'); if(art) art.value=a.path; generateAnswerFromForm(); }
+function generateAnswerFromForm(){
+  const unidadeId = document.getElementById('unidadeId');
+  const unit = unitById(unidadeId?.value);
+  const title = document.getElementById('tituloChamado')?.value || 'chamado registrado';
+  const orientation = document.getElementById('orientacaoPrestada')?.value || 'Após análise, encaminhamos a orientação vinculada à base de conhecimento do PJe.';
+  const artEl = document.getElementById('artigoVinculado');
+  const article = artEl?.value ? `\n\nOrientação vinculada: ${articleTitle(artEl.value)}.` : '';
+  const rm = document.getElementById('responseModel');
+  if(rm) rm.value = `Prezada unidade,\n\nEm atenção ao chamado referente a "${title}", registrado para ${unit?.name || 'a unidade atendida'}, orientamos:\n\n${orientation}${article}\n\nSolicitamos confirmar se a orientação solucionou a ocorrência. Caso o problema persista, encaminhar a mensagem de erro atualizada, horário da tentativa e, quando indispensável, print sem exposição de dados sensíveis.\n\nStatus sugerido: Orientação enviada.`;
+}
+
+function saveTicketFromForm(event){
+  event.preventDefault();
+  const unidadeIdEl = document.getElementById('unidadeId');
+  const unit = unitById(unidadeIdEl?.value) || {};
+  const now = new Date().toISOString();
+  const responsaveis = _formResponsaveis.length ? _formResponsaveis : ['Equipe PJe'];
+  const prioridade = document.getElementById('prioridade')?.value || 'Média';
+  const impacto = document.getElementById('impacto')?.value || 'Individual';
+  const ticket = {
+    id: nextTicketId(), dataAbertura: now, dataAtualizacao: now, dataEncerramento: '',
+    tipoCliente: document.getElementById('tipoCliente')?.value||'', unidadeId: unidadeIdEl?.value||'', unidadeNome: unit.name || '', unidadeMunicipio: unit.city || '',
+    solicitante: document.getElementById('solicitante')?.value?.trim()||'', emailSolicitante: document.getElementById('emailSolicitante')?.value?.trim()||'', sistema: document.getElementById('sistema')?.value||'',
+    canal: document.getElementById('canal')?.value||'',
+    categoria: document.getElementById('categoria')?.value||'', titulo: document.getElementById('tituloChamado')?.value?.trim()||'', descricaoErro: document.getElementById('descricaoErro')?.value?.trim()||'', mensagemErro: document.getElementById('mensagemErro')?.value?.trim()||'',
+    processo: document.getElementById('processo')?.value?.trim()||'', prioridade, impacto, status: 'Aberto',
+    responsaveis, responsavel: responsaveis.join(', '),
+    artigoVinculado: document.getElementById('artigoVinculado')?.value||'', orientacaoPrestada: document.getElementById('orientacaoPrestada')?.value?.trim()||'', solucaoConfirmada: false,
+    historico: [{ data: now, usuario: 'Atendimento', acao: 'Chamado aberto' }]
+  };
+  tickets.unshift(ticket); selectedTicketId = ticket.id;
+  // Webhooks
+  if(prioridade==='Crítica') fireWebhook(ticket,'novo_critico');
+  if(impacto==='Indisponibilidade') fireWebhook(ticket,'indisponibilidade');
+  persist(); clearTicketForm(); goView('chamados'); renderTicketDetail(ticket.id);
+}

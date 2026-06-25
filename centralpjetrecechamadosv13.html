@@ -134,7 +134,8 @@
   main { overflow: hidden; min-width: 0; }
   .view { display: none; height: 100%; overflow: hidden; }
   .view.active { display: flex; flex-direction: column; }
-  .view-header { background: var(--card); border-bottom: 1px solid var(--line); padding: 17px 22px; display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+  .view-header { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 22px; display: flex; justify-content: space-between; gap: 14px; align-items: center; min-height: 68px; }
+  .view-header > div:first-child { flex: 1; min-width: 0; }
   .view-header h1 { margin: 0; font-size: 21px; color: var(--primary); line-height: 1.2; }
   .view-header p { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
   .view-body { padding: 18px 22px 26px; overflow-y: auto; flex: 1; min-height: 0; }
@@ -161,8 +162,10 @@
   .btn.danger { background: var(--danger); }
   .btn.success { background: var(--success); }
   .btn.small { padding: 6px 9px; border-radius: 8px; font-size: 12px; }
-  .filters { display: grid; grid-template-columns: 1.6fr repeat(5, minmax(130px, .8fr)); gap: 9px; margin-bottom: 13px; align-items: end; }
-  .filters select, .filters input { height: 40px; padding: 0 11px; }
+  .filters { display: grid; grid-template-columns: 1.6fr repeat(5, minmax(130px, .8fr)); gap: 9px; margin-bottom: 13px; align-items: center; }
+  .filters > select, .filters > input { height: 40px; padding: 0 11px; }
+  .filters > div { display: flex; align-items: center; gap: 5px; }
+  .filters > div input { height: 40px; padding: 0 8px; flex: 1; min-width: 0; }
   .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
   label { font-size: 12px; color: var(--muted); font-weight: 800; }
   input, select, textarea { border: 1px solid var(--line); background: white; color: var(--text); border-radius: 10px; padding: 10px 11px; outline: none; min-width: 0; }

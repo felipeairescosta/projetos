@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PJe Dicas — CRM de Conhecimento</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --primary: #1a3a6b;
+    --primary-light: #2856a3;
+    --accent: #e8a020;
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --border: #dde3ed;
+    --text: #1e2430;
+    --text-muted: #6b7a99;
+    --sidebar-w: 280px;
+    --highlight: #fff3cd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  /* Header */
+  header {
+    background: var(--primary);
+    color: white;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo { font-size: 20px; font-weight: 700; white-space: nowrap; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .search-wrap { flex: 1; max-width: 600px; position: relative; }
+  .search-wrap input {
+    width: 100%;
+    padding: 8px 16px 8px 40px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: background 0.2s;
+  }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.6); }
+  .search-wrap input:focus { background: rgba(255,255,255,0.25); }
+  .search-wrap .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.7; font-size: 16px; }
+  .header-right { margin-left: auto; font-size: 12px; opacity: 0.7; white-space: nowrap; }
+  .badge-count { background: var(--accent); color: #111; font-weight: 700; border-radius: 12px; padding: 1px 8px; font-size: 12px; }
+
+  /* Layout */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  aside {
+    width: var(--sidebar-w);
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+  .section-list { overflow-y: auto; flex: 1; }
+  .section-item {
+    cursor: pointer;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .section-item:hover { background: var(--bg); }
+  .section-item.active { border-left-color: var(--primary); background: #eef2fb; color: var(--primary); font-weight: 600; }
+  .section-item .num { font-size: 11px; background: var(--border); border-radius: 10px; padding: 1px 7px; color: var(--text-muted); }
+  .section-item.active .num { background: var(--primary); color: white; }
+  .section-icon { width: 18px; text-align: center; margin-right: 8px; opacity: 0.7; }
+
+  /* Article list */
+  .article-panel {
+    width: 340px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-header h2 { font-size: 14px; font-weight: 600; color: var(--primary); }
+  .panel-header .result-info { font-size: 12px; color: var(--text-muted); }
+  .article-list { overflow-y: auto; flex: 1; padding: 8px; }
+  .article-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .article-card:hover { border-color: var(--primary-light); box-shadow: 0 2px 8px rgba(26,58,107,0.1); }
+  .article-card.active { border-left-color: var(--accent); background: #fffbf0; }
+  .article-card h3 { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
+  .article-card .meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
+  .tag { background: #eef2fb; color: var(--primary-light); border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 600; }
+  .highlight-text { background: var(--highlight); border-radius: 2px; padding: 0 2px; }
+  .no-results { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+  .no-results .emoji { font-size: 40px; display: block; margin-bottom: 12px; }
+
+  /* Content viewer */
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .content-header {
+    padding: 14px 24px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .content-header h1 { font-size: 18px; color: var(--primary); flex: 1; line-height: 1.3; }
+  .content-header .breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .btn-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--primary); color: white;
+    border: none; border-radius: 6px; padding: 7px 14px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    text-decoration: none; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn-link:hover { background: var(--primary-light); }
+  .btn-link.outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+  .btn-link.outline:hover { background: #eef2fb; }
+  .content-body { flex: 1; overflow-y: auto; padding: 24px; }
+  .content-body.loading { display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px; }
+
+  /* Markdown styles */
+  .md-content h1 { font-size: 22px; color: var(--primary); margin: 0 0 16px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+  .md-content h2 { font-size: 17px; color: var(--primary); margin: 24px 0 12px; }
+  .md-content h3 { font-size: 15px; color: var(--primary-light); margin: 20px 0 8px; }
+  .md-content p { line-height: 1.7; margin-bottom: 12px; color: var(--text); font-size: 14px; }
+  .md-content ul, .md-content ol { padding-left: 20px; margin-bottom: 12px; }
+  .md-content li { line-height: 1.7; font-size: 14px; margin-bottom: 4px; }
+  .md-content a { color: var(--primary-light); text-decoration: none; border-bottom: 1px dashed; }
+  .md-content a:hover { color: var(--accent); }
+  .md-content code { background: #f0f4ff; padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; color: #c0392b; }
+  .md-content pre { background: #1e2430; color: #e8eaf0; padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; }
+  .md-content pre code { background: none; color: inherit; padding: 0; font-size: 13px; }
+  .md-content blockquote { border-left: 3px solid var(--accent); padding: 8px 16px; background: #fffbf0; margin: 12px 0; border-radius: 0 4px 4px 0; }
+  .md-content hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .md-content strong { color: var(--primary); }
+  .md-content table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+  .md-content th { background: var(--primary); color: white; padding: 8px 12px; text-align: left; }
+  .md-content td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .md-content tr:hover td { background: var(--bg); }
+  .notice-box { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; }
+  .notice-note { background: #e8f4fd; border-left: 4px solid #3498db; }
+  .notice-warning { background: #fef9e7; border-left: 4px solid var(--accent); }
+  .notice-info { background: #eaf6ee; border-left: 4px solid #27ae60; }
+
+  /* Welcome */
+  .welcome {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; padding: 40px; text-align: center;
+  }
+  .welcome .big-icon { font-size: 64px; margin-bottom: 20px; }
+  .welcome h2 { font-size: 22px; color: var(--primary); margin-bottom: 8px; }
+  .welcome p { color: var(--text-muted); font-size: 14px; max-width: 400px; line-height: 1.6; }
+  .stats { display: flex; gap: 24px; margin-top: 24px; }
+  .stat { text-align: center; }
+  .stat .n { font-size: 28px; font-weight: 700; color: var(--primary); }
+  .stat .l { font-size: 12px; color: var(--text-muted); }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #b0bcd0; }
+
+  /* Spinner */
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    aside { display: none; }
+    .article-panel { width: 100%; border: none; }
+    .content-area { display: none; }
+    .content-area.show { display: flex; position: fixed; inset: 56px 0 0 0; z-index: 20; background: white; }
+    .back-btn { display: inline-flex; }
+  }
+  .back-btn { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PJe<span>Dicas</span> <span style="font-size:13px;opacity:.6;font-weight:400">CRM</span></div>
+  <div class="search-wrap">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar em todos os artigos... (Ex: MFA, redistribuição, audiência)" autocomplete="off">
+  </div>
+  <div class="header-right">
+    <span id="totalCount" class="badge-count">…</span> artigos
+  </div>
+</header>
+
+<div class="main">
+  <aside>
+    <div class="sidebar-header">Seções</div>
+    <div class="section-list" id="sectionList"></div>
+  </aside>
+
+  <div class="article-panel">
+    <div class="panel-header">
+      <h2 id="panelTitle">Todos os artigos</h2>
+      <span class="result-info" id="resultInfo"></span>
+    </div>
+    <div class="article-list" id="articleList"></div>
+  </div>
+
+  <div class="content-area" id="contentArea">
+    <div class="welcome" id="welcomeScreen">
+      <div class="big-icon">⚖️</div>
+      <h2>Bem-vindo ao PJe Dicas CRM</h2>
+      <p>Busque por qualquer tema, selecione uma categoria na barra lateral ou clique em um artigo para visualizar o conteúdo.</p>
+      <div class="stats">
+        <div class="stat"><div class="n" id="statArticles">…</div><div class="l">Artigos</div></div>
+        <div class="stat"><div class="n" id="statSections">23</div><div class="l">Seções</div></div>
+        <div class="stat"><div class="n">100%</div><div class="l">Gratuito</div></div>
+      </div>
+    </div>
+    <div id="articleView" style="display:none; flex-direction:column; height:100%;">
+      <div class="content-header">
+        <div style="flex:1">
+          <div class="breadcrumb" id="articleBreadcrumb"></div>
+          <h1 id="articleTitle">—</h1>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <button class="btn-link outline back-btn" onclick="showWelcome()">← Voltar</button>
+          <a class="btn-link" id="articleLink" href="#" target="_blank">🔗 Ver original</a>
+        </div>
+      </div>
+      <div class="content-body" id="contentBody">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE_URL = 'https://pjeje.github.io/dicas';
+const RAW_BASE = 'https://raw.githubusercontent.com/PJeJE/dicas/master/content';
+
+const SECTIONS = [
+  { id: 'all', label: 'Todos os artigos', icon: '📚' },
+  { id: 'acesso', label: 'Acesso ao Sistema', icon: '🔐', num: '1' },
+  { id: 'advogados', label: 'Advogados', icon: '👨‍💼', num: '2' },
+  { id: 'atos', label: 'Atos Processuais', icon: '📋', num: '3' },
+  { id: 'autuacao', label: 'Autuação', icon: '📝', num: '4' },
+  { id: 'autos', label: 'Autos Digitais', icon: '📂', num: '5' },
+  { id: 'classes', label: 'Classes Processuais', icon: '🏷️', num: '6' },
+  { id: 'comunicacao', label: 'Comunicação', icon: '📬', num: '7' },
+  { id: 'consulta', label: 'Consulta', icon: '🔎', num: '8' },
+  { id: 'defensorias', label: 'Defensorias', icon: '🛡️', num: '9' },
+  { id: 'distribuicao', label: 'Distribuição', icon: '⚖️', num: '10' },
+  { id: 'etiquetas', label: 'Etiquetas', icon: '🏷️', num: '11' },
+  { id: 'papeis', label: 'Papéis e Perfis', icon: '👤', num: '12' },
+  { id: 'peticionamento', label: 'Peticionamento', icon: '📄', num: '13' },
+  { id: 'prazos', label: 'Prazos Processuais', icon: '⏰', num: '14' },
+  { id: 'procuradorias', label: 'Procuradorias', icon: '🏛️', num: '15' },
+  { id: 'recursos', label: 'Recursos Internos', icon: '📊', num: '16' },
+  { id: 'remessa', label: 'Remessa', icon: '📦', num: '17' },
+  { id: 'sessaojulg', label: 'Sessão de Julgamento', icon: '🏛️', num: '18' },
+  { id: 'sigilo', label: 'Sigilo', icon: '🔒', num: '19' },
+  { id: 'tramitacao', label: 'Tramitação', icon: '🔄', num: '20' },
+  { id: 'automacao', label: 'Automação', icon: '🤖', num: '21' },
+  { id: 'manual', label: 'Manual', icon: '📖', num: '22' },
+  { id: 'wiki', label: 'Wiki', icon: '🌐', num: '23' },
+];
+
+const ARTICLES = [
+  // Acesso
+  { path: 'acesso/configuracao', title: 'Configuração do computador e pré-requisitos', section: 'acesso', keywords: ['pjé office','certificado','navegador','firefox','chrome','requisitos'] },
+  { path: 'acesso/primeiro', title: 'Primeiro acesso ao PJe', section: 'acesso', keywords: ['primeiro acesso','popup','cadastro','advogado','certificado digital'] },
+  { path: 'acesso/mfa', title: 'Autenticação multifator (MFA)', section: 'acesso', keywords: ['mfa','autenticação','qr code','google authenticator','microsoft authenticator','freeotp','pdpj'] },
+  { path: 'acesso/senha', title: 'Senha esquecida ou bloqueada', section: 'acesso', keywords: ['senha','recuperar senha','esquecida','bloqueada','e-mail','reset'] },
+  { path: 'acesso/tokenpje', title: 'Token PJe (PJe Mobile)', section: 'acesso', keywords: ['token','mobile','celular','smartphone','pareamento'] },
+  { path: 'acesso/certvirtual', title: 'Certificado Virtual (Arquivo P12)', section: 'acesso', keywords: ['certificado virtual','p12','pje office','descontinuado'] },
+  { path: 'acesso/lentidao', title: 'Lentidão e erros de exibição das tarefas', section: 'acesso', keywords: ['lentidão','lento','travado','tarefas','erro','exibição'] },
+  { path: 'acesso/erros', title: 'Erros de acesso', section: 'acesso', keywords: ['erro','login','certificado','piscando','não encontrado','sso','pdpj'] },
+  // Advogados
+  { path: 'advogados/cnafora', title: 'CNA fora do estado', section: 'advogados', keywords: ['cna','fora','estado','oab','advogado'] },
+  { path: 'advogados/nao_validado', title: 'Advogado não validado no PJe', section: 'advogados', keywords: ['não validado','advogado','cadastro','oab','receita federal'] },
+  { path: 'advogados/situacao_oab', title: 'Situação OAB', section: 'advogados', keywords: ['oab','situação','regular','irregular','advogado'] },
+  // Atos
+  { path: 'atos/atovulso', title: 'Minutar ato avulso', section: 'atos', keywords: ['ato avulso','magistrado','gabinete','minutar','assinar','paralelo'] },
+  { path: 'atos/audiencias', title: 'Audiências', section: 'atos', keywords: ['audiência','marcação','sala','horário','designação','1g'] },
+  { path: 'atos/minutar_lote', title: 'Minutar documentos em lote', section: 'atos', keywords: ['lote','minutar','documentos','batch','em massa'] },
+  { path: 'atos/movimentacao_lote', title: 'Lançar movimentação em lote', section: 'atos', keywords: ['movimentação','lote','batch','lançar','zonas','tre'] },
+  { path: 'atos/movimentos', title: 'Movimentações processuais', section: 'atos', keywords: ['movimentos','movimentação','sgt','cnj','estatística','magistrado'] },
+  { path: 'atos/transito_lote', title: 'Trânsito em julgado em lote', section: 'atos', keywords: ['trânsito em julgado','lote','batch'] },
+  // Automação
+  { path: 'automacao/certidao/certidao_ciencia', title: 'Certidão de ciência', section: 'automacao', keywords: ['certidão','ciência','automação','robô'] },
+  { path: 'automacao/certidao/certidao_decurso', title: 'Certidão de decurso de prazo', section: 'automacao', keywords: ['certidão','decurso','prazo','automação'] },
+  { path: 'automacao/certidao/certidao_disponibilizacao_dje', title: 'Certidão de disponibilização no DJe', section: 'automacao', keywords: ['certidão','dje','diário','disponibilização'] },
+  { path: 'automacao/certidao/certidao_generica', title: 'Certidão genérica', section: 'automacao', keywords: ['certidão','genérica','automação'] },
+  { path: 'automacao/certidao/certidao_mural', title: 'Certidão de mural', section: 'automacao', keywords: ['certidão','mural','automação'] },
+  { path: 'automacao/certidao/certidao_publicacao_dje', title: 'Certidão de publicação no DJe', section: 'automacao', keywords: ['certidão','publicação','dje','diário'] },
+  { path: 'automacao/certidao/habilitacao_autos', title: 'Habilitação nos autos', section: 'automacao', keywords: ['habilitação','autos','certidão'] },
+  { path: 'automacao/certidao/relatoria_provisoria', title: 'Relatoria provisória', section: 'automacao', keywords: ['relatoria','provisória','certidão'] },
+  { path: 'automacao/etiqueta_pcpp', title: 'Etiquetas PC-PP', section: 'automacao', keywords: ['etiqueta','pcpp','contas','partido','automação'] },
+  { path: 'automacao/etiquetas_rcand_pce', title: 'Etiquetas RCAND e PCE', section: 'automacao', keywords: ['etiqueta','rcand','pce','registro candidatura','automação'] },
+  { path: 'automacao/janus', title: 'Janus — Automação e Inteligência Artificial', section: 'automacao', keywords: ['janus','ia','inteligência artificial','robô','automação','despacho','edital'] },
+  { path: 'automacao/judibot', title: 'Judi-bot (TRE-RJ)', section: 'automacao', keywords: ['judibot','robô','tre-rj','certidão','movimentação','automação'] },
+  { path: 'automacao/pce_com_sinapses', title: 'PCE com Sinapses', section: 'automacao', keywords: ['pce','sinapses','automação','ia'] },
+  // Autos
+  { path: 'autos/documentos/anexos', title: 'Anexos de documentos', section: 'autos', keywords: ['anexos','documentos','arquivo','petição'] },
+  { path: 'autos/documentos/chave', title: 'Chave do documento', section: 'autos', keywords: ['chave','documento','identificador','hash'] },
+  { path: 'autos/documentos/erros_exibicao', title: 'Erros na exibição de documentos', section: 'autos', keywords: ['erro','exibição','documento','pdf','visualização'] },
+  { path: 'autos/documentos/identificadores', title: 'Identificadores de documentos', section: 'autos', keywords: ['identificador','documento','tipo','configuração'] },
+  { path: 'autos/documentos/nao_lidos', title: 'Documentos não lidos', section: 'autos', keywords: ['não lido','documento','pendente','notificação'] },
+  { path: 'autos/documentos/peticao_avulsa', title: 'Petição avulsa', section: 'autos', keywords: ['petição','avulsa','documento','juntada'] },
+  { path: 'autos/documentos/pje_docs', title: 'PJe Docs', section: 'autos', keywords: ['pje docs','editor','documento','word','online'] },
+  { path: 'autos/documentos/variaveis/recuperarparteformatada', title: 'Variável: recuperarParteFormatada', section: 'autos', keywords: ['variável','parte','formatada','template','documento'] },
+  { path: 'autos/documentos/variaveis/responsavelorgao', title: 'Variável: responsavelOrgao', section: 'autos', keywords: ['variável','responsável','órgão','magistrado','documento'] },
+  { path: 'autos/juntardocs', title: 'Juntar documentos nos autos', section: 'autos', keywords: ['juntar','documentos','autos','upload','pdf'] },
+  { path: 'autos/movimentacao', title: 'Aba de movimentações dos autos', section: 'autos', keywords: ['movimentação','autos','visibilidade','consulta pública','servidor'] },
+  { path: 'autos/movimento', title: 'Movimentos dos autos', section: 'autos', keywords: ['movimento','histórico','tramitação','autos'] },
+  { path: 'autos/situacao', title: 'Situações processuais', section: 'autos', keywords: ['situação','processual','redistribuição','ciclo vida','etapa'] },
+  { path: 'autos/tramitacao', title: 'Tramitação nos autos', section: 'autos', keywords: ['tramitação','encaminhar','tarefa','fluxo'] },
+  // Autuação
+  { path: 'autuacao/classes', title: 'Classes processuais na autuação', section: 'autuacao', keywords: ['classes','autuação','protocolo','cadastro','processo'] },
+  { path: 'autuacao/criminais', title: 'Processos criminais', section: 'autuacao', keywords: ['criminal','crime','autuação','processo penal'] },
+  { path: 'autuacao/mp_zonas_tres', title: 'MP nas Zonas e TREs', section: 'autuacao', keywords: ['ministério público','mp','zona','tre','autuação'] },
+  { path: 'autuacao/partes', title: 'Partes do processo', section: 'autuacao', keywords: ['partes','polo ativo','polo passivo','autuação','cadastro'] },
+  { path: 'autuacao/protocolo', title: 'Protocolo do processo', section: 'autuacao', keywords: ['protocolo','número','cnj','autuação','registro'] },
+  { path: 'autuacao/sociedade', title: 'Cadastro de sociedade', section: 'autuacao', keywords: ['sociedade','pessoa jurídica','cnpj','autuação','parte'] },
+  { path: 'autuacao/unificacao', title: 'Unificação de processos', section: 'autuacao', keywords: ['unificação','processos','conexão','autuação'] },
+  // Classes
+  { path: 'classes/configuracao', title: 'Configuração de classes processuais', section: 'classes', keywords: ['configuração','classes','processual','cadastro','administrador'] },
+  { path: 'classes/diasuteis', title: 'Dias úteis por classe', section: 'classes', keywords: ['dias úteis','prazo','classe','configuração'] },
+  { path: 'classes/juizo100digital', title: 'Juízo 100% Digital', section: 'classes', keywords: ['100% digital','juízo digital','virtual','remoto','classe'] },
+  // Consulta
+  { path: 'consulta/interna', title: 'Consulta interna ao sistema', section: 'consulta', keywords: ['consulta','busca','interna','pesquisa','processo'] },
+  { path: 'consulta/publica/regras', title: 'Regras da consulta pública', section: 'consulta', keywords: ['consulta pública','sigilo','visualização','processo','acesso'] },
+  // Distribuição
+  { path: 'distribuicao/260', title: 'Art. 260 do Código Eleitoral', section: 'distribuicao', keywords: ['art 260','código eleitoral','prevenção','distribuição','zona'] },
+  { path: 'distribuicao/impedimento_suspeicao', title: 'Impedimento e suspeição', section: 'distribuicao', keywords: ['impedimento','suspeição','magistrado','distribuição','redistribuição'] },
+  { path: 'distribuicao/pesos', title: 'Pesos processuais', section: 'distribuicao', keywords: ['peso','processual','distribuição','carga trabalho','órgão julgador','distância máxima'] },
+  { path: 'distribuicao/precatorias', title: 'Distribuição de precatórias', section: 'distribuicao', keywords: ['precatória','carta','distribuição','competência'] },
+  { path: 'distribuicao/redistribuicao', title: 'Redistribuições', section: 'distribuicao', keywords: ['redistribuição','prevenção','processo paradigma','substituição','magistrado'] },
+  { path: 'distribuicao/revisor', title: 'Revisor na distribuição', section: 'distribuicao', keywords: ['revisor','distribuição','colegiado','relator'] },
+  { path: 'distribuicao/sem_magistrado', title: 'Distribuição sem magistrado', section: 'distribuicao', keywords: ['sem magistrado','vago','distribuição','cargo','órgão julgador'] },
+  { path: 'distribuicao/tela_informacoes_distribuicao', title: 'Tela de informações da distribuição', section: 'distribuicao', keywords: ['tela','informações','distribuição','acumulador','sorteio'] },
+  // Peticionamento
+  { path: 'peticionamento/avulso', title: 'Peticionamento avulso', section: 'peticionamento', keywords: ['petição','avulsa','peticionamento','documento','juntada'] },
+  { path: 'peticionamento/cand', title: 'Peticionamento CAND', section: 'peticionamento', keywords: ['cand','registro candidatura','peticionamento','eleitoral'] },
+  // Prazos
+  { path: 'prazos/configuracao_calendario', title: 'Configuração do calendário de prazos', section: 'prazos', keywords: ['calendário','feriado','prazo','configuração','dias úteis'] },
+  { path: 'prazos/contagem_horas', title: 'Contagem de prazos em horas', section: 'prazos', keywords: ['horas','prazo','contagem','tempestividade'] },
+  { path: 'prazos/horas', title: 'Prazo em horas', section: 'prazos', keywords: ['horas','prazo','contagem'] },
+  { path: 'prazos/tarefas', title: 'Controle de prazos (tarefas)', section: 'prazos', keywords: ['controle prazos','tarefa','prazo em curso','intimação','expediente'] },
+  // Procuradorias
+  { path: 'procuradorias/caixas', title: 'Caixas de procuradorias', section: 'procuradorias', keywords: ['caixa','procuradoria','caixa de entrada','distribuição','petição'] },
+  { path: 'procuradorias/filtros', title: 'Filtros nas procuradorias', section: 'procuradorias', keywords: ['filtro','procuradoria','busca','processo','caixa'] },
+  { path: 'procuradorias/perfis', title: 'Perfis de procuradorias', section: 'procuradorias', keywords: ['perfil','procuradoria','papel','gestor','distribuidor'] },
+  { path: 'procuradorias/tutoriais_videos', title: 'Tutoriais em vídeo — Procuradorias', section: 'procuradorias', keywords: ['vídeo','tutorial','procuradoria','treinamento'] },
+  // Recursos
+  { path: 'recursos/classes', title: 'Classes dos recursos internos', section: 'recursos', keywords: ['classes','recurso','agravo','embargos','classe processual'] },
+  { path: 'recursos/destaques', title: 'Destaques nos recursos', section: 'recursos', keywords: ['destaque','recurso','plenário','pauta','sessão'] },
+  { path: 'recursos/faq', title: 'FAQ — Recursos internos', section: 'recursos', keywords: ['faq','perguntas','recurso','agravo','dúvidas'] },
+  { path: 'recursos/fluxos_je', title: 'Fluxos da Justiça Eleitoral', section: 'recursos', keywords: ['fluxo','recurso','tramitação','eleitoral','workflow'] },
+  { path: 'recursos/inicio', title: 'Início do recurso', section: 'recursos', keywords: ['início','recurso','interposição','agravo','embargos'] },
+  { path: 'recursos/orientacacao_admin', title: 'Orientações para administradores', section: 'recursos', keywords: ['administrador','configuração','recurso','fluxo','parametrização'] },
+  { path: 'recursos/principais_alteracoes', title: 'Principais alterações nos recursos', section: 'recursos', keywords: ['alterações','novidades','recurso','versão','mudanças'] },
+  { path: 'recursos/rec_etiquetas', title: 'Etiquetas nos recursos', section: 'recursos', keywords: ['etiqueta','recurso','marcação','identificação'] },
+  { path: 'recursos/regras_negocio', title: 'Regras de negócio dos recursos', section: 'recursos', keywords: ['regras negócio','recurso','configuração','lógica'] },
+  { path: 'recursos/tramitacao', title: 'Tramitação dos recursos', section: 'recursos', keywords: ['tramitação','recurso','fluxo','tarefa'] },
+  // Remessa
+  { path: 'remessa/devolucao_origem', title: 'Devolução à origem', section: 'remessa', keywords: ['devolução','origem','remessa','retorno','instância'] },
+  { path: 'remessa/entre_instancias', title: 'Remessa entre instâncias', section: 'remessa', keywords: ['remessa','instâncias','tse','tre','zona','recurso','grau'] },
+  { path: 'remessa/erros/correcoes', title: 'Correções de erros na remessa', section: 'remessa', keywords: ['erro','correção','remessa','instância','falha'] },
+  { path: 'remessa/outra_jurisdicao', title: 'Remessa para outra jurisdição', section: 'remessa', keywords: ['jurisdição','remessa','competência','outro tribunal'] },
+  { path: 'remessa/outros_orgaos', title: 'Remessa para outros órgãos', section: 'remessa', keywords: ['outros órgãos','remessa','externo','protocolo'] },
+  { path: 'remessa/para_stf', title: 'Remessa para o STF', section: 'remessa', keywords: ['stf','supremo','remessa','recurso extraordinário'] },
+  { path: 'remessa/para_tre', title: 'Remessa para o TRE', section: 'remessa', keywords: ['tre','remessa','instância','segundo grau'] },
+  // Sessão Julgamento
+  { path: 'sessaojulg/alterar_data', title: 'Alterar data da sessão de julgamento', section: 'sessaojulg', keywords: ['alterar','data','sessão','julgamento','remarcar'] },
+  { path: 'sessaojulg/encaminharsessao', title: 'Encaminhar para sessão', section: 'sessaojulg', keywords: ['encaminhar','sessão','pauta','gabinete','julgamento'] },
+  { path: 'sessaojulg/paineis', title: 'Painéis da sessão de julgamento', section: 'sessaojulg', keywords: ['painel','sessão','julgamento','plenário','exibição'] },
+  { path: 'sessaojulg/painel_magistrado', title: 'Painel do magistrado', section: 'sessaojulg', keywords: ['painel','magistrado','julgamento','voto','plenário'] },
+  { path: 'sessaojulg/pauta', title: 'Pauta de julgamentos', section: 'sessaojulg', keywords: ['pauta','sessão','julgamento','assessor plenário','relação','contínua','virtual'] },
+  { path: 'sessaojulg/plenario_virtual', title: 'Plenário Virtual', section: 'sessaojulg', keywords: ['plenário virtual','voto','sessão virtual','julgamento','online'] },
+  { path: 'sessaojulg/publicacao_sessao', title: 'Publicação da sessão', section: 'sessaojulg', keywords: ['publicação','sessão','dje','diário','pauta'] },
+  { path: 'sessaojulg/secretario_sessao', title: 'Secretário de sessão', section: 'sessaojulg', keywords: ['secretário','sessão','perfil','papel','julgamento'] },
+  { path: 'sessaojulg/selecionar_documentos', title: 'Seleção de documentos para sessão', section: 'sessaojulg', keywords: ['selecionar','documentos','sessão','acórdão','voto'] },
+  { path: 'sessaojulg/tramitacao', title: 'Tramitação na sessão', section: 'sessaojulg', keywords: ['tramitação','sessão','fluxo','julgamento','tarefa'] },
+  { path: 'sessaojulg/voto_escrito', title: 'Voto escrito', section: 'sessaojulg', keywords: ['voto','escrito','documento','magistrado','julgamento'] },
+  // Sigilo
+  { path: 'sigilo/documentos/docs_rcand', title: 'Documentos sigilosos do RCAND', section: 'sigilo', keywords: ['sigilo','rcand','documento','registro candidatura','acesso restrito'] },
+  { path: 'sigilo/documentos/sigilo_documento', title: 'Sigilo de documentos', section: 'sigilo', keywords: ['sigilo','documento','acesso','restrito','confidencial'] },
+  { path: 'sigilo/informacoes', title: 'Informações sobre sigilo', section: 'sigilo', keywords: ['sigilo','processo','acesso','restrito','informações'] },
+  { path: 'sigilo/niveis', title: 'Níveis de sigilo', section: 'sigilo', keywords: ['nível','sigilo','acesso','papel','visualizador','zona','tre','tse'] },
+  { path: 'sigilo/visualizacao', title: 'Visualização de processos sigilosos', section: 'sigilo', keywords: ['visualização','sigilo','acesso','processo','consulta'] },
+  // Tramitação
+  { path: 'tramitacao/basico', title: 'Tramitação básica', section: 'tramitacao', keywords: ['tramitação','tarefa','encaminhar','fluxo','básico'] },
+  { path: 'tramitacao/configurar', title: 'Configurar tramitação', section: 'tramitacao', keywords: ['configurar','tramitação','fluxo','tarefa','administrador'] },
+  { path: 'tramitacao2grau', title: 'Tramitação no 2° grau', section: 'tramitacao', keywords: ['2º grau','segundo grau','tre','tse','tramitação','fluxo'] },
+  // Outros
+  { path: 'regularizaje', title: 'Regulariza JE', section: 'wiki', keywords: ['regulariza','je','eleitoral','cadastro','regularização'] },
+  { path: 'wiki/funcionalidades', title: 'Funcionalidades do PJe', section: 'wiki', keywords: ['funcionalidades','pje','wiki','features','recursos'] },
+];
+
+// State
+let currentSection = 'all';
+let currentArticle = null;
+let searchQuery = '';
+let contentCache = {};
+
+// Initialize
+function init() {
+  renderSections();
+  renderArticles();
+  document.getElementById('totalCount').textContent = ARTICLES.length;
+  document.getElementById('statArticles').textContent = ARTICLES.length;
+}
+
+function renderSections() {
+  const counts = {};
+  ARTICLES.forEach(a => { counts[a.section] = (counts[a.section] || 0) + 1; });
+  const list = document.getElementById('sectionList');
+  list.innerHTML = SECTIONS.map(s => {
+    const count = s.id === 'all' ? ARTICLES.length : (counts[s.id] || 0);
+    if (s.id !== 'all' && count === 0) return '';
+    return `<div class="section-item ${currentSection === s.id ? 'active' : ''}" onclick="selectSection('${s.id}')">
+      <span><span class="section-icon">${s.icon}</span>${s.label}</span>
+      <span class="num">${count}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectSection(sectionId) {
+  currentSection = sectionId;
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  renderSections();
+  renderArticles();
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  let result = text;
+  words.forEach(word => {
+    const re = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    result = result.replace(re, '<mark class="highlight-text">$1</mark>');
+  });
+  return result;
+}
+
+function getFilteredArticles() {
+  let list = currentSection === 'all' ? ARTICLES : ARTICLES.filter(a => a.section === currentSection);
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase().trim();
+    const words = q.split(/\s+/).filter(Boolean);
+    list = list.filter(a => {
+      const haystack = [a.title, a.section, ...(a.keywords || [])].join(' ').toLowerCase();
+      return words.every(w => haystack.includes(w));
+    });
+  }
+  return list;
+}
+
+function renderArticles() {
+  const list = getFilteredArticles();
+  const sectionLabel = SECTIONS.find(s => s.id === currentSection)?.label || 'Todos';
+  document.getElementById('panelTitle').textContent = searchQuery ? 'Resultados da busca' : sectionLabel;
+  document.getElementById('resultInfo').textContent = `${list.length} artigo${list.length !== 1 ? 's' : ''}`;
+
+  const container = document.getElementById('articleList');
+  if (list.length === 0) {
+    container.innerHTML = `<div class="no-results"><span class="emoji">🔍</span>Nenhum artigo encontrado para "<strong>${searchQuery}</strong>"</div>`;
+    return;
+  }
+
+  const sectionLabels = Object.fromEntries(SECTIONS.map(s => [s.id, s.label]));
+  container.innerHTML = list.map(a => {
+    const isActive = currentArticle?.path === a.path;
+    const titleHl = highlight(a.title, searchQuery);
+    return `<div class="article-card ${isActive ? 'active' : ''}" onclick="openArticle('${a.path}')">
+      <h3>${titleHl}</h3>
+      <div class="meta">
+        <span class="tag">${sectionLabels[a.section] || a.section}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openArticle(path) {
+  currentArticle = ARTICLES.find(a => a.path === path);
+  if (!currentArticle) return;
+
+  renderArticles(); // update active state
+
+  const sectionLabel = SECTIONS.find(s => s.id === currentArticle.section)?.label || currentArticle.section;
+  document.getElementById('articleBreadcrumb').textContent = `PJe Dicas › ${sectionLabel}`;
+  document.getElementById('articleTitle').textContent = currentArticle.title;
+  document.getElementById('articleLink').href = `${BASE_URL}/${currentArticle.path}/`;
+
+  document.getElementById('welcomeScreen').style.display = 'none';
+  const view = document.getElementById('articleView');
+  view.style.display = 'flex';
+  document.getElementById('contentArea').classList.add('show');
+
+  const body = document.getElementById('contentBody');
+  body.classList.add('loading');
+  body.innerHTML = '<div class="spinner"></div>';
+
+  if (contentCache[path]) {
+    renderContent(contentCache[path]);
+    return;
+  }
+
+  const rawUrl = `${RAW_BASE}/${path}.md`;
+  fetch(rawUrl)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(md => { contentCache[path] = md; renderContent(md); })
+    .catch(() => {
+      body.classList.remove('loading');
+      body.innerHTML = `<div class="md-content" style="padding:20px;color:#c0392b">
+        <h2>⚠️ Não foi possível carregar o conteúdo</h2>
+        <p>Verifique sua conexão ou acesse o artigo diretamente no site original:</p>
+        <p><a href="${BASE_URL}/${path}/" target="_blank">${BASE_URL}/${path}/</a></p>
+      </div>`;
+    });
+}
+
+function renderContent(md) {
+  const body = document.getElementById('contentBody');
+  body.classList.remove('loading');
+
+  // Strip frontmatter
+  let content = md.replace(/^---[\s\S]*?---\n?/m, '').replace(/^\+\+\+[\s\S]*?\+\+\+\n?/m, '');
+
+  // Handle Hugo shortcodes
+  content = content.replace(/\{\{%\s*notice\s+(\w+)\s*%\}\}([\s\S]*?)\{\{%\s*\/notice\s*%\}\}/g, (_, type, inner) => {
+    const classMap = { note: 'notice-note', warning: 'notice-warning', info: 'notice-info', tip: 'notice-note' };
+    const cls = classMap[type] || 'notice-note';
+    const icons = { note: 'ℹ️', warning: '⚠️', info: '✅', tip: '💡' };
+    return `<div class="notice-box ${cls}"><strong>${icons[type] || 'ℹ️'}</strong> ${inner.trim()}</div>`;
+  });
+  content = content.replace(/\{\{[<%][^%>]*[%>]\}\}/g, '');
+  content = content.replace(/\{%[^%]*%\}/g, '');
+  content = content.replace(/\{\{<[^>]*>\}\}/g, '');
+
+  const html = marked.parse(content);
+  body.innerHTML = `<div class="md-content">${html}</div>`;
+}
+
+function showWelcome() {
+  currentArticle = null;
+  document.getElementById('welcomeScreen').style.display = 'flex';
+  document.getElementById('articleView').style.display = 'none';
+  document.getElementById('contentArea').classList.remove('show');
+  renderArticles();
+}
+
+// Search
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value;
+    if (searchQuery.trim()) currentSection = 'all';
+    renderSections();
+    renderArticles();
+  }, 200);
+});
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const first = getFilteredArticles()[0];
+    if (first) openArticle(first.path);
+  }
+});
+
+init();
+</script>
+</body>
+</html>

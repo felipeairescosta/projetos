@@ -146,12 +146,14 @@
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
   .card.pad { padding: 16px; }
   .card-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 12px; color: var(--primary); font-size: 15px; font-weight: 850; }
-  .metric { padding: 16px; min-height: 112px; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid var(--primary); }
-  .metric .label { color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
-  .metric .value { font-size: 30px; font-weight: 900; color: var(--primary); }
-  .metric .hint { color: var(--muted); font-size: 12px; }
+  .metric { padding: 16px; min-height: 112px; display: flex; flex-direction: column; gap: 4px; border-left: 5px solid var(--primary); }
+  .metric .label { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .metric .value { font-size: 30px; font-weight: 900; color: var(--primary); line-height: 1.1; margin-top: 4px; }
+  .metric .hint { color: var(--muted); font-size: 11px; margin-top: auto; padding-top: 8px; }
   .metric.success { border-left-color: var(--success); }
   .metric.warn { border-left-color: var(--accent); }
+  .metric.neutral { border-left-color: var(--line); }
+  .metric.neutral .value { color: var(--muted); }
   .metric.danger { border-left-color: var(--danger); }
   .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .btn { border: 0; border-radius: 10px; background: var(--primary); color: white; padding: 9px 13px; font-weight: 800; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; justify-content: center; text-decoration: none; transition: .15s ease; }
@@ -1465,7 +1467,7 @@ function renderDashboard(){
     {label:'Chamados totais', value:tickets.length, hint:'base local'},
     {label:'Abertos/pendentes', value:open, hint:'exigem providência', cls:'danger'},
     {label:'Resolvidos/encerrados', value:resolved, hint:'com solução registrada', cls:'success'},
-    {label:'Fora do SLA', value:outsideSla, hint:'prazo estourado', cls: outsideSla>0?'danger':''},
+    {label:'Fora do SLA', value:outsideSla, hint:'prazo estourado', cls: outsideSla>0?'danger':'neutral'},
     {label:'Críticos/reabertos', value:critical+reopened, hint:'atenção prioritária', cls:'warn'}
   ].map(m=>`<div class="card metric ${m.cls||''}"><span class="label">${m.label}</span><span class="value">${m.value}</span><span class="hint">${m.hint}</span></div>`).join('');
   renderRank('topErrors', groupBy(tickets, t=>sectionLabel(t.categoria)), 'Sem chamados por categoria.');

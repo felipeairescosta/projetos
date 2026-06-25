@@ -161,7 +161,8 @@
   .btn.danger { background: var(--danger); }
   .btn.success { background: var(--success); }
   .btn.small { padding: 6px 9px; border-radius: 8px; font-size: 12px; }
-  .filters { display: grid; grid-template-columns: 1.6fr repeat(5, minmax(130px, .8fr)); gap: 9px; margin-bottom: 13px; }
+  .filters { display: grid; grid-template-columns: 1.6fr repeat(5, minmax(130px, .8fr)); gap: 9px; margin-bottom: 13px; align-items: end; }
+  .filters select, .filters input { height: 40px; padding: 0 11px; }
   .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
   label { font-size: 12px; color: var(--muted); font-weight: 800; }
   input, select, textarea { border: 1px solid var(--line); background: white; color: var(--text); border-radius: 10px; padding: 10px 11px; outline: none; min-width: 0; }
@@ -185,7 +186,12 @@
 
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { text-align: left; color: var(--muted); background: #f7f9fc; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; padding: 10px; border-bottom: 1px solid var(--line); }
-  td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  td.top { vertical-align: top; }
+  /* Action column in tables — never wrap, auto-size to content */
+  td.actions, th.actions { width: 1%; white-space: nowrap; }
+  /* Units table: truncate long city names */
+  #unitList td:nth-child(3) { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   tbody tr:hover td { background: #fbfdff; }
   .clickable { cursor: pointer; }
   .table-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid var(--line); background: white; }
@@ -197,7 +203,8 @@
   .timeline-item { position: relative; padding-bottom: 12px; font-size: 13px; line-height: 1.4; }
   .timeline-item::before { content: ""; position: absolute; left: -22px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); border: 2px solid white; box-shadow: 0 0 0 1px var(--line); }
   .timeline-item .when { color: var(--muted); font-size: 11px; display: block; margin-bottom: 2px; }
-  .suggestion { border: 1px solid var(--line); background: #fbfdff; border-radius: 12px; padding: 11px; margin-bottom: 8px; }
+  .suggestion { border: 1px solid var(--line); background: #fbfdff; border-radius: 12px; padding: 11px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .suggestion .toolbar { margin-top: 4px; }
   .suggestion strong { color: var(--primary); }
   .suggestion .score { float: right; color: var(--muted); font-size: 11px; }
   .kbase-layout { display: grid; grid-template-columns: 270px 340px minmax(0, 1fr); height: 100%; min-height: 0; }
@@ -453,8 +460,8 @@
             <select id="filterCategoria" onchange="renderTickets()"></select>
             <select id="filterPrioridade" onchange="renderTickets()"></select>
             <select id="filterResponsavel" onchange="renderTickets()"></select>
-            <div class="field" style="margin:0;"><label style="font-size:10px;">De</label><input id="filterDateFrom" type="date" onchange="renderTickets()" /></div>
-            <div class="field" style="margin:0;"><label style="font-size:10px;">Até</label><input id="filterDateTo" type="date" onchange="renderTickets()" /></div>
+            <div style="display:flex;align-items:center;gap:5px;white-space:nowrap;"><label style="font-size:11px;margin:0;white-space:nowrap;">De</label><input id="filterDateFrom" type="date" onchange="renderTickets()" style="min-width:0;width:100%;" /></div>
+            <div style="display:flex;align-items:center;gap:5px;white-space:nowrap;"><label style="font-size:11px;margin:0;white-space:nowrap;">Até</label><input id="filterDateTo" type="date" onchange="renderTickets()" style="min-width:0;width:100%;" /></div>
           </div>
           <div class="split">
             <div class="card">
@@ -1542,7 +1549,7 @@ function loadConfigForms(){
   document.getElementById('supabaseUrl').value = supabaseConfig.url||'';
   document.getElementById('supabaseKey').value = supabaseConfig.key||'';
 }
-function renderUnits(){ if(!document.getElementById('unitList')) return; unitList.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Unidade</th><th>Município/setor</th><th></th></tr></thead><tbody>${units.map(u=>`<tr><td>${escapeHtml(u.type)}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.city||'—')}</td><td style="display:flex;gap:4px;"><button class="btn small secondary" onclick="editUnit('${u.id}')">Editar</button><button class="btn small danger" onclick="deleteUnit('${u.id}')">Excluir</button></td></tr>`).join('')}</tbody></table></div>`; }
+function renderUnits(){ if(!document.getElementById('unitList')) return; unitList.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Unidade</th><th>Município/setor</th><th class="actions"></th></tr></thead><tbody>${units.map(u=>`<tr><td>${escapeHtml(u.type)}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.city||'—')}</td><td class="actions"><div style="display:flex;gap:4px;width:max-content;"><button class="btn small secondary" style="flex-shrink:0" onclick="editUnit('${u.id}')">Editar</button><button class="btn small danger" style="flex-shrink:0" onclick="deleteUnit('${u.id}')">Excluir</button></div></td></tr>`).join('')}</tbody></table></div>`; }
 function clearUnitForm(){ unitForm.reset(); unitId.value=''; }
 function editUnit(id){ const u=units.find(x=>x.id===id); if(!u) return; unitId.value=u.id; unitType.value=u.type; unitName.value=u.name; unitCity.value=u.city||''; unitEmail.value=u.email||''; unitNotes.value=u.notes||''; }
 function deleteUnit(id){ if(!confirm('Excluir esta unidade?')) return; units=units.filter(u=>u.id!==id); save(STORAGE_KEYS.units,units); fillUnitOptions(); renderUnits(); }
@@ -2336,7 +2343,7 @@ function renderWeeklyChart(){
 function renderReportTable(id, data, label){ const el=document.getElementById(id); if(!el) return; if(!data.length){ el.innerHTML='<div class="empty">Sem dados.</div>'; return; } el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>${escapeHtml(label)}</th><th>Quantidade</th></tr></thead><tbody>${data.map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td><strong>${v}</strong></td></tr>`).join('')}</tbody></table></div>`; }
 
 // ---- Units ----
-function renderUnits(){ const ul=document.getElementById('unitList'); if(!ul) return; ul.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Unidade</th><th>Município/setor</th><th></th></tr></thead><tbody>${units.map(u=>`<tr><td>${escapeHtml(u.type)}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.city||'—')}</td><td style="display:flex;gap:4px;"><button class="btn small secondary" onclick="editUnit('${escapeHtml(u.id)}')">Editar</button><button class="btn small danger" onclick="deleteUnit('${escapeHtml(u.id)}')">Excluir</button></td></tr>`).join('')}</tbody></table></div>`; }
+function renderUnits(){ const ul=document.getElementById('unitList'); if(!ul) return; ul.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Unidade</th><th>Município/setor</th><th class="actions"></th></tr></thead><tbody>${units.map(u=>`<tr><td>${escapeHtml(u.type)}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.city||'—')}</td><td class="actions"><div style="display:flex;gap:4px;width:max-content;"><button class="btn small secondary" style="flex-shrink:0" onclick="editUnit('${escapeHtml(u.id)}')">Editar</button><button class="btn small danger" style="flex-shrink:0" onclick="deleteUnit('${escapeHtml(u.id)}')">Excluir</button></div></td></tr>`).join('')}</tbody></table></div>`; }
 function clearUnitForm(){ const uf=document.getElementById('unitForm'); if(uf) uf.reset(); const ui=document.getElementById('unitId'); if(ui) ui.value=''; }
 function editUnit(id){ const u=units.find(x=>x.id===id); if(!u) return; const s=(eid,v)=>{ const e=document.getElementById(eid); if(e) e.value=v; }; s('unitId',u.id); s('unitType',u.type); s('unitName',u.name); s('unitCity',u.city||''); s('unitEmail',u.email||''); s('unitNotes',u.notes||''); }
 function deleteUnit(id){ if(!confirm('Excluir esta unidade?')) return; units=units.filter(u=>u.id!==id); save(STORAGE_KEYS.units,units); const fo=document.getElementById('unitForm'); if(fo) fo.reset(); fillUnitOptions(); renderUnits(); }

@@ -1464,11 +1464,11 @@ function renderDashboard(){
   const reopened = tickets.filter(t=>t.status==='Reaberto').length;
   const outsideSla = tickets.filter(t=>!['Resolvido','Encerrado'].includes(t.status) && ticketAgeHours(t) > slaHours(t)).length;
   metricCards.innerHTML = [
-    {label:'Chamados totais', value:tickets.length, hint:'base local'},
-    {label:'Abertos/pendentes', value:open, hint:'exigem providência', cls:'danger'},
-    {label:'Resolvidos/encerrados', value:resolved, hint:'com solução registrada', cls:'success'},
+    {label:'Total de chamados', value:tickets.length, hint:'base local'},
+    {label:'Abertos / pendentes', value:open, hint:'exigem providência', cls:'danger'},
+    {label:'Resolvidos', value:resolved, hint:'com solução registrada', cls:'success'},
     {label:'Fora do SLA', value:outsideSla, hint:'prazo estourado', cls: outsideSla>0?'danger':'neutral'},
-    {label:'Críticos/reabertos', value:critical+reopened, hint:'atenção prioritária', cls:'warn'}
+    {label:'Críticos / reabertos', value:critical+reopened, hint:'atenção prioritária', cls:'warn'}
   ].map(m=>`<div class="card metric ${m.cls||''}"><span class="label">${m.label}</span><span class="value">${m.value}</span><span class="hint">${m.hint}</span></div>`).join('');
   renderRank('topErrors', groupBy(tickets, t=>sectionLabel(t.categoria)), 'Sem chamados por categoria.');
   renderRank('byOrigin', groupBy(tickets, t=>t.tipoCliente), 'Sem chamados por origem.');
@@ -2211,11 +2211,11 @@ function renderDashboard(){
   }).length;
   const mc = document.getElementById('metricCards');
   if(mc) mc.innerHTML = [
-    {label:'Chamados totais', value:tickets.length, hint:'base local de validação'},
-    {label:'Abertos/pendentes', value:open, hint:'exigem providência', cls:'danger'},
-    {label:'Resolvidos/encerrados', value:resolved, hint:'com solução registrada', cls:'success'},
-    {label:'Críticos/reabertos', value:critical+reopened, hint:'atenção prioritária', cls:'warn'},
-    {label:'Fora do SLA', value:foraSla, hint:'abertos além do prazo configurado', cls:'danger'}
+    {label:'Total de chamados', value:tickets.length, hint:'base local de validação'},
+    {label:'Abertos / pendentes', value:open, hint:'exigem providência', cls:'danger'},
+    {label:'Resolvidos', value:resolved, hint:'com solução registrada', cls:'success'},
+    {label:'Fora do SLA', value:foraSla, hint:'prazo estourado', cls: foraSla>0?'danger':'neutral'},
+    {label:'Críticos / reabertos', value:critical+reopened, hint:'atenção prioritária', cls:'warn'}
   ].map(m=>`<div class="card metric ${m.cls||''}"><span class="label">${m.label}</span><span class="value">${m.value}</span><span class="hint">${m.hint}</span></div>`).join('');
   renderRank('topErrors', groupBy(tickets, t=>sectionLabel(t.categoria)), 'Sem chamados por categoria.');
   renderRank('byOrigin', groupBy(tickets, t=>t.tipoCliente), 'Sem chamados por origem.');

@@ -1995,3 +1995,408 @@ function saveTicketFromForm(event){
   if(impacto==='Indisponibilidade') fireWebhook(ticket,'indisponibilidade');
   persist(); clearTicketForm(); goView('chamados'); renderTicketDetail(ticket.id);
 }
+// ---- Ticket list/filter/detail ----
+function filterTickets(){
+  const q = normalize(document.getElementById('ticketSearch')?.value || '');
+  const fs = document.getElementById('filterStatus')?.value || 'Todos os status';
+  const fo = document.getElementById('filterOrigem')?.value || 'Todas as origens';
+  const fc = document.getElementById('filterCategoria')?.value || 'all';
+  const fp = document.getElementById('filterPrioridade')?.value || 'Todas as prioridades';
+  const fr = document.getElementById('filterResponsavel')?.value || 'Todos os responsáveis';
+  const fd = document.getElementById('filterDateFrom')?.value || '';
+  const fdt = document.getElementById('filterDateTo')?.value || '';
+  return tickets.filter(t => {
+    const hay = normalize([t.id,t.titulo,t.unidadeNome,t.unidadeMunicipio,t.solicitante,t.categoria,t.descricaoErro,t.mensagemErro,t.processo,(t.responsaveis||[t.responsavel||'']).join(' '),t.orientacaoPrestada].join(' '));
+    const dt = t.dataAbertura ? t.dataAbertura.slice(0,10) : '';
+    const respMatch = fr==='Todos os responsáveis' || (t.responsaveis||[]).some(r=>normalize(r).includes(normalize(fr))) || normalize(t.responsavel||'').includes(normalize(fr));
+    return (!q||hay.includes(q)) && (fs==='Todos os status'||t.status===fs) && (fo==='Todas as origens'||t.tipoCliente===fo) && (fc==='all'||t.categoria===fc) && (fp==='Todas as prioridades'||t.prioridade===fp) && respMatch && (!fd||dt>=fd) && (!fdt||dt<=fdt);
+  });
+}
+function updateResponsavelFilter(){ const set = [...new Set(tickets.flatMap(t=>t.responsaveis||[t.responsavel||'']).filter(Boolean))].sort(); setOptions('filterResponsavel', ['Todos os responsáveis', ...set]); }
+function renderTickets(){
+  if(!document.getElementById('ticketsTable')) return;
+  updateResponsavelFilter();
+  const list = filterTickets();
+  const tbody = document.getElementById('ticketsTable');
+  tbody.innerHTML = list.length ? list.map(t => `<tr class="clickable" onclick="renderTicketDetail('${escapeHtml(t.id)}')"><td><strong>${escapeHtml(t.id)}</strong></td><td>${escapeHtml(t.titulo)}</td><td>${escapeHtml(t.unidadeNome)}<br><small>${escapeHtml(t.tipoCliente)}</small></td><td>${escapeHtml(t.canal||'—')}</td><td><span class="badge priority-${escapeHtml(t.prioridade)}">${escapeHtml(t.prioridade)}</span></td><td><span class="badge ${sanitizeStatus(t.status)}">${escapeHtml(t.status)}</span></td><td>${ageBadge(t)}</td></tr>`).join('') : '<tr><td colspan="7"><div class="empty"><span class="big">🎫</span>Nenhum chamado encontrado.</div></td></tr>';
+  if(selectedTicketId && !tickets.find(t=>t.id===selectedTicketId)) selectedTicketId = null;
+  if(selectedTicketId) renderTicketDetail(selectedTicketId, false); else { const d=document.getElementById('ticketDetail'); if(d) d.innerHTML='<div class="empty"><span class="big">👈</span>Selecione um chamado para ver detalhes.</div>'; }
+}
+
+function starsDisplay(n){
+  if(!n) return '';
+  return Array.from({length:5},(_,i)=>`<span style="color:${i<n?'#f59e0b':'#ccc'};font-size:16px;">★</span>`).join('');
+}
+
+function renderTicketDetail(id, setSelected=true){
+  const t = tickets.find(x=>x.id===id); if(!t) return; if(setSelected) selectedTicketId = id;
+  const detail = document.getElementById('ticketDetail'); if(!detail) return;
+  const responsaveisStr = (t.responsaveis||[t.responsavel||'Equipe PJe']).join(', ');
+  const avaliacaoHtml = t.avaliacao ? `<div style="margin:8px 0;"><label>Avaliação do atendimento</label><div>${starsDisplay(t.avaliacao)} <small class="help">${t.avaliacao}/5</small></div></div>` : '';
+  detail.innerHTML = `
+    <h2 class="card-title"><span>${escapeHtml(t.id)}</span><span class="badge ${sanitizeStatus(t.status)}">${escapeHtml(t.status)}</span></h2>
+    <h3 style="margin:0 0 8px;color:var(--primary);">${escapeHtml(t.titulo)}</h3>
+    <p class="help"><strong>Unidade:</strong> ${escapeHtml(t.unidadeNome)} · ${escapeHtml(t.tipoCliente)}<br><strong>Canal:</strong> ${escapeHtml(t.canal||'—')} · <strong>Categoria:</strong> ${escapeHtml(sectionLabel(t.categoria))}<br><strong>Prioridade:</strong> ${escapeHtml(t.prioridade)} · <strong>Impacto:</strong> ${escapeHtml(t.impacto)}<br><strong>Responsáveis:</strong> ${escapeHtml(responsaveisStr)} · <strong>Idade:</strong> ${ageBadge(t)}</p>
+    ${avaliacaoHtml}
+    <div class="notice"><strong>Erro informado:</strong><br>${escapeHtml(t.descricaoErro || '—')} ${t.mensagemErro ? '<br><br><strong>Mensagem:</strong><br>'+escapeHtml(t.mensagemErro):''}</div>
+    <div class="field" style="margin-top:12px;"><label>Status</label><select id="detailStatus">${STATUS.map(s=>`<option ${s===t.status?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select></div>
+    <div class="field"><label>Responsáveis</label><div id="detailResponsaveisContainer" class="tags-input" onclick="focusTagInput('detailResponsaveisContainer')"></div></div>
+    <div class="field"><label>Orientação prestada</label><textarea id="detailOrientacao">${escapeHtml(t.orientacaoPrestada||'')}</textarea></div>
+    <div class="field" style="position:relative;"><label>Nova anotação no histórico</label><textarea id="detailNote" placeholder="Ex.: Unidade confirmou solução; solicitado novo print; chamado reaberto... (use @ para mencionar)"></textarea></div>
+    <div class="field"><label>Artigo vinculado</label><select id="detailArticle"><option value="">Sem vínculo</option>${ARTICLES.map(a=>`<option value="${escapeHtml(a.path)}" ${a.path===t.artigoVinculado?'selected':''}>${escapeHtml(a.title)} · ${escapeHtml(sectionLabel(a.section))}</option>`).join('')}</select></div>
+    <div id="ratingModal" class="rating-modal hidden"><strong>Avaliar atendimento</strong><br><div id="ratingStars" style="margin:8px 0;"></div><small class="help">Clique na estrela para avaliar</small></div>
+    <div class="toolbar"><button class="btn" onclick="saveTicketDetail('${escapeHtml(t.id)}')">Salvar atualização</button><button class="btn success" onclick="showRatingModal('${escapeHtml(t.id)}')">Resolver</button><button class="btn secondary" onclick="copyTicketAnswer('${escapeHtml(t.id)}')">Copiar resposta</button><button class="btn secondary" onclick="printTicketPdf('${escapeHtml(t.id)}')">🖨️ PDF</button><button class="btn secondary" onclick="shareTicket('${escapeHtml(t.id)}')">🔗 Compartilhar</button></div>
+    <div class="toolbar" style="margin-top:8px;"><button class="btn secondary" onclick="convertTicketToCatalog('${escapeHtml(t.id)}')">Converter em erro catalogado</button><button class="btn danger" onclick="deleteTicket('${escapeHtml(t.id)}')">Excluir</button></div>
+    <h2 class="card-title" style="margin-top:18px;">Histórico</h2><div class="timeline">${(t.historico||[]).map(h=>`<div class="timeline-item"><span class="when">${fmtDate(h.data)} · ${escapeHtml(h.usuario||'Sistema')}</span>${escapeHtml(h.acao)}</div>`).join('')}</div>`;
+
+  // Render tags for responsáveis
+  const currentResp = t.responsaveis||[t.responsavel||'Equipe PJe'];
+  renderTagsInput('detailResponsaveisContainer', currentResp, tags => {});
+
+  // Bind @mention
+  bindMentionAutocomplete('detailNote', () => getResponsaveisSuggestions());
+
+  // Rating stars
+  renderRatingStars('ratingStars', id);
+}
+
+function renderRatingStars(containerId, ticketId){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  container.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const btn = document.createElement('button');
+    btn.className='star-btn';
+    btn.textContent='★';
+    btn.title=i+' estrela'+(i>1?'s':'');
+    btn.addEventListener('click', () => {
+      const t = tickets.find(x=>x.id===ticketId);
+      if(t){ t.avaliacao=i; }
+      document.getElementById('ratingModal')?.classList.add('hidden');
+      // proceed with resolve
+      const ds = document.getElementById('detailStatus');
+      if(ds) ds.value='Resolvido';
+      const dn = document.getElementById('detailNote');
+      if(dn && !dn.value) dn.value='Chamado marcado como resolvido.';
+      saveTicketDetail(ticketId);
+    });
+    container.appendChild(btn);
+  }
+}
+
+function showRatingModal(id){
+  const modal = document.getElementById('ratingModal');
+  if(modal){ modal.classList.remove('hidden'); }
+  else {
+    // fallback: resolve without rating
+    const ds = document.getElementById('detailStatus');
+    if(ds) ds.value='Resolvido';
+    const dn = document.getElementById('detailNote');
+    if(dn && !dn.value) dn.value='Chamado marcado como resolvido.';
+    saveTicketDetail(id);
+  }
+}
+
+function saveTicketDetail(id){
+  const t=tickets.find(x=>x.id===id); if(!t) return;
+  const now = new Date().toISOString();
+  const old = t.status;
+  const ds = document.getElementById('detailStatus');
+  const dor = document.getElementById('detailOrientacao');
+  const dart = document.getElementById('detailArticle');
+  const dn = document.getElementById('detailNote');
+  if(ds) t.status = ds.value;
+  if(dor) t.orientacaoPrestada = dor.value.trim();
+  if(dart) t.artigoVinculado = dart.value;
+  // update responsaveis from tags
+  const newResp = getTagsFromContainer('detailResponsaveisContainer');
+  if(newResp.length) { t.responsaveis = newResp; t.responsavel = newResp.join(', '); }
+  t.dataAtualizacao = now;
+  const note = dn?.value?.trim()||'';
+  if(old !== t.status) t.historico.push({data:now, usuario:'Atendimento', acao:`Status alterado de ${old} para ${t.status}`});
+  if(note) t.historico.push({data:now, usuario:'Atendimento', acao:note});
+  if(['Resolvido','Encerrado'].includes(t.status) && !t.dataEncerramento) t.dataEncerramento = now;
+  // Webhook for reaberto
+  if(t.status==='Reaberto' && old!=='Reaberto') fireWebhook(t,'reaberto');
+  persist(); renderTicketDetail(id);
+}
+
+function deleteTicket(id){ if(!confirm('Excluir este chamado?')) return; tickets = tickets.filter(t=>t.id!==id); selectedTicketId=null; persist(); }
+
+function copyTicketAnswer(id){
+  const t=tickets.find(x=>x.id===id); if(!t) return;
+  const text = `Prezada unidade,\n\nEm atenção ao chamado ${t.id}, referente a "${t.titulo}", orientamos:\n\n${t.orientacaoPrestada || 'Encaminhamos orientação para tratamento da ocorrência informada.'}\n\n${t.artigoVinculado ? 'Orientação vinculada: '+articleTitle(t.artigoVinculado)+'.\n\n' : ''}Solicitamos confirmar se a ocorrência foi solucionada. Caso persista, encaminhar mensagem de erro atualizada, horário da tentativa e evidência sem exposição de dados sensíveis.\n\nStatus atual: ${t.status}.`;
+  navigator.clipboard?.writeText(text).then(()=>toast('Resposta copiada.')).catch(()=>prompt('Copie o texto:', text));
+}
+
+function convertTicketToCatalog(id){
+  const t=tickets.find(x=>x.id===id); if(!t) return;
+  goView('catalogo');
+  const ci=document.getElementById('catalogId'); if(ci) ci.value='';
+  const cc=document.getElementById('catalogCode'); if(cc) cc.value=`PJE-${String(catalog.length+1).padStart(3,'0')}`;
+  const ct=document.getElementById('catalogTitle'); if(ct) ct.value=t.titulo;
+  const ccat=document.getElementById('catalogCategory'); if(ccat) ccat.value=t.categoria;
+  const ck=document.getElementById('catalogKeywords'); if(ck) ck.value=[t.titulo,t.mensagemErro].join(', ');
+  const ccause=document.getElementById('catalogCause'); if(ccause) ccause.value='Causa provável a validar a partir do chamado '+t.id+'.';
+  const cg=document.getElementById('catalogGuidance'); if(cg) cg.value=t.orientacaoPrestada||'';
+  const ca=document.getElementById('catalogArticle'); if(ca) ca.value=t.artigoVinculado||'';
+}
+
+// ---- PDF Print ----
+function printTicketPdf(id){
+  const t = tickets.find(x=>x.id===id); if(!t) return;
+  const hist = (t.historico||[]).map(h=>`<tr><td>${fmtDate(h.data)}</td><td>${escapeHtml(h.usuario||'Sistema')}</td><td>${escapeHtml(h.acao)}</td></tr>`).join('');
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Chamado ${escapeHtml(t.id)}</title>
+  <style>body{font-family:Arial,sans-serif;margin:30px;color:#111;}h1{color:#123866;border-bottom:2px solid #123866;padding-bottom:8px;}h2{color:#123866;font-size:15px;margin-top:20px;}table{width:100%;border-collapse:collapse;font-size:13px;}th,td{border:1px solid #ccc;padding:8px;text-align:left;}th{background:#f0f0f0;}@media print{button{display:none;}}</style>
+  </head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div><strong style="font-size:18px;color:#123866;">TRE-CE — Central PJe</strong><br><small>Emitido em: ${fmtDate(new Date().toISOString())}</small></div>
+  </div>
+  <h1>Chamado ${escapeHtml(t.id)}</h1>
+  <table><tr><th>Campo</th><th>Valor</th></tr>
+  <tr><td>Título</td><td>${escapeHtml(t.titulo)}</td></tr>
+  <tr><td>Status</td><td>${escapeHtml(t.status)}</td></tr>
+  <tr><td>Prioridade</td><td>${escapeHtml(t.prioridade)}</td></tr>
+  <tr><td>Unidade</td><td>${escapeHtml(t.unidadeNome)}</td></tr>
+  <tr><td>Tipo</td><td>${escapeHtml(t.tipoCliente)}</td></tr>
+  <tr><td>Solicitante</td><td>${escapeHtml(t.solicitante||'—')}</td></tr>
+  <tr><td>Canal</td><td>${escapeHtml(t.canal||'—')}</td></tr>
+  <tr><td>Categoria</td><td>${escapeHtml(sectionLabel(t.categoria))}</td></tr>
+  <tr><td>Sistema</td><td>${escapeHtml(t.sistema||'—')}</td></tr>
+  <tr><td>Processo</td><td>${escapeHtml(t.processo||'—')}</td></tr>
+  <tr><td>Impacto</td><td>${escapeHtml(t.impacto||'—')}</td></tr>
+  <tr><td>Responsáveis</td><td>${escapeHtml((t.responsaveis||[t.responsavel||'']).join(', '))}</td></tr>
+  <tr><td>Abertura</td><td>${fmtDate(t.dataAbertura)}</td></tr>
+  <tr><td>Atualização</td><td>${fmtDate(t.dataAtualizacao)}</td></tr>
+  <tr><td>Encerramento</td><td>${fmtDate(t.dataEncerramento)||'—'}</td></tr>
+  ${t.avaliacao ? `<tr><td>Avaliação</td><td>${t.avaliacao}/5 estrelas</td></tr>` : ''}
+  </table>
+  <h2>Descrição do erro</h2><p>${escapeHtml(t.descricaoErro||'—')}</p>
+  ${t.mensagemErro?`<h2>Mensagem do sistema</h2><p>${escapeHtml(t.mensagemErro)}</p>`:''}
+  <h2>Orientação prestada</h2><p>${escapeHtml(t.orientacaoPrestada||'—')}</p>
+  ${t.artigoVinculado?`<h2>Artigo vinculado</h2><p>${escapeHtml(articleTitle(t.artigoVinculado))}</p>`:''}
+  <h2>Histórico</h2>
+  <table><thead><tr><th>Data</th><th>Usuário</th><th>Ação</th></tr></thead><tbody>${hist}</tbody></table>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+// ---- Dashboard ----
+function renderDashboard(){
+  if(!document.getElementById('metricCards')) return;
+  const open = tickets.filter(t=>!['Resolvido','Encerrado'].includes(t.status)).length;
+  const resolved = tickets.filter(t=>['Resolvido','Encerrado'].includes(t.status)).length;
+  const critical = tickets.filter(t=>t.prioridade==='Crítica' || t.impacto==='Indisponibilidade').length;
+  const reopened = tickets.filter(t=>t.status==='Reaberto').length;
+  const sla = getSlaConfig();
+  const foraSla = tickets.filter(t=>{
+    if(['Resolvido','Encerrado'].includes(t.status)) return false;
+    const h = ticketAgeHours(t);
+    return h > (sla[t.prioridade]||72);
+  }).length;
+  const mc = document.getElementById('metricCards');
+  if(mc) mc.innerHTML = [
+    {label:'Chamados totais', value:tickets.length, hint:'base local de validação'},
+    {label:'Abertos/pendentes', value:open, hint:'exigem providência', cls:'danger'},
+    {label:'Resolvidos/encerrados', value:resolved, hint:'com solução registrada', cls:'success'},
+    {label:'Críticos/reabertos', value:critical+reopened, hint:'atenção prioritária', cls:'warn'},
+    {label:'Fora do SLA', value:foraSla, hint:'abertos além do prazo configurado', cls:'danger'}
+  ].map(m=>`<div class="card metric ${m.cls||''}"><span class="label">${m.label}</span><span class="value">${m.value}</span><span class="hint">${m.hint}</span></div>`).join('');
+  renderRank('topErrors', groupBy(tickets, t=>sectionLabel(t.categoria)), 'Sem chamados por categoria.');
+  renderRank('byOrigin', groupBy(tickets, t=>t.tipoCliente), 'Sem chamados por origem.');
+  const rt = document.getElementById('recentTickets');
+  if(rt) rt.innerHTML = tickets.slice(0,7).map(t=>`<tr class="clickable" onclick="goView('chamados');renderTicketDetail('${escapeHtml(t.id)}')"><td><strong>${escapeHtml(t.id)}</strong></td><td>${escapeHtml(t.titulo)}</td><td>${escapeHtml(t.unidadeNome)}</td><td><span class="badge ${sanitizeStatus(t.status)}">${escapeHtml(t.status)}</span></td></tr>`).join('') || '<tr><td colspan="4">Nenhum chamado registrado.</td></tr>';
+}
+function groupBy(arr, fn){ const map = {}; arr.forEach(x=>{ const k=fn(x)||'—'; map[k]=(map[k]||0)+1; }); return Object.entries(map).sort((a,b)=>b[1]-a[1]); }
+function renderRank(id, data, empty){ const el=document.getElementById(id); if(!el) return; if(!data.length){ el.innerHTML = `<div class="empty" style="min-height:120px;">${empty}</div>`; return; } const max=Math.max(...data.map(x=>x[1])); el.innerHTML = data.slice(0,8).map(([label,n])=>`<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:13px;"><strong>${escapeHtml(label)}</strong><span>${n}</span></div><div class="bar"><span style="width:${Math.round(n/max*100)}%"></span></div></div>`).join(''); }
+
+// ---- Kanban ----
+function kanbanColForTicket(t){
+  if(t.status==='Resolvido'||t.status==='Encerrado') return 'Resolvido/Encerrado';
+  return t.status;
+}
+function renderKanban(){
+  const board = document.getElementById('kanbanBoard'); if(!board) return;
+  const cols = {};
+  KANBAN_COLS.forEach(c => cols[c]=[]);
+  tickets.forEach(t => { const col=kanbanColForTicket(t); if(cols[col]!==undefined) cols[col].push(t); });
+  board.innerHTML = KANBAN_COLS.map(colName => {
+    const list = cols[colName]||[];
+    const cards = list.map(t => `<div class="kanban-card" draggable="true"
+      ondragstart="event.dataTransfer.setData('ticketId','${escapeHtml(t.id)}')"
+      onclick="goView('chamados');renderTicketDetail('${escapeHtml(t.id)}')">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:4px;">${escapeHtml(t.id)}</div>
+      <div style="margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.titulo.length>40?t.titulo.slice(0,40)+'…':t.titulo)}</div>
+      <div style="margin-bottom:4px;color:var(--muted);font-size:11px;">${escapeHtml(t.unidadeNome)}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;"><span class="badge priority-${escapeHtml(t.prioridade)}">${escapeHtml(t.prioridade)}</span>${ageBadge(t)}</div>
+    </div>`).join('');
+    return `<div class="kanban-col"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="kanbanDrop(event,'${escapeHtml(colName)}');this.classList.remove('drag-over')">
+      <div style="font-weight:800;font-size:13px;color:var(--primary);padding:4px 0 8px;display:flex;justify-content:space-between;align-items:center;">
+        ${escapeHtml(colName)}<span class="badge">${list.length}</span>
+      </div>
+      ${cards}
+    </div>`;
+  }).join('');
+}
+function kanbanDrop(event, colName){
+  const id = event.dataTransfer.getData('ticketId');
+  const t = tickets.find(x=>x.id===id); if(!t) return;
+  const now = new Date().toISOString();
+  const old = t.status;
+  let newStatus;
+  if(colName==='Resolvido/Encerrado') newStatus='Resolvido';
+  else newStatus=colName;
+  if(old===newStatus) return;
+  t.status = newStatus;
+  t.dataAtualizacao = now;
+  t.historico = t.historico||[];
+  t.historico.push({data:now, usuario:'Kanban', acao:`Status alterado de ${old} para ${newStatus} via Kanban`});
+  if(['Resolvido','Encerrado'].includes(newStatus) && !t.dataEncerramento) t.dataEncerramento=now;
+  if(newStatus==='Reaberto' && old!=='Reaberto') fireWebhook(t,'reaberto');
+  persist(); renderKanban();
+}
+
+// ---- Catalog ----
+function renderCatalog(){
+  if(!document.getElementById('catalogList')) return;
+  const cs = document.getElementById('catalogSearch');
+  const ccf = document.getElementById('catalogCategoryFilter');
+  const q=normalize(cs?.value||''); const cat = ccf?.value||'all';
+  const list = catalog.filter(c => (!q || normalize([c.code,c.title,c.category,c.cause,c.guidance,(c.keywords||[]).join(' ')].join(' ')).includes(q)) && (cat==='all'||c.category===cat));
+  const cl = document.getElementById('catalogList');
+  if(cl) cl.innerHTML = list.length ? list.map(c=>`<div class="suggestion"><strong>${escapeHtml(c.code)} · ${escapeHtml(c.title)}</strong><br><small>${escapeHtml(sectionLabel(c.category))} ${c.article ? ' · '+escapeHtml(articleTitle(c.article)) : ''}</small><p class="help"><strong>Causa provável:</strong> ${escapeHtml(c.cause||'—')}<br><strong>Orientação:</strong> ${escapeHtml(c.guidance||'—')}</p><div class="toolbar"><button class="btn small secondary" onclick="editCatalogItem('${escapeHtml(c.id)}')">Editar</button><button class="btn small danger" onclick="deleteCatalogItem('${escapeHtml(c.id)}')">Excluir</button></div></div>`).join('') : '<div class="empty"><span class="big">🧩</span>Nenhum erro catalogado encontrado.</div>';
+}
+function openCatalogForm(){ goView('catalogo'); clearCatalogForm(); const cc=document.getElementById('catalogCode'); if(cc) cc.focus(); }
+function clearCatalogForm(){ const f=document.getElementById('catalogForm'); if(!f) return; f.reset(); const ci=document.getElementById('catalogId'); if(ci) ci.value=''; const cft=document.getElementById('catalogFormTitle'); if(cft) cft.textContent='Novo erro catalogado'; const cc=document.getElementById('catalogCode'); if(cc) cc.value=`PJE-${String(catalog.length+1).padStart(3,'0')}`; }
+function editCatalogItem(id){ const c=catalog.find(x=>x.id===id); if(!c) return; const set=(eid,val)=>{ const e=document.getElementById(eid); if(e) e.value=val; }; set('catalogId',c.id); set('catalogCode',c.code); set('catalogTitle',c.title); set('catalogCategory',c.category); set('catalogKeywords',(c.keywords||[]).join(', ')); set('catalogCause',c.cause||''); set('catalogGuidance',c.guidance||''); set('catalogArticle',c.article||''); const cft=document.getElementById('catalogFormTitle'); if(cft) cft.textContent='Editar erro catalogado'; }
+function saveCatalogItem(event){ event.preventDefault(); const g=(id)=>document.getElementById(id)?.value||''; const obj = { id: g('catalogId') || 'CAT-'+crypto.randomUUID().slice(0,8), code: g('catalogCode').trim(), title: g('catalogTitle').trim(), category: g('catalogCategory'), keywords: g('catalogKeywords').split(',').map(x=>x.trim()).filter(Boolean), cause: g('catalogCause').trim(), guidance: g('catalogGuidance').trim(), article: g('catalogArticle') };
+  const idx = catalog.findIndex(c=>c.id===obj.id); if(idx>=0) catalog[idx]=obj; else catalog.unshift(obj); save(STORAGE_KEYS.catalog, catalog); renderCatalog(); clearCatalogForm(); updateSuggestions(); }
+function deleteCatalogItem(id){ if(!confirm('Excluir erro catalogado?')) return; catalog = catalog.filter(c=>c.id!==id); save(STORAGE_KEYS.catalog, catalog); renderCatalog(); }
+
+// ---- Knowledge base ----
+function renderKbSections(){ const counts = {}; ARTICLES.forEach(a=>counts[a.section]=(counts[a.section]||0)+1); const ks=document.getElementById('kbSections'); if(!ks) return; ks.innerHTML = SECTIONS.map(s=>{ const count=s.id==='all'?ARTICLES.length:(counts[s.id]||0); if(s.id!=='all' && !count) return ''; return `<div class="section-item ${kbSection===s.id?'active':''}" onclick="selectKbSection('${s.id}')"><span>${s.icon||'📁'} ${escapeHtml(s.label)}</span><span class="badge">${count}</span></div>`; }).join(''); }
+function selectKbSection(id){ kbSection=id; renderKbSections(); renderKbArticles(); }
+function kbFiltered(){ const kbs=document.getElementById('kbSearch'); const q=normalize(kbs?.value||''); return ARTICLES.filter(a => (kbSection==='all'||a.section===kbSection) && (!q || normalize([a.title, a.section, ...(a.keywords||[])].join(' ')).includes(q))); }
+function renderKbArticles(){ const list = kbFiltered(); const kal=document.getElementById('kbArticleList'); if(!kal) return; kal.innerHTML = list.map(a=>`<div class="article-card ${kbArticle?.path===a.path?'active':''}" onclick="openKbArticle('${escapeHtml(a.path)}')"><h3>${escapeHtml(a.title)}</h3><small>${escapeHtml(sectionLabel(a.section))}</small></div>`).join('') || '<div class="empty"><span class="big">🔍</span>Nenhum artigo encontrado.</div>'; }
+function openKbArticle(path){ kbArticle = ARTICLES.find(a=>a.path===path); renderKbArticles(); if(!kbArticle) return; const kbc=document.getElementById('kbContent'); if(!kbc) return; kbc.innerHTML = `<div class="content-head"><div><small>${escapeHtml(sectionLabel(kbArticle.section))}</small><h2>${escapeHtml(kbArticle.title)}</h2></div><div class="toolbar"><button class="btn secondary" onclick="goView('novo');applyArticleSuggestion('${escapeHtml(kbArticle.path)}')">Usar em chamado</button><a class="btn" href="${BASE_URL}/${kbArticle.path}/" target="_blank">Abrir original</a></div></div><div class="content-body"><div class="empty"><span class="big">⏳</span>Carregando conteúdo...</div></div>`; if(contentCache[path]) { renderKbContent(contentCache[path]); return; } fetch(`${RAW_BASE}/${path}.md`).then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); }).then(md=>{ contentCache[path]=md; renderKbContent(md); }).catch(()=>{ const cb=kbc.querySelector('.content-body'); if(cb) cb.innerHTML = `<div class="notice warn">Não foi possível carregar o conteúdo remoto. Use o botão "Abrir original".</div>`; }); }
+function renderKbContent(md){ const kbc=document.getElementById('kbContent'); if(!kbc) return; let content = md.replace(/^---[\s\S]*?---\n?/m,'').replace(/^\+\+\+[\s\S]*?\+\+\+\n?/m,''); content = content.replace(/\{\{%\s*notice\s+(\w+)\s*%\}\}([\s\S]*?)\{\{%\s*\/notice\s*%\}\}/g, (_, type, inner)=>`> ${inner.trim()}`); content = content.replace(/\{\{[<%][^%>]*[%>]\}\}/g,'').replace(/\{%[^%]*%\}/g,'').replace(/\{\{<[^>]*>\}\}/g,''); const html = window.marked ? marked.parse(content) : '<pre>'+escapeHtml(content)+'</pre>'; const cb=kbc.querySelector('.content-body'); if(cb) cb.innerHTML = `<div class="md-content">${html}</div>`; }
+
+// ---- Reports ----
+function renderReports(){
+  if(!document.getElementById('reportUnits')) return;
+  const resolved = tickets.filter(t=>t.dataEncerramento && t.dataAbertura);
+  const avgMs = resolved.length ? resolved.reduce((s,t)=>s+(new Date(t.dataEncerramento)-new Date(t.dataAbertura)),0)/resolved.length : null;
+  const el_avg = document.getElementById('avgResolveTime'); if(el_avg) el_avg.textContent = avgMs ? fmtDuration(avgMs) : '—';
+  const overdue = tickets.filter(t=>!['Resolvido','Encerrado'].includes(t.status) && ticketAgeHours(t)>48).length;
+  const el_od = document.getElementById('countOverdue'); if(el_od) el_od.textContent = overdue;
+  const rate = tickets.length ? Math.round(resolved.length/tickets.length*100) : null;
+  const el_rate = document.getElementById('resolveRate'); if(el_rate) el_rate.textContent = rate!=null ? rate+'%' : '—';
+  // Satisfaction
+  renderSatisfactionReport();
+  renderWeeklyChart();
+  renderReportTable('reportUnits', groupBy(tickets, t=>t.unidadeNome || '—'), 'Unidade');
+  renderReportTable('reportCategories', groupBy(tickets, t=>sectionLabel(t.categoria)), 'Categoria');
+  renderReportTable('reportStatus', groupBy(tickets, t=>t.status), 'Status');
+  renderReportTable('reportCanais', groupBy(tickets, t=>t.canal||'—'), 'Canal');
+  renderReportTable('reportResponsavel', groupBy(tickets, t=>(t.responsaveis||[t.responsavel||'']).join(', ')||'—'), 'Responsável');
+  const crit = tickets.filter(t=>t.prioridade==='Crítica' || t.status==='Reaberto' || t.impacto==='Indisponibilidade');
+  const rc = document.getElementById('reportCritical');
+  if(rc) rc.innerHTML = crit.length ? `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Título</th><th>Prioridade</th><th>Status</th></tr></thead><tbody>${crit.map(t=>`<tr><td>${escapeHtml(t.id)}</td><td>${escapeHtml(t.titulo)}</td><td>${escapeHtml(t.prioridade)}</td><td>${escapeHtml(t.status)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><span class="big">✅</span>Sem críticos ou reabertos.</div>';
+}
+function renderSatisfactionReport(){
+  const el = document.getElementById('satisfactionReport'); if(!el) return;
+  const rated = tickets.filter(t=>t.avaliacao);
+  if(!rated.length){ el.innerHTML='<div class="help">Nenhuma avaliação registrada ainda.</div>'; return; }
+  const avg = rated.reduce((s,t)=>s+t.avaliacao,0)/rated.length;
+  const breakdown = [1,2,3,4,5].map(n=>({star:n, count:rated.filter(t=>t.avaliacao===n).length}));
+  el.innerHTML=`<div style="font-size:24px;font-weight:900;color:var(--primary);margin-bottom:8px;">${avg.toFixed(1)} ${starsDisplay(Math.round(avg))}</div>
+  <div class="help" style="margin-bottom:8px;">Baseado em ${rated.length} avaliação(ões)</div>
+  ${breakdown.map(b=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:13px;"><span style="width:32px;">${b.star}★</span><div class="bar" style="flex:1;"><span style="width:${rated.length?Math.round(b.count/rated.length*100):0}%"></span></div><span>${b.count}</span></div>`).join('')}`;
+}
+function renderWeeklyChart(){
+  const el = document.getElementById('weeklyChart'); if(!el) return;
+  const weeks = [];
+  const now = new Date(); now.setHours(0,0,0,0);
+  for(let i=7;i>=0;i--){
+    const start = new Date(now); start.setDate(start.getDate()-i*7);
+    const end = new Date(start); end.setDate(end.getDate()+7);
+    const label = `S${8-i}`;
+    const count = tickets.filter(t=>{ const d=new Date(t.dataAbertura); return d>=start && d<end; }).length;
+    weeks.push({label, count, start});
+  }
+  const max = Math.max(...weeks.map(w=>w.count), 1);
+  el.innerHTML = `<div class="week-bar-wrap">${weeks.map(w=>`<div class="week-bar-col"><span class="bar-val">${w.count||''}</span><div class="bar-fill" style="height:${Math.round(w.count/max*60)+4}px"></div><span class="bar-label">${w.label}</span></div>`).join('')}</div>`;
+}
+function renderReportTable(id, data, label){ const el=document.getElementById(id); if(!el) return; if(!data.length){ el.innerHTML='<div class="empty">Sem dados.</div>'; return; } el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>${escapeHtml(label)}</th><th>Quantidade</th></tr></thead><tbody>${data.map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td><strong>${v}</strong></td></tr>`).join('')}</tbody></table></div>`; }
+
+// ---- Units ----
+function renderUnits(){ const ul=document.getElementById('unitList'); if(!ul) return; ul.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Unidade</th><th>Município/setor</th><th></th></tr></thead><tbody>${units.map(u=>`<tr><td>${escapeHtml(u.type)}</td><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.city||'—')}</td><td><button class="btn small secondary" onclick="editUnit('${escapeHtml(u.id)}')">Editar</button></td></tr>`).join('')}</tbody></table></div>`; }
+function clearUnitForm(){ const uf=document.getElementById('unitForm'); if(uf) uf.reset(); const ui=document.getElementById('unitId'); if(ui) ui.value=''; }
+function editUnit(id){ const u=units.find(x=>x.id===id); if(!u) return; const s=(eid,v)=>{ const e=document.getElementById(eid); if(e) e.value=v; }; s('unitId',u.id); s('unitType',u.type); s('unitName',u.name); s('unitCity',u.city||''); s('unitEmail',u.email||''); s('unitNotes',u.notes||''); }
+function saveUnit(event){ event.preventDefault(); const g=(id)=>document.getElementById(id)?.value||''; const obj={ id: g('unitId') || 'UN-'+crypto.randomUUID().slice(0,8), type: g('unitType'), name: g('unitName').trim(), city: g('unitCity').trim(), email: g('unitEmail').trim(), notes: g('unitNotes').trim() }; const idx=units.findIndex(u=>u.id===obj.id); if(idx>=0) units[idx]=obj; else units.unshift(obj); save(STORAGE_KEYS.units, units); clearUnitForm(); fillUnitOptions(); renderUnits(); }
+
+// ---- Export/Import ----
+function exportAllJSON(){ const payload={ exportedAt:new Date().toISOString(), app:'Central PJe TRE-CE v1.3', tickets, catalog, units }; download(`central-pje-trece-backup-${todayId()}.json`, JSON.stringify(payload,null,2)); }
+function importAllJSON(event){ const file=event.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=()=>{ try{ const data=JSON.parse(reader.result); if(data.tickets) tickets=data.tickets; if(data.catalog) catalog=data.catalog; if(data.units) units=data.units; migrateTickets(); persist(); fillUnitOptions(); fillArticleSelects(); toast('Importação concluída.'); }catch(e){ toast('Arquivo JSON inválido.'); } }; reader.readAsText(file); event.target.value=''; }
+function exportTicketsCSV(){ const headers=['id','dataAbertura','tipoCliente','unidadeNome','solicitante','sistema','categoria','titulo','processo','prioridade','impacto','status','responsavel','artigoVinculado']; const rows=[headers.join(';'), ...tickets.map(t=>headers.map(h=>`"${String(t[h]??'').replace(/"/g,'""')}"`).join(';'))]; download(`central-pje-chamados-${todayId()}.csv`, rows.join('\n'), 'text/csv;charset=utf-8'); }
+function resetAllData(){ if(!confirm('Limpar chamados, catálogo e unidades gravados neste navegador?')) return; localStorage.removeItem(STORAGE_KEYS.tickets); localStorage.removeItem(STORAGE_KEYS.catalog); localStorage.removeItem(STORAGE_KEYS.units); tickets=[]; catalog=structuredClone(DEFAULT_CATALOG); units=structuredClone(DEFAULT_UNITS); persist(); fillUnitOptions(); fillArticleSelects(); }
+
+// ---- CSV Import ----
+function downloadCsvTemplate(){
+  const header = 'titulo;unidadeNome;tipoCliente;canal;categoria;prioridade;impacto;sistema;solicitante;descricaoErro;status';
+  const row = 'Exemplo: Erro no login;001ª Zona Eleitoral;Zona Eleitoral;WhatsApp;acesso;Média;Individual;PJe;João Silva;Usuário não consegue acessar o sistema;Aberto';
+  download(`modelo-importacao-chamados.csv`, header+'\n'+row, 'text/csv;charset=utf-8');
+}
+function importTicketsCsv(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = reader.result.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(lines.length<2){ toast('CSV vazio ou sem dados.'); return; }
+    const headers = lines[0].split(';').map(h=>h.trim().replace(/^"|"$/g,''));
+    let count=0;
+    for(let i=1;i<lines.length;i++){
+      const vals = lines[i].split(';').map(v=>v.trim().replace(/^"|"$/g,''));
+      const row = {};
+      headers.forEach((h,idx)=>{ row[h]=vals[idx]||''; });
+      const now=new Date().toISOString();
+      const responsaveis = ['Equipe PJe'];
+      const t = {
+        id: nextTicketId(), dataAbertura: now, dataAtualizacao: now, dataEncerramento: '',
+        titulo: row.titulo||'Sem título', unidadeNome: row.unidadeNome||'', tipoCliente: row.tipoCliente||'Outro',
+        canal: row.canal||'', categoria: row.categoria||'acesso', prioridade: row.prioridade||'Média',
+        impacto: row.impacto||'Individual', sistema: row.sistema||'PJe', solicitante: row.solicitante||'',
+        descricaoErro: row.descricaoErro||'', status: row.status||'Aberto',
+        unidadeId: '', unidadeMunicipio: '', emailSolicitante: '', mensagemErro: '', processo: '',
+        responsaveis, responsavel: 'Equipe PJe', artigoVinculado: '', orientacaoPrestada: '', solucaoConfirmada: false,
+        historico: [{data:now, usuario:'Sistema', acao:'Importado via CSV'}]
+      };
+      tickets.unshift(t); count++;
+    }
+    persist(); toast(`${count} chamado(s) importado(s) via CSV.`);
+  };
+  reader.readAsText(file, 'utf-8');
+  event.target.value='';
+}
+
+// ---- Demo seed ----
+function seedDemoTickets(){
+  const now = new Date();
+  const samples = [
+    { tipoCliente:'Zona Eleitoral', unidadeId:'ZE-001', titulo:'Código MFA não é aceito no acesso ao PJe', categoria:'acesso', descricaoErro:'Servidor informa código inválido no autenticador ao tentar acessar o PJe.', mensagemErro:'Código inválido', prioridade:'Média', impacto:'Individual', artigoVinculado:'acesso/mfa', orientacaoPrestada:'Verificar horário automático do celular, aplicativo autenticador e nova tentativa de acesso. Registrar print se persistir.' },
+    { tipoCliente:'Segundo Grau TRE-CE', unidadeId:'2G-SJU', titulo:'Processo não aparece na tarefa de tramitação', categoria:'tramitacao', descricaoErro:'Usuário do 2º grau informa que o processo não aparece na tarefa esperada.', mensagemErro:'', prioridade:'Alta', impacto:'Prazo sensível', artigoVinculado:'tramitacao/basico', orientacaoPrestada:'Conferir nó atual, órgão julgador, perfil do usuário e histórico de tramitação.' },
+    { tipoCliente:'Gabinete', unidadeId:'2G-GAB', titulo:'Documento não abre nos autos digitais', categoria:'autos', descricaoErro:'Documento PDF não carrega no visualizador do PJe.', mensagemErro:'Falha ao carregar documento', prioridade:'Média', impacto:'Unidade', artigoVinculado:'autos/documentos/erros_exibicao', orientacaoPrestada:'Testar outro navegador, conferir sigilo/permissão e verificar integridade do arquivo.' }
+  ];
+  samples.forEach((s,i)=>{ const unit=unitById(s.unidadeId)||{}; const dt = new Date(now.getTime()-i*3600000).toISOString(); const responsaveis=['Equipe PJe']; tickets.unshift({ id: nextTicketId(), dataAbertura:dt, dataAtualizacao:dt, dataEncerramento:'', solicitante:'Validação', emailSolicitante:'', sistema:'PJe', processo:'', canal:'WhatsApp', status:i===0?'Aberto':(i===1?'Em análise':'Orientação enviada'), responsaveis, responsavel:'Equipe PJe', solucaoConfirmada:false, unidadeNome:unit.name||'', unidadeMunicipio:unit.city||'', historico:[{data:dt, usuario:'Sistema', acao:'Chamado de exemplo inserido para validação.'}], ...s }); });
+  persist(); goView('dashboard');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+name: Sync PJe HTML
+
+on:
+  schedule:
+    # Roda toda segunda-feira às 08:00 BRT (11:00 UTC)
+    - cron: "0 11 * * 1"
+  workflow_dispatch:   # permite rodar manualmente
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run sync script
+        id: sync
+        run: |
+          python scripts/sync_pje_html.py --html manual_pje_dicas_docs.html 2>&1 | tee sync_output.txt
+          echo "changed=$(grep -c 'Alterações detectadas' sync_output.txt || echo 0)" >> $GITHUB_OUTPUT
+
+      - name: Commit if changed
+        if: steps.sync.outputs.changed != '0'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manual_pje_dicas_docs.html
+          git commit -m "sync: atualiza TOPICS do manual PJe conforme fontes ao vivo
+
+          Sincronizado automaticamente via scripts/sync_pje_html.py
+          Fontes: pjeje.github.io/dicas + docs.pje.jus.br"
+          git push
+
+      - name: Upload sync log
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-log
+          path: sync_output.txt
+          retention-days: 14

@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PJe Dicas — Manual Interativo · TRE/CE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0ede6;--bg2:#e8e4dc;--surface:#faf9f6;--surface2:#ffffff;
+  --ink:#1c1814;--ink2:#4a4540;--ink3:#918b82;
+  --line:#ddd8d0;--line2:#ccc8be;
+  --brand:#1a4b6e;--brand-lt:#e8f2fa;--brand-dk:#0e2d44;
+  --accent:#c94f1a;--accent-lt:#fdf0eb;
+  --green:#1a6b40;--green-lt:#e8f7ef;
+  --amber:#7a5200;--amber-lt:#fdf5e0;
+  --docs:#5b35a0;--docs-lt:#f0ebff;
+  --r:18px;--r-sm:10px;
+  --tr:.18s cubic-bezier(.16,1,.3,1);
+  --sh:0 2px 8px rgba(0,0,0,.06),0 12px 32px rgba(0,0,0,.07);
+}
+[data-theme=dark]{
+  --bg:#131110;--bg2:#1c1a18;--surface:#211f1c;--surface2:#2a2824;
+  --ink:#f0ece4;--ink2:#b0a89e;--ink3:#706860;
+  --line:#2e2b26;--line2:#3a3730;
+  --brand:#5a9fcf;--brand-lt:#0e1e2e;--brand-dk:#8bc4e8;
+  --accent:#e87040;--accent-lt:#2a1508;
+  --green:#3ab870;--green-lt:#0a1e12;
+  --amber:#e8a820;--amber-lt:#1e1400;
+  --docs:#9b75e0;--docs-lt:#1e1530;
+  --sh:0 2px 8px rgba(0,0,0,.25),0 12px 32px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px}
+
+/* ── Layout ── */
+.app{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{height:100vh;position:sticky;top:0;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-top{padding:16px 16px 0;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand-mark{width:38px;height:38px;border-radius:11px;flex-shrink:0;background:var(--brand);display:grid;place-items:center;font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;color:#fff}
+.brand-text h1{font-family:'Instrument Serif',Georgia,serif;font-size:.95rem;font-weight:400;line-height:1.2;color:var(--ink)}
+.brand-text p{font-size:.7rem;color:var(--ink3);margin-top:2px}
+.search-wrap{position:relative;margin-bottom:10px}
+.search-wrap input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:8px 32px 8px 11px;border-radius:var(--r-sm);font-size:.81rem;outline:none;transition:var(--tr)}
+.search-wrap input:focus{border-color:var(--brand);background:var(--surface2)}
+.search-wrap input::placeholder{color:var(--ink3)}
+.search-kbd{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:.62rem;color:var(--ink3);border:1px solid var(--line2);padding:2px 5px;border-radius:4px;font-family:'DM Mono',monospace;pointer-events:none}
+.sidebar-tools{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+.tool-btn{border:1px solid var(--line);background:var(--surface2);border-radius:var(--r-sm);padding:6px 8px;cursor:pointer;font-size:.75rem;font-weight:500;color:var(--ink2);transition:var(--tr);text-align:center}
+.tool-btn:hover{border-color:var(--line2);color:var(--ink);background:var(--bg2)}
+.tool-btn.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.sidebar-filters{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
+.sidebar-filters::-webkit-scrollbar{display:none}
+.f-chip{white-space:nowrap;border:1px solid var(--line);background:var(--surface2);padding:4px 9px;border-radius:999px;font-size:.73rem;cursor:pointer;color:var(--ink2);transition:var(--tr);flex-shrink:0}
+.f-chip:hover{border-color:var(--brand);color:var(--brand)}
+.f-chip.active{background:var(--brand-lt);border-color:var(--brand);color:var(--brand);font-weight:600}
+.progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:.7rem;color:var(--ink3)}
+.progress-track{height:3px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:12px}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--green));border-radius:99px;transition:width .4s}
+
+/* ── Source tabs in sidebar ── */
+.source-tabs{display:flex;gap:3px;margin-bottom:8px;padding:0 1px}
+.src-tab{flex:1;text-align:center;padding:5px 6px;border-radius:var(--r-sm);font-size:.72rem;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface2);color:var(--ink3);transition:var(--tr)}
+.src-tab:hover{color:var(--ink)}
+.src-tab.active-eleit{background:var(--brand-lt);border-color:var(--brand);color:var(--brand)}
+.src-tab.active-docs{background:var(--docs-lt);border-color:var(--docs);color:var(--docs)}
+
+.topic-list{overflow-y:auto;flex:1;padding:0 8px 16px}
+.t-item{display:grid;grid-template-columns:24px 1fr 20px;gap:7px;align-items:start;padding:8px 7px;border-radius:var(--r-sm);cursor:pointer;transition:var(--tr);border:1px solid transparent}
+.t-item:hover{background:var(--bg2)}
+.t-item.active-eleit{background:var(--brand-lt);border-color:var(--brand)}
+.t-item.active-docs{background:var(--docs-lt);border-color:var(--docs)}
+.t-num{width:24px;height:24px;border-radius:7px;background:var(--bg2);color:var(--ink3);display:grid;place-items:center;font-family:'DM Mono',monospace;font-size:.65rem;font-weight:500;flex-shrink:0;transition:var(--tr)}
+.t-item.active-eleit .t-num{background:var(--brand);color:#fff}
+.t-item.active-docs .t-num{background:var(--docs);color:#fff}
+.t-info strong{font-size:.81rem;display:block;line-height:1.3;color:var(--ink)}
+.t-info span{font-size:.69rem;color:var(--ink3);margin-top:2px;display:block}
+.t-item.active-eleit .t-info strong{color:var(--brand)}
+.t-item.active-docs .t-info strong{color:var(--docs)}
+.t-star{background:none;border:none;cursor:pointer;color:var(--line2);font-size:.9rem;padding:0;transition:var(--tr);line-height:1}
+.t-star.on{color:#c07a00}
+/* section label in list */
+.list-section{font-size:.63rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding:10px 7px 4px;display:flex;align-items:center;gap:6px}
+.list-section-bar{flex:1;height:1px;background:var(--line)}
+.src-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.src-dot.eleit{background:var(--brand)}
+.src-dot.docs{background:var(--docs)}
+
+/* ── Main ── */
+.main{min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 22px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;gap:12px}
+.topbar-left{display:flex;align-items:center;gap:8px;min-width:0}
+.topbar-title{font-family:'Instrument Serif',Georgia,serif;font-size:1.05rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-cat{font-size:.68rem;font-weight:600;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.cat-eleit{background:var(--brand-lt);color:var(--brand)}
+.cat-docs{background:var(--docs-lt);color:var(--docs)}
+.topbar-right{display:flex;gap:5px;flex-shrink:0}
+.top-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface2);font-size:.73rem;font-weight:500;color:var(--ink2);cursor:pointer;transition:var(--tr);white-space:nowrap}
+.top-btn:hover{border-color:var(--line2);color:var(--ink);background:var(--bg2)}
+.top-btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.top-btn.accent:hover{background:var(--brand);border-color:var(--brand)}
+
+/* ── Content ── */
+.content-wrap{display:grid;grid-template-columns:1fr 320px;gap:0;flex:1;min-height:0}
+.reader{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0}
+.frame-wrap{flex:1;background:var(--surface2);position:relative;min-height:0}
+.frame-wrap iframe{width:100%;height:100%;border:none;display:block}
+.frame-note{padding:7px 16px;border-top:1px solid var(--line);font-size:.7rem;color:var(--ink3);background:var(--bg2);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.frame-note svg{flex-shrink:0;opacity:.5}
+
+/* ── Side panel ── */
+.side-panel{background:var(--surface);overflow-y:auto;display:flex;flex-direction:column}
+.sp-section{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.sp-label{font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:9px}
+.sp-desc{font-size:.81rem;color:var(--ink2);line-height:1.65}
+/* source badge in side panel */
+.sp-source-badge{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:999px;margin-bottom:10px}
+.sp-source-badge.eleit{background:var(--brand-lt);color:var(--brand)}
+.sp-source-badge.docs{background:var(--docs-lt);color:var(--docs)}
+/* subtopics */
+.subs-list{display:flex;flex-direction:column;gap:4px}
+.sub-btn{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface2);cursor:pointer;font-size:.79rem;color:var(--ink2);transition:var(--tr);text-align:left;width:100%}
+.sub-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-lt)}
+.sub-btn.docs-sub:hover{border-color:var(--docs);color:var(--docs);background:var(--docs-lt)}
+.sub-btn span{flex:1;line-height:1.3}
+.sub-btn svg{flex-shrink:0;opacity:.35}
+/* checklist */
+.check-list{display:flex;flex-direction:column;gap:1px}
+.check-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.check-row:last-child{border-bottom:none}
+.check-row input{margin-top:3px;accent-color:var(--brand);cursor:pointer;flex-shrink:0}
+.check-row label{font-size:.8rem;color:var(--ink2);line-height:1.4;cursor:pointer}
+/* related links */
+.related-list{display:flex;flex-direction:column;gap:4px}
+.related-link{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface2);font-size:.78rem;color:var(--ink2);transition:var(--tr);cursor:pointer;text-decoration:none;width:100%;text-align:left}
+.related-link:hover{border-color:var(--docs);color:var(--docs);background:var(--docs-lt)}
+.related-link svg{flex-shrink:0;opacity:.4}
+.related-link span{flex:1;line-height:1.3}
+
+/* ── Palette ── */
+.palette{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;justify-content:center;padding-top:10vh;z-index:50;backdrop-filter:blur(4px)}
+.palette.open{display:flex}
+.pal-box{width:min(680px,92vw);background:var(--surface);border-radius:var(--r);border:1px solid var(--line);box-shadow:var(--sh);overflow:hidden}
+.pal-box input{width:100%;border:none;border-bottom:1px solid var(--line);padding:15px 18px;font-size:1rem;background:var(--surface);color:var(--ink);outline:none}
+.pal-box input::placeholder{color:var(--ink3)}
+.pal-results{max-height:52vh;overflow-y:auto;padding:6px}
+.pal-item{padding:10px 12px;border-radius:var(--r-sm);cursor:pointer;transition:var(--tr);display:flex;gap:10px;align-items:flex-start}
+.pal-item:hover{background:var(--bg2)}
+.pal-item-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.pal-item-dot.eleit{background:var(--brand)}
+.pal-item-dot.docs{background:var(--docs)}
+.pal-item b{font-size:.86rem;display:block}
+.pal-item small{font-size:.73rem;color:var(--ink3)}
+.pal-footer{padding:7px 18px;border-top:1px solid var(--line);font-size:.7rem;color:var(--ink3);display:flex;gap:12px}
+.pal-footer kbd{background:var(--bg2);border:1px solid var(--line2);padding:1px 5px;border-radius:4px;font-family:'DM Mono',monospace}
+/* palette section label */
+.pal-group{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding:8px 12px 3px;display:flex;align-items:center;gap:6px}
+.pal-group-line{flex:1;height:1px;background:var(--line)}
+
+/* ── Focus mode ── */
+.focus .sidebar,.focus .side-panel,.focus .frame-note,.focus .topbar-right{display:none!important}
+.focus .app{grid-template-columns:1fr}
+.focus .content-wrap{grid-template-columns:1fr}
+.focus .topbar{padding:9px 16px}
+.focus .frame-wrap{height:calc(100vh - 45px)}
+
+/* ── Print ── */
+.print-only{display:none}
+@media print{
+  .sidebar,.topbar,.side-panel,.palette,.frame-note{display:none!important}
+  .app,.content-wrap{display:block}
+  .main{background:#fff}
+  .frame-wrap iframe{display:none}
+  .print-only{display:block;padding:18px;font-size:.9rem;line-height:1.7}
+}
+
+/* ── Responsive ── */
+@media(max-width:1100px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:relative;height:auto;max-height:360px}
+  .content-wrap{grid-template-columns:1fr}
+  .side-panel{display:none}
+}
+@media(max-width:680px){
+  .topbar{padding:8px 12px}
+  .topbar-title{font-size:.88rem}
+  .top-btn span{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-top">
+
+    <div class="brand">
+      <div class="brand-mark">PJe</div>
+      <div class="brand-text">
+        <h1>Manual Interativo PJe</h1>
+        <p>Dicas 3.0 · Justiça Eleitoral · TRE/CE</p>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="Buscar tópico ou rotina..." autocomplete="off">
+      <span class="search-kbd">Ctrl K</span>
+    </div>
+
+    <div class="sidebar-tools">
+      <button class="tool-btn" id="favBtn">⭐ Favoritos</button>
+      <button class="tool-btn" id="resetBtn">✕ Limpar</button>
+      <button class="tool-btn" id="focusBtn">⊞ Foco</button>
+      <button class="tool-btn" id="printBtn">⎙ Imprimir</button>
+    </div>
+
+    <div id="filters" style="display:none"></div>
+    <div id="progressLabel" style="display:none">0 / 0</div>
+    <div id="progressFill" style="display:none"></div>
+    <button id="tabAll" style="display:none" type="button"></button>
+    <button id="tabEleit" style="display:none" type="button"></button>
+    <button id="tabDocs" style="display:none" type="button"></button>
+
+
+  </div>
+  <div class="topic-list" id="topicList"></div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="topbarTitle">Acesso ao Sistema</span>
+      <span class="topbar-cat cat-eleit" id="topbarCat">Acesso</span>
+    </div>
+    <div class="topbar-right">
+      <a class="top-btn" id="openOriginal" href="#" target="_blank" rel="noopener">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+        <span>Abrir fonte</span>
+      </a>
+      <button class="top-btn" id="copyBtn">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        <span>Copiar link</span>
+      </button>
+      <button class="top-btn" id="markDoneBtn">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        <span>Marcar visto</span>
+      </button>
+      <button class="top-btn" id="themeBtn" title="Alternar tema">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content-wrap" style="height:calc(100vh - 45px)">
+
+    <!-- Reader -->
+    <div class="reader">
+      <div class="frame-wrap" id="frameWrap">
+        <iframe id="contentFrame" title="Conteúdo PJe"></iframe>
+      </div>
+      <div class="frame-note">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Se o conteúdo não carregar, use "Abrir fonte" acima para acessar a página original.
+      </div>
+      <div class="print-only" id="printContent"></div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="side-panel">
+
+      <div class="sp-section">
+        <div class="sp-label">Fonte</div>
+        <div class="sp-source-badge eleit" id="spSourceBadge">● PJe Dicas Eleitoral</div>
+        <p class="sp-desc" id="topicDesc">—</p>
+      </div>
+
+      <div class="sp-section">
+        <div class="sp-label">Subtópicos</div>
+        <div class="subs-list" id="subsList"></div>
+      </div>
+
+      <div class="sp-section" id="relatedSection" style="display:none">
+        <div class="sp-label">Ver também · Docs CNJ</div>
+        <div class="related-list" id="relatedList"></div>
+      </div>
+
+      <div class="sp-section">
+        <div class="sp-label">Checklist de leitura</div>
+        <div class="progress-track" style="margin-bottom:9px">
+          <div class="progress-fill" id="progressFill2"></div>
+        </div>
+        <div class="check-list" id="checkList"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Palette -->
+<div class="palette" id="palette">
+  <div class="pal-box">
+    <input id="palInput" placeholder="Buscar tópico, área ou rotina...">
+    <div class="pal-results" id="palResults"></div>
+    <div class="pal-footer">
+      <span><kbd>↵</kbd> abrir</span>
+      <span><kbd>Esc</kbd> fechar</span>
+      <span><kbd>Ctrl K</kbd> paleta</span>
+    </div>
+  </div>
+</div>
+
+<footer style="text-align:center;padding:13px 24px;border-top:1px solid var(--line);background:var(--surface);font-size:.73rem;color:var(--ink3);display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">
+  <span>Desenvolvido por <strong style="color:var(--ink2)">Felipe Aires Costa</strong> · TRE/CE</span>
+  <span style="color:var(--line2)">|</span>
+  <span>Fonte Eleitoral: <a href="https://pjeje.github.io/dicas/" target="_blank" rel="noopener" style="color:var(--brand);text-decoration:underline;text-underline-offset:2px">pjeje.github.io/dicas</a></span>
+  <span style="color:var(--line2)">|</span>
+  <span>Documentação CNJ: <a href="https://docs.pje.jus.br/" target="_blank" rel="noopener" style="color:var(--docs);text-decoration:underline;text-underline-offset:2px">docs.pje.jus.br</a></span>
+</footer>
+
+<script>
+// ── Data ──
+// source: 'eleit' = pjeje.github.io/dicas | 'docs' = docs.pje.jus.br
+const BASE_ELEIT = 'https://pjeje.github.io/dicas';
+const BASE_DOCS  = 'https://docs.pje.jus.br';
+
+const TOPICS = [
+  // ════════ PJe ELEITORAL ════════
+  {id:'e1', src:'eleit', t:'Acesso ao Sistema', cat:'Acesso', url:'/acesso/',
+   desc:'Pré-requisitos, primeiro acesso, MFA, senha, Token PJe e erros comuns.',
+   subs:[['Configuração e pré-requisitos','/acesso/configuracao/'],['Primeiro acesso','/acesso/primeiro/'],['Autenticação multifator (MFA)','/acesso/mfa/'],['Senha esquecida ou bloqueada','/acesso/senha/'],['Token PJe (PJe Mobile)','/acesso/tokenpje/'],['Certificado Virtual P12','/acesso/certvirtual/'],['Lentidão e erros de exibição','/acesso/lentidao/'],['Erros de acesso','/acesso/erros/']],
+   related:[['Manual do Usuário Interno · CNJ','/manuais-de-uso/Manual do usuario interno'],['Guias PJe · CNJ','/manuais-de-uso/Guias']]},
+  {id:'e2', src:'eleit', t:'Advogados', cat:'Usuários', url:'/advogados/',
+   desc:'Orientações sobre cadastro, habilitação e atuação de advogados no PJe.',
+   subs:[['Indisponibilidade na OAB','/advogados/indisponibilidade/'],['Situação da Inscrição na OAB','/advogados/situacao/'],['Advogado não validado','/advogados/nao-validado/']],
+   related:[['Manual do Advogado · CNJ','/manuais-de-uso/Manual do advogado']]},
+  {id:'e3', src:'eleit', t:'Atos Processuais', cat:'Processamento', url:'/atos/',
+   desc:'Rotinas ligadas à prática, registro, conferência e controle de atos processuais.',
+   subs:[['Audiências','/atos/audiencias/'],['Minutar ato avulso','/atos/avulso/'],['Registrar trânsito','/atos/transito/'],['Minutar em lote','/atos/lote/'],['Movimentações processuais','/atos/movimentacoes/']],
+   related:[['Fluxos e subfluxos principais · CNJ','/configurações-do-pje/Fluxos e subfluxos principais/Cumprimento da decisão']]},
+  {id:'e4', src:'eleit', t:'Autos Digitais', cat:'Processamento', url:'/autos/',
+   desc:'Consulta, organização e manipulação dos autos digitais dentro do sistema.',
+   subs:[['Juntar documentos','/autos/juntar/'],['Documentos Processuais','/autos/documentos/'],['Tramitação Processual','/autos/tramitacao/'],['Situações processuais','/autos/situacoes/']],
+   related:[]},
+  {id:'e5', src:'eleit', t:'Autuação', cat:'Autuação', url:'/autuacao/',
+   desc:'Procedimentos de autuação, classe, assuntos e dados iniciais do processo.',
+   subs:[['Classes','/autuacao/classes/'],['Partes','/autuacao/partes/'],['Unificação de pessoas','/autuacao/unificacao/'],['Processos criminais','/autuacao/criminais/'],['Regras para protocolo','/autuacao/protocolo/']],
+   related:[['Configuração de classes · CNJ','/configurações-do-pje/Classes/Classe TramitacaoProcessualService']]},
+  {id:'e6', src:'eleit', t:'Competências', cat:'Autuação', url:'/classes/',
+   desc:'Uso de classes e competências para correta identificação processual.',
+   subs:[['Configuração de classes','/classes/configuracao/'],['Juízo 100% digital','/classes/digital/']],
+   related:[['Configurando parâmetros · CNJ','/configurações-do-pje/Configurando par\u00e2metros']]},
+  {id:'e7', src:'eleit', t:'Comunicação de Atos', cat:'Comunicação', url:'/comunicacao/',
+   desc:'Comunicações, intimações, citações e atos destinados às partes e usuários.',
+   subs:[['Publicações no DJe','/comunicacao/dje/'],['Diário Eleitoral','/comunicacao/diario/'],['Central de Mandados','/comunicacao/mandados/']],
+   related:[]},
+  {id:'e8', src:'eleit', t:'Consulta Processual', cat:'Consulta', url:'/consulta/',
+   desc:'Formas de localizar, consultar e acompanhar processos no PJe.',
+   subs:[['Consulta interna','/consulta/interna/'],['Consulta pública','/consulta/publica/']],
+   related:[]},
+  {id:'e9', src:'eleit', t:'Defensorias', cat:'Usuários', url:'/defensorias/',
+   desc:'Orientações específicas para atuação e acesso das defensorias.',
+   subs:[['Cadastro de defensoria','/defensorias/cadastro/'],['Vinculação de defensores','/defensorias/vinculacao/']],
+   related:[['Manual dos Representantes · CNJ','/manuais-de-uso/Manual dos representantes']]},
+  {id:'e10', src:'eleit', t:'Distribuição', cat:'Autuação', url:'/distribuicao/',
+   desc:'Distribuição, redistribuição, prevenção e rotinas correlatas.',
+   subs:[['Pesos processuais','/distribuicao/pesos/'],['Cartas precatórias','/distribuicao/precatorias/'],['Redistribuições','/distribuicao/redistribuicao/']],
+   related:[]},
+  {id:'e11', src:'eleit', t:'Etiquetas', cat:'Gestão', url:'/etiquetas/',
+   desc:'Uso de etiquetas para organização, triagem e controle do acervo.',
+   subs:[['Criação de etiquetas','/etiquetas/criacao/'],['Filtros de etiquetas','/etiquetas/filtros/'],['Automação com etiquetas','/etiquetas/automacao/']],
+   related:[]},
+  {id:'e12', src:'eleit', t:'Papéis e Recursos', cat:'Gestão', url:'/papeis/',
+   desc:'Perfis, papéis, permissões e recursos disponíveis aos usuários.',
+   subs:[['Papéis e perfis','/papeis/papeis/'],['Hierarquia de papéis','/papeis/hierarquia/'],['Vinculação de perfis','/papeis/vinculacao/']],
+   related:[['Regras negociais · CNJ','/configurações-do-pje/Regras negociais'],['Regras de interface · CNJ','/configurações-do-pje/Regras de interface']]},
+  {id:'e13', src:'eleit', t:'Prazos Processuais', cat:'Processamento', url:'/prazos/',
+   desc:'Controle, configuração e acompanhamento de prazos no PJe.',
+   subs:[['Controle de prazos','/prazos/controle/'],['Contagem em horas','/prazos/horas/']],
+   related:[['Contagem automática de prazos · CNJ','/configurações-do-pje/Alterações em fluxos para se obter funcionalidades específicas/Contagem automática de prazos']]},
+  {id:'e14', src:'eleit', t:'Procuradorias', cat:'Usuários', url:'/procuradorias/',
+   desc:'Orientações específicas para procuradorias e representantes institucionais.',
+   subs:[['Perfis','/procuradorias/perfis/'],['Caixas','/procuradorias/caixas/']],
+   related:[['Manual dos Representantes · CNJ','/manuais-de-uso/Manual dos representantes']]},
+  {id:'e15', src:'eleit', t:'Recursos Internos', cat:'Processamento', url:'/recursos/',
+   desc:'Fluxos relacionados a recursos internos no ambiente do PJe.',
+   subs:[['Registrando um recurso','/recursos/registrando/'],['Tramitação dos recursos','/recursos/tramitacao/'],['Dúvidas Frequentes','/recursos/duvidas/']],
+   related:[]},
+  {id:'e16', src:'eleit', t:'Remessa', cat:'Processamento', url:'/remessa/',
+   desc:'Rotinas de remessa, envio e movimentação processual entre unidades.',
+   subs:[['Remessa entre instâncias','/remessa/instancias/'],['Remessa para o TRE','/remessa/tre/'],['Remessa para o STF','/remessa/stf/'],['Devolução para a origem','/remessa/devolucao/'],['Erros de remessa','/remessa/erros/']],
+   related:[]},
+  {id:'e17', src:'eleit', t:'Sessão de Julgamento', cat:'Julgamento', url:'/sessaojulg/',
+   desc:'Procedimentos relacionados à sessão de julgamento e seus atos.',
+   subs:[['Documentos de sessão','/sessaojulg/secretario_sessao/'],['Pauta de Julgamentos','/sessaojulg/pauta/'],['Condução da sessão','/sessaojulg/conducao/'],['Publicação em sessão','/sessaojulg/publicacao/']],
+   related:[]},
+  {id:'e18', src:'eleit', t:'Sigilo', cat:'Segurança', url:'/sigilo/',
+   desc:'Tratamento de sigilo, restrições de acesso e cautelas de segurança.',
+   subs:[['Níveis de sigilo','/sigilo/niveis/'],['Visualização de processos sigilosos','/sigilo/visualizacao/']],
+   related:[]},
+  {id:'e19', src:'eleit', t:'Manuais de Usuários', cat:'Apoio', url:'/manual/',
+   desc:'Repositório de materiais e manuais complementares de usuários.',
+   subs:[['Configuração do Token PJe','/manual/token/'],['Criação de Certificado Virtual','/manual/p12/'],['Funcionalidades de Audiências','/manual/audiencias/']],
+   related:[['Guias PJe · CNJ','/manuais-de-uso/Guias'],['Manual do Usuário Interno · CNJ','/manuais-de-uso/Manual do usuario interno']]},
+  {id:'e20', src:'eleit', t:'Iniciativas de Automação', cat:'Automação', url:'/automacao/',
+   desc:'Soluções e iniciativas voltadas à automação de rotinas do PJe.',
+   subs:[['Certidões automáticas','/automacao/certidoes/'],['Automação de etiquetas PC-PP','/automacao/etiqueta_pcpp/'],['Janus — IA processual','/automacao/janus/']],
+   related:[]},
+  {id:'e21', src:'eleit', t:'Tarefas e Fluxos', cat:'Gestão', url:'/tramitacao/',
+   desc:'Organização das tarefas, filas, fluxos e tramitação processual.',
+   subs:[['Conceitos iniciais','/tramitacao/conceitos/'],['Configurações de fluxo','/tramitacao/configuracoes/']],
+   related:[['Orientações para fluxos · CNJ','/configurações-do-pje/Orientações para o desenvolvimento de fluxos'],['Fluxos e subfluxos principais · CNJ','/configurações-do-pje/Fluxos e subfluxos principais/Cumprimento da decisão']]},
+  {id:'e22', src:'eleit', t:'RCAND e PCE', cat:'Eleitoral', url:'/peticionamento/',
+   desc:'Integrações ligadas ao Registro de Candidaturas e Prestação de Contas.',
+   subs:[['Registro de Candidaturas','/peticionamento/rcand/'],['Prestação de Contas (PCE)','/peticionamento/pce/']],
+   related:[]},
+  {id:'e23', src:'eleit', t:'Wiki do PJe', cat:'Apoio', url:'/wiki/',
+   desc:'Área de consulta e documentação complementar sobre o PJe.',
+   subs:[['Lista de funcionalidades','/wiki/funcionalidades/']],
+   related:[['Documentação técnica · CNJ','/']]},
+
+  // ════════ DOCS CNJ ════════
+  {id:'d1', src:'docs', t:'Apresentação do PJe', cat:'Geral', url:'/',
+   desc:'Histórico, regulamentação, marcos temporais e portfólio de projetos do sistema PJe nacional.',
+   subs:[['Página inicial · Documentação','/'],['Histórico e regulamentação','/'],['Portfólio de projetos','/']], related:[]},
+  {id:'d2', src:'docs', t:'Manuais de Uso', cat:'Manuais', url:'/Manuais-de-uso',
+   desc:'Manuais oficiais do CNJ para advogados, usuários internos, representantes e usuários sem representação.',
+   subs:[['Guias PJe','/manuais-de-uso/Guias'],['Manual do Advogado','/manuais-de-uso/Manual do advogado'],['Manual do Usuário Interno','/manuais-de-uso/Manual do usuario interno'],['Manual do Usuário sem Representação','/manuais-de-uso/Manual do usuario sem representação'],['Manual dos Representantes','/manuais-de-uso/Manual dos representantes'],['Manual de Referência PJe 1.0','/manuais-de-uso/Manual de referencia PJe 1.0']], related:[]},
+  {id:'d3', src:'docs', t:'Configurações do PJe', cat:'Configuração', url:'/Configurações-do-PJE',
+   desc:'Roteiros de configuração, parâmetros, variáveis, regras negociais e de interface.',
+   subs:[['Configurações iniciais','/configurações-do-pje/Configurações iniciais'],['Configurando parâmetros','/configurações-do-pje/Configurando parâmetros'],['Configurando variáveis','/configurações-do-pje/Configurando variáveis'],['Regras negociais','/configurações-do-pje/Regras negociais'],['Regras de interface','/configurações-do-pje/Regras de interface'],['Regras de mensagem','/configurações-do-pje/Regras de mensagem']], related:[]},
+  {id:'d4', src:'docs', t:'Fluxos e Subfluxos', cat:'Configuração', url:'/configurações-do-pje/Fluxos e subfluxos principais/Cumprimento da decisão',
+   desc:'Orientações para desenvolvimento, alterações e configuração dos fluxos de tramitação processual.',
+   subs:[['Orientações para fluxos','/configurações-do-pje/Orientações para o desenvolvimento de fluxos'],['Fluxos e subfluxos principais','/configurações-do-pje/Fluxos e subfluxos principais/Cumprimento da decisão'],['Fluxos do processo criminal','/configurações-do-pje/Fluxos da tramitação do processo criminal/Agendar Crumpimento em Execução PPL'],['Expressões em fluxos','/configurações-do-pje/Expressões em fluxos']], related:[]},
+  {id:'d5', src:'docs', t:'Manuais Básicos', cat:'Técnico', url:'/manuais-basicos',
+   desc:'Arquitetura, processo de desenvolvimento, especificação negocial e padrões de API do PJe.',
+   subs:[['Arquitetura do PJe','/manuais-basicos/arquitetura-pje'],['Processo de desenvolvimento','/manuais-basicos/processo-desenvolvimento-pje'],['Especificação negocial','/manuais-basicos/especificacao-negocial'],['Padrões de API do PJe','/manuais-basicos/padroes-de-api-do-pje']], related:[]},
+  {id:'d6', src:'docs', t:'Notas da Versão', cat:'Técnico', url:'/release-notes/',
+   desc:'Release notes e histórico de versões do sistema PJe nacional.',
+   subs:[['Release notes','/release-notes/']], related:[]},
+  {id:'d7', src:'docs', t:'Manuais de Inicialização', cat:'Técnico', url:'/manuais-de-inicializacao',
+   desc:'Documentação para inicialização, implantação e configuração inicial do sistema.',
+   subs:[['Manuais de inicialização','/manuais-de-inicializacao']], related:[]},
+  {id:'d8', src:'docs', t:'Serviços Negociais', cat:'Técnico', url:'/servicos-negociais',
+   desc:'Documentação dos serviços negociais e funcionalidades do PJe.',
+   subs:[['Serviços negociais','/servicos-negociais']], related:[]},
+];
+
+// ── State ──
+let active   = TOPICS[0];
+let filterCat   = 'Todos';
+let sourceTab   = 'all';
+let favOnly     = false;
+const seen = new Set(JSON.parse(localStorage.getItem('pje3-seen')||'[]'));
+const favs = new Set(JSON.parse(localStorage.getItem('pje3-favs')||'[]'));
+
+// ── Helpers ──
+const $  = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function base(t){ return t.src==='eleit' ? BASE_ELEIT : BASE_DOCS; }
+function full(t, path){ return base(t) + (path||t.url); }
+function save(){ localStorage.setItem('pje3-seen',JSON.stringify([...seen])); localStorage.setItem('pje3-favs',JSON.stringify([...favs])); }
+
+function visibleTopics(){
+  return TOPICS.filter(t => sourceTab==='all' || t.src===sourceTab);
+}
+function cats(){
+  var vt = visibleTopics();
+  return ['Todos', ...Array.from(new Set(vt.map(t=>t.cat)))];
+}
+function filtered(){
+  const q = norm($('search').value.trim());
+  return visibleTopics().filter(t =>
+    (filterCat==='Todos' || t.cat===filterCat) &&
+    (!favOnly || favs.has(t.id)) &&
+    (!q || norm(t.id+' '+t.t+' '+t.cat+' '+t.desc+' '+t.subs.map(s=>s[0]).join(' ')).includes(q))
+  );
+}
+
+// ── Source tab ──
+function setSourceTab(tab){
+  sourceTab = tab;
+  filterCat = 'Todos';
+  ['tabAll','tabEleit','tabDocs'].forEach(function(id){ $(id).className='src-tab'; });
+  if(tab==='all')   { $('tabAll').classList.add('active-eleit'); }
+  if(tab==='eleit') { $('tabEleit').classList.add('active-eleit'); }
+  if(tab==='docs')  { $('tabDocs').classList.add('active-docs'); }
+  renderAll();
+}
+
+// ── Render filters ──
+function renderFilters(){
+  $('filters').innerHTML = cats().map(function(c){
+    return '<button class="f-chip'+(c===filterCat?' active':'')+'" onclick="filterCat=\''+c+'\';renderAll()">'+esc(c)+'</button>';
+  }).join('');
+}
+
+// ── Render list ──
+function renderList(){
+  var list = filtered();
+  if(!list.length){
+    $('topicList').innerHTML = '<p style="padding:12px 8px;font-size:.8rem;color:var(--ink3)">Nenhum tópico encontrado.</p>';
+    return;
+  }
+  // Group by source when showing all
+  var html = '';
+  if(sourceTab==='all'){
+    var eleit = list.filter(function(t){ return t.src==='eleit'; });
+    var docs  = list.filter(function(t){ return t.src==='docs'; });
+    if(eleit.length){
+      html += '<div class="list-section"><div class="src-dot eleit"></div>PJe Eleitoral<div class="list-section-bar"></div></div>';
+      html += eleit.map(renderItem).join('');
+    }
+    if(docs.length){
+      html += '<div class="list-section"><div class="src-dot docs"></div>Docs CNJ<div class="list-section-bar"></div></div>';
+      html += docs.map(renderItem).join('');
+    }
+  } else {
+    html = list.map(renderItem).join('');
+  }
+  $('topicList').innerHTML = html;
+}
+function renderItem(t){
+  var cls = active.id===t.id ? (t.src==='eleit'?'active-eleit':'active-docs') : '';
+  return '<div class="t-item '+cls+'" onclick="selectTopic(\''+t.id+'\')">'
+    +'<div class="t-num">'+esc(String(t.id).replace(/[ed]/,''))+'</div>'
+    +'<div class="t-info"><strong>'+esc(t.t)+'</strong><span>'+esc(t.cat)+'</span></div>'
+    +'<button class="t-star'+(favs.has(t.id)?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+t.id+'\')">★</button>'
+    +'</div>';
+}
+
+// ── Select topic ──
+function selectTopic(id, subPath){
+  var found = TOPICS.find(function(t){ return t.id===id; });
+  if(!found) return;
+  active = found;
+  var url = full(active, subPath||null);
+  // topbar
+  $('topbarTitle').textContent = active.t;
+  $('topbarCat').textContent   = active.src==='eleit' ? active.cat : active.cat+' · CNJ';
+  $('topbarCat').className     = 'topbar-cat '+(active.src==='eleit'?'cat-eleit':'cat-docs');
+  // frame
+  $('contentFrame').src = url;
+  $('openOriginal').href = url;
+  // side panel source badge
+  var badge = $('spSourceBadge');
+  if(active.src==='eleit'){
+    badge.textContent='● PJe Dicas Eleitoral';
+    badge.className='sp-source-badge eleit';
+  } else {
+    badge.textContent='● Documentação Técnica CNJ';
+    badge.className='sp-source-badge docs';
+  }
+  $('topicDesc').textContent = active.desc;
+  // print fallback
+  $('printContent').innerHTML = '<h2>'+esc(active.t)+'</h2><p>'+esc(active.desc)+'</p><p>Fonte: '+url+'</p>';
+  renderSubs();
+  renderRelated();
+  renderChecklist();
+  renderList();
+}
+
+// ── Subtopics ──
+function renderSubs(){
+  var subs = active.subs.length ? active.subs : [[active.t, active.url]];
+  var docsClass = active.src==='docs' ? ' docs-sub' : '';
+  $('subsList').innerHTML = subs.map(function(x){
+    return '<button class="sub-btn'+docsClass+'" onclick="selectTopic(\''+active.id+'\',\''+x[1]+'\')">'
+      +'<span>'+esc(x[0])+'</span>'
+      +'<svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>'
+      +'</button>';
+  }).join('');
+}
+
+// ── Related links (cross-source) ──
+function renderRelated(){
+  var rel = active.related||[];
+  var sec = $('relatedSection');
+  if(!rel.length){ sec.style.display='none'; return; }
+  sec.style.display='block';
+  $('relatedList').innerHTML = rel.map(function(x){
+    var url = BASE_DOCS + x[1];
+    return '<a class="related-link" href="'+url+'" target="_blank" rel="noopener">'
+      +'<svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>'
+      +'<span>'+esc(x[0])+'</span>'
+      +'</a>';
+  }).join('');
+}
+
+// ── Checklist ──
+function renderChecklist(){
+  var items = ['Ler a página principal do tópico','Verificar subtópicos disponíveis','Consultar a fonte original se necessário','Marcar o tópico como visto'];
+  $('checkList').innerHTML = items.map(function(it,i){
+    var chk = (i===3 && seen.has(active.id)) ? 'checked' : '';
+    return '<div class="check-row">'
+      +'<input type="checkbox" id="ck'+i+'" '+chk+' onchange="if('+i+'===3){this.checked?seen.add(\''+active.id+'\'):seen.delete(\''+active.id+'\');save();updateProgress();renderList()}">'
+      +'<label for="ck'+i+'">'+esc(it)+'</label>'
+      +'</div>';
+  }).join('');
+  updateProgress();
+}
+
+// ── Progress ──
+function updateProgress(){
+  var total = visibleTopics().length;
+  var count = visibleTopics().filter(function(t){ return seen.has(t.id); }).length;
+  var pct   = total ? count/total*100 : 0;
+  $('progressFill').style.width  = pct+'%';
+  $('progressFill2').style.width = pct+'%';
+  $('progressLabel').textContent = count+' / '+total;
+}
+
+// ── Fav ──
+function toggleFav(id){ favs.has(id)?favs.delete(id):favs.add(id); save(); renderList(); }
+
+// ── Palette ──
+function openPalette(){
+  $('palette').classList.add('open');
+  $('palInput').value='';
+  renderPal('');
+  setTimeout(function(){ $('palInput').focus(); },40);
+}
+function closePalette(){ $('palette').classList.remove('open'); }
+function renderPal(q){
+  var nq = norm(q);
+  var eleit = TOPICS.filter(function(t){ return t.src==='eleit' && norm(t.id+' '+t.t+' '+t.desc+' '+t.cat).includes(nq); });
+  var docs  = TOPICS.filter(function(t){ return t.src==='docs'  && norm(t.id+' '+t.t+' '+t.desc+' '+t.cat).includes(nq); });
+  var html = '';
+  if(eleit.length){
+    html += '<div class="pal-group"><div class="src-dot eleit"></div>PJe Dicas Eleitoral<div class="pal-group-line"></div></div>';
+    html += eleit.map(function(t){
+      return '<div class="pal-item" onclick="selectTopic(\''+t.id+'\');closePalette()">'
+        +'<div class="pal-item-dot eleit"></div>'
+        +'<div><b>'+esc(t.t)+'</b><small>'+esc(t.cat)+' · '+esc(t.desc)+'</small></div>'
+        +'</div>';
+    }).join('');
+  }
+  if(docs.length){
+    html += '<div class="pal-group"><div class="src-dot docs"></div>Documentação Técnica CNJ<div class="pal-group-line"></div></div>';
+    html += docs.map(function(t){
+      return '<div class="pal-item" onclick="selectTopic(\''+t.id+'\');closePalette()">'
+        +'<div class="pal-item-dot docs"></div>'
+        +'<div><b>'+esc(t.t)+'</b><small>'+esc(t.cat)+' · '+esc(t.desc)+'</small></div>'
+        +'</div>';
+    }).join('');
+  }
+  $('palResults').innerHTML = html || '<div style="padding:12px 16px;font-size:.83rem;color:var(--ink3)">Nenhum resultado.</div>';
+}
+
+// ── Theme ──
+function toggleTheme(){
+  var d = document.documentElement;
+  var dark = d.getAttribute('data-theme')==='dark';
+  d.setAttribute('data-theme', dark?'light':'dark');
+  localStorage.setItem('pje3-theme', dark?'light':'dark');
+}
+(function(){ var t=localStorage.getItem('pje3-theme'); if(t) document.documentElement.setAttribute('data-theme',t); })();
+
+// ── Render all ──
+function renderAll(){ renderFilters(); renderList(); updateProgress(); }
+
+// ── Bindings ──
+$('search').addEventListener('input', renderAll);
+$('resetBtn').onclick   = function(){ $('search').value=''; filterCat='Todos'; favOnly=false; $('favBtn').classList.remove('on'); renderAll(); };
+$('favBtn').onclick     = function(){ favOnly=!favOnly; $('favBtn').classList.toggle('on',favOnly); renderAll(); };
+$('focusBtn').onclick   = function(){ $('app').classList.toggle('focus'); };
+$('printBtn').onclick   = function(){ window.print(); };
+$('markDoneBtn').onclick= function(){ seen.add(active.id); save(); updateProgress(); renderList(); renderChecklist(); };
+$('copyBtn').onclick    = async function(){
+  try{ await navigator.clipboard.writeText($('openOriginal').href); $('copyBtn').querySelector('span').textContent='Copiado!'; setTimeout(function(){ $('copyBtn').querySelector('span').textContent='Copiar link'; },1400); }
+  catch(e){ alert($('openOriginal').href); }
+};
+$('themeBtn').onclick   = toggleTheme;
+$('palInput').addEventListener('input', function(){ renderPal(this.value); });
+$('palette').addEventListener('click', function(e){ if(e.target.id==='palette') closePalette(); });
+document.addEventListener('keydown', function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openPalette(); }
+  if(e.key==='Escape') closePalette();
+});
+
+// ── Init ──
+renderAll();
+selectTopic('e1');
+</script>
+</body>
+</html>

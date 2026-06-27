@@ -72,7 +72,8 @@ const DEFAULT_TIPOS = [
   { id:7, nome:"Outros",                     peso_unitario:200,  cor:"#aaa" },
 ];
 
-const DEFAULT_PROCESSO = { pClasse:3, pAssunto:2, pParte:3, pPrev:1, pCargo:1 };
+// competentesIds: [] = todos competentes; [id, ...] = competência exclusiva
+const DEFAULT_PROCESSO = { pClasse:3, pAssunto:2, pParte:3, pPrev:1, pCargo:1, competentesIds:[] };
 const DEFAULT_PARAMS   = { distanciaMaxima:4000, fatorRepescagem:25 };
 
 // ─── ALGORITMO ──────────────────────────────────────────────────────────────
@@ -82,7 +83,10 @@ function executarDistribuicao(membros, processo, params) {
   const pdist = Math.round((pproc * processo.pPrev * 100) / processo.pCargo);
 
   const passo1 = membros.map(z => ({ ...z }));
-  const passo2 = passo1.filter(z => z.competente);
+  // Se competentesIds tiver membros, só eles passam no filtro de competência
+  const passo2 = processo.competentesIds && processo.competentesIds.length > 0
+    ? passo1.filter(z => processo.competentesIds.includes(z.id))
+    : passo1.filter(z => z.competente);
   const passo34 = passo2.filter(z => z.ativo && z.recebe);
 
   if (passo34.length === 0) return null;
@@ -471,7 +475,45 @@ function ConfigTab({ membros, setMembros, processo, setProcesso, params, setPara
                 onChange={v=>setProcesso(p=>({...p,[row.k]:v}))}/>
             </div>
           ))}
-          <div style={{ marginTop:14,padding:"11px 14px",borderRadius:11,background:C.cardSoft,
+          {/* Competência exclusiva */}
+          <div style={{ padding:"10px 0" }}>
+            <div style={{ fontSize:13,fontWeight:700,color:C.ink,marginBottom:4 }}>Competência exclusiva</div>
+            <div style={{ fontSize:10.5,color:C.inkFaint,marginBottom:8 }}>
+              Deixe vazio = todos competentes. Marque um ou mais membros para restringir o sorteio.
+            </div>
+            <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+              {membros.map(m=>{
+                const marcado = (processo.competentesIds??[]).includes(m.id);
+                return (
+                  <label key={m.id} style={{ display:"flex",alignItems:"center",gap:8,cursor:"pointer",userSelect:"none" }}>
+                    <input type="checkbox" checked={marcado}
+                      onChange={e=>{
+                        setProcesso(p=>({
+                          ...p,
+                          competentesIds: e.target.checked
+                            ? [...(p.competentesIds??[]), m.id]
+                            : (p.competentesIds??[]).filter(id=>id!==m.id)
+                        }));
+                      }}
+                      style={{ width:15,height:15,cursor:"pointer",accentColor:C.azul }}/>
+                    <span style={{ fontSize:13,color:marcado?C.ink:C.inkSoft,fontWeight:marcado?700:400 }}>
+                      {m.orgao}
+                    </span>
+                    <span style={{ fontSize:11,color:C.inkFaint }}>· {m.cargo}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {(processo.competentesIds??[]).length > 0 && (
+              <div style={{ marginTop:8,padding:"6px 10px",borderRadius:8,
+                background:"#fbe8e8",border:`1.5px solid ${C.vermelho}44`,
+                fontSize:12,color:C.vermelho,fontWeight:600 }}>
+                ⚠ Competência exclusiva: apenas {(processo.competentesIds??[]).length} membro(s) participará(ão) do sorteio.
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop:10,padding:"11px 14px",borderRadius:11,background:C.cardSoft,
             border:`1.5px solid ${C.border}`,fontSize:12,color:C.inkSoft,lineHeight:1.6 }}>
             <div>Peso processual = {processo.pParte}×{processo.pClasse}×{processo.pAssunto} = <b style={{ color:C.azulEsc }}>{processo.pParte*processo.pClasse*processo.pAssunto}</b></div>
             <div>Peso de distribuição = <b style={{ color:C.azulEsc }}>{Math.round((processo.pParte*processo.pClasse*processo.pAssunto*processo.pPrev*100)/processo.pCargo).toLocaleString("pt-BR")}</b></div>
@@ -607,7 +649,9 @@ function SimularTab({ membros, setMembros, processo, params, historico, setHisto
     return [
       "Um processo chegou para distribuição no 2.º grau do TRE Ceará. Vamos acompanhar como o PJe escolhe o relator.",
       `O sistema lista TODOS os ${sim.passo1.length} membros da jurisdição. Ainda sem filtros.`,
-      `Ficam só os ${sim.passo2.length} membros competentes para a classe/assunto. Todos estão marcados como competentes neste cenário.`,
+      processo.competentesIds && processo.competentesIds.length > 0
+        ? `Competência exclusiva ativa: apenas ${sim.passo2.map(m=>m.orgao).join(", ")} ${sim.passo2.length===1?"é competente":"são competentes"} para esta classe/assunto.`
+        : `Ficam só os ${sim.passo2.length} membros competentes para a classe/assunto.`,
       `Cargos inativos ou que não recebem distribuição são excluídos. ${semRecebe ? semRecebe + " foram excluídos." : "Nenhum excluído nesta etapa."} Resultado: ${sim.passo34.length} cargos ativos.`,
       `Menor acumulador: ${sim.menorAcc.toLocaleString("pt-BR")}. Limite da distância máxima: ${sim.limite.toLocaleString("pt-BR")} (menor + ${params.distanciaMaxima.toLocaleString("pt-BR")}). Membros acima do limite ficam de fora, salvo repescagem.`,
       `${sim.repescadosIds.size > 0 ? `${sim.repescadosIds.size} membro(s) foram repescados com o fator de ${params.fatorRepescagem}%.` : `Nenhum membro foi repescado nesta rodada.`} Total elegíveis: ${sim.elegiveis.length}.`,

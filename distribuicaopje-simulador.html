@@ -3,23 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Simulador de Distribuição PJe</title>
+<title>Simulador de Distribuição PJe — TRE CE</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-<style>
-  html,body{margin:0;padding:0;background:#f4f6fa;}
-  *{box-sizing:border-box;}
-</style>
+<style>html,body{margin:0;padding:0;background:#f4f6fa;}*{box-sizing:border-box;}</style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
 const { useState, useMemo, useCallback, useRef } = React;
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  PALETA
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── PALETA ────────────────────────────────────────────────────────────────
 const C = {
   bg:"#f4f6fa", bgGrad1:"#fbfcfe", bgGrad2:"#e8edf6",
   card:"#ffffff", cardSoft:"#f5f7fb",
@@ -48,58 +43,64 @@ const TH_LOG={ textAlign:"left",padding:"8px",fontSize:13,color:PJE_HEADER_FG,
 const TD_LOG={ textAlign:"left",padding:"6px 8px",fontSize:13,color:PJE_CELL_FG,
   fontFamily:PJE_FONT,verticalAlign:"top",lineHeight:1.45,border:`1px solid ${PJE_BORDA}` };
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  DEFAULTS
-// ─────────────────────────────────────────────────────────────────────────────
-const DEFAULT_ZONAS = [
-  { id:1, orgao:"1ª Zona Eleitoral", cargo:"Juiz Eleitoral", acumulador:6100,  ativo:true,  recebe:true,  competente:true  },
-  { id:2, orgao:"2ª Zona Eleitoral", cargo:"Juiz Eleitoral", acumulador:12400, ativo:true,  recebe:true,  competente:true  },
-  { id:3, orgao:"3ª Zona Eleitoral", cargo:"Juiz Eleitoral", acumulador:7300,  ativo:true,  recebe:true,  competente:true  },
-  { id:4, orgao:"4ª Zona Eleitoral", cargo:"Juiz Eleitoral", acumulador:11800, ativo:true,  recebe:true,  competente:true  },
-  { id:5, orgao:"5ª Zona Eleitoral", cargo:"Juiz Eleitoral", acumulador:6800,  ativo:false, recebe:false, competente:true  },
-  { id:6, orgao:"6ª Zona Eleitoral", cargo:"Juiz Eleitoral", acumulador:9000,  ativo:true,  recebe:true,  competente:false },
+// ─── MEMBROS PADRÃO — TRE CE 2º GRAU ───────────────────────────────────────
+// Composição típica de TRE: 7 membros efetivos.
+// Presidente geralmente não recebe distribuição (recebe:false).
+// Edite nomes/cargos na aba Configurar após carregar.
+const DEFAULT_MEMBROS = [
+  { id:1, orgao:"Presidência",         cargo:"Presidente",              acumulador:0, ativo:true, recebe:false, competente:true },
+  { id:2, orgao:"Vice-Presidência",    cargo:"Vice-Presidente",         acumulador:0, ativo:true, recebe:true,  competente:true },
+  { id:3, orgao:"Corregedoria",        cargo:"Corregedor Regional",     acumulador:0, ativo:true, recebe:true,  competente:true },
+  { id:4, orgao:"Membro TJCE 2",       cargo:"Desembargador (TJCE)",    acumulador:0, ativo:true, recebe:true,  competente:true },
+  { id:5, orgao:"Membro TRF 5 - 1",   cargo:"Juiz Federal (TRF 5)",    acumulador:0, ativo:true, recebe:true,  competente:true },
+  { id:6, orgao:"Membro TRF 5 - 2",   cargo:"Juiz Federal (TRF 5)",    acumulador:0, ativo:true, recebe:true,  competente:true },
+  { id:7, orgao:"Membro OAB - 1",     cargo:"Advogado (OAB)",          acumulador:0, ativo:true, recebe:true,  competente:true },
+  { id:8, orgao:"Membro OAB - 2",     cargo:"Advogado (OAB)",          acumulador:0, ativo:true, recebe:true,  competente:true },
+];
+
+// ─── TIPOS DE PROCESSO PADRÃO ───────────────────────────────────────────────
+// peso_unitario = pdist para UM processo típico daquela classe
+// (pParte × pClasse × pAssunto × pPrev × 100 / pCargo)
+// Ajuste conforme a tabela de pesos do seu TRE no PJe.
+const DEFAULT_TIPOS = [
+  { id:1, nome:"AIJE / AIME",               peso_unitario:1800, cor:"#e63946" },
+  { id:2, nome:"RCED",                       peso_unitario:900,  cor:"#f4a261" },
+  { id:3, nome:"RO (Recurso Ordinário)",     peso_unitario:400,  cor:"#457b9d" },
+  { id:4, nome:"Representação",              peso_unitario:300,  cor:"#6a4c93" },
+  { id:5, nome:"Consulta",                   peso_unitario:100,  cor:"#2a9d8f" },
+  { id:6, nome:"Proc. Administrativo",       peso_unitario:100,  cor:"#8d8d8d" },
+  { id:7, nome:"Outros",                     peso_unitario:200,  cor:"#aaa" },
 ];
 
 const DEFAULT_PROCESSO = { pClasse:3, pAssunto:2, pParte:3, pPrev:1, pCargo:1 };
-const DEFAULT_PARAMS    = { distanciaMaxima:4000, fatorRepescagem:25 };
+const DEFAULT_PARAMS   = { distanciaMaxima:4000, fatorRepescagem:25 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  ALGORITMO REAL DE DISTRIBUIÇÃO
-// ─────────────────────────────────────────────────────────────────────────────
-function executarDistribuicao(zonas, processo, params) {
+// ─── ALGORITMO ──────────────────────────────────────────────────────────────
+function executarDistribuicao(membros, processo, params) {
   const { distanciaMaxima, fatorRepescagem } = params;
   const pproc = processo.pParte * processo.pClasse * processo.pAssunto;
-  const pdist  = Math.round((pproc * processo.pPrev * 100) / processo.pCargo);
+  const pdist = Math.round((pproc * processo.pPrev * 100) / processo.pCargo);
 
-  // passo 1: jurisdição — todos
-  const passo1 = zonas.map(z => ({ ...z }));
-
-  // passo 2: filtro competência
+  const passo1 = membros.map(z => ({ ...z }));
   const passo2 = passo1.filter(z => z.competente);
-
-  // passos 3–4: ativos e recebendo
   const passo34 = passo2.filter(z => z.ativo && z.recebe);
 
-  // passos 5–6: distância máxima
+  if (passo34.length === 0) return null;
+
   const menorAcc = Math.min(...passo34.map(z => z.acumulador));
   const limite   = menorAcc + distanciaMaxima;
 
-  const dentroDist  = passo34.filter(z => z.acumulador <= limite);
-  const foraDist    = passo34.filter(z => z.acumulador >  limite);
+  const dentroDist = passo34.filter(z => z.acumulador <= limite);
+  const foraDist   = passo34.filter(z => z.acumulador >  limite);
 
-  // repescagem
   const repescadosIds = new Set();
-  foraDist.forEach(z => {
-    if (Math.random() * 100 < fatorRepescagem) repescadosIds.add(z.id);
-  });
+  foraDist.forEach(z => { if (Math.random() * 100 < fatorRepescagem) repescadosIds.add(z.id); });
 
   const elegiveis = [
     ...dentroDist,
     ...foraDist.filter(z => repescadosIds.has(z.id)),
   ];
 
-  // sorteio ponderado: peso ∝ (limite - acc + 1) para os de dentro;
-  // peso fixo = distanciaMaxima / 4 para os repescados
   const pesoBase = (z) =>
     z.acumulador <= limite
       ? Math.max(1, limite - z.acumulador + 1)
@@ -108,176 +109,328 @@ function executarDistribuicao(zonas, processo, params) {
   const totalPeso = elegiveis.reduce((s, z) => s + pesoBase(z), 0);
   let rand = Math.random() * totalPeso;
   let sorteado = elegiveis[elegiveis.length - 1];
-  for (const z of elegiveis) {
-    rand -= pesoBase(z);
-    if (rand <= 0) { sorteado = z; break; }
-  }
+  for (const z of elegiveis) { rand -= pesoBase(z); if (rand <= 0) { sorteado = z; break; } }
 
-  return {
-    passo1, passo2, passo34,
-    menorAcc, limite,
-    dentroDist, foraDist,
-    repescadosIds,
-    elegiveis,
-    sorteadoId: sorteado.id,
-    pproc, pdist,
-  };
+  return { passo1, passo2, passo34, menorAcc, limite, dentroDist, foraDist,
+    repescadosIds, elegiveis, sorteadoId: sorteado.id, pproc, pdist };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  PEQUENOS COMPONENTES
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── COMPONENTES BASE ───────────────────────────────────────────────────────
 function Tag({ children, cor, bg }) {
   return (
-    <span style={{
-      display:"inline-block",padding:"3px 11px",borderRadius:999,
-      fontSize:12,fontWeight:700,letterSpacing:0.2,
-      color:cor,background:bg,border:`1.5px solid ${cor}33`,whiteSpace:"nowrap",
-    }}>{children}</span>
+    <span style={{ display:"inline-block",padding:"3px 11px",borderRadius:999,
+      fontSize:12,fontWeight:700,color:cor,background:bg,
+      border:`1.5px solid ${cor}33`,whiteSpace:"nowrap" }}>{children}</span>
   );
 }
-
-function Btn({ children, onClick, disabled, primary, danger, small }) {
-  const base = { cursor:"pointer",border:"none",borderRadius:10,fontWeight:700,
-    fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"filter .15s",
-    padding: small ? "6px 14px" : "11px 20px",
-    fontSize: small ? 13 : 14,
-  };
-  const variant = danger
+function Btn({ children, onClick, disabled, primary, danger, small, style:s }) {
+  const base = { cursor:disabled?"not-allowed":"pointer",border:"none",borderRadius:10,
+    fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"filter .15s",
+    padding:small?"6px 14px":"11px 20px",fontSize:small?13:14,opacity:disabled?0.4:1 };
+  const v = danger
     ? { background:"#fbe5e2",color:C.vermelho,border:`1.5px solid ${C.vermelho}44` }
     : primary
-    ? { background:`linear-gradient(90deg,${C.azul},${C.azulEsc})`,color:"#fff",boxShadow:`0 4px 12px ${C.azul}44` }
+    ? { background:`linear-gradient(90deg,${C.azul},${C.azulEsc})`,color:"#fff",
+        boxShadow:`0 4px 12px ${C.azul}44` }
     : { background:"#eef1f6",color:C.ink };
-  return (
-    <button onClick={onClick} disabled={disabled}
-      style={{ ...base, ...variant, opacity: disabled ? 0.4 : 1, cursor: disabled ? "not-allowed" : "pointer" }}>
-      {children}
-    </button>
-  );
+  return <button onClick={onClick} disabled={disabled} style={{ ...base,...v,...s }}>{children}</button>;
 }
-
-function Toggle({ label, value, onChange }) {
-  return (
-    <label style={{ display:"flex",alignItems:"center",gap:8,cursor:"pointer",userSelect:"none" }}>
-      <span style={{
-        width:36,height:20,borderRadius:10,
-        background: value ? C.azul : "#cdd4e0",
-        display:"inline-block",position:"relative",transition:"background .2s",
-        flexShrink:0,
-      }}>
-        <span style={{
-          position:"absolute",top:3,left: value ? 18 : 3,
-          width:14,height:14,borderRadius:7,background:"#fff",
-          transition:"left .2s",boxShadow:"0 1px 3px rgba(0,0,0,.2)",
-        }}/>
-      </span>
-      <input type="checkbox" checked={value} onChange={e=>onChange(e.target.checked)}
-        style={{position:"absolute",opacity:0,width:0,height:0}}/>
-      <span style={{fontSize:13,color:C.inkSoft}}>{label}</span>
-    </label>
-  );
-}
-
-function NumInput({ value, onChange, min, max, step=1 }) {
+function NumInput({ value, onChange, min=0, max=999999, step=1, width=80 }) {
   return (
     <input type="number" value={value} min={min} max={max} step={step}
       onChange={e=>onChange(Number(e.target.value))}
-      style={{
-        width:80,padding:"5px 8px",border:`1.5px solid ${C.border}`,
-        borderRadius:8,fontSize:14,fontFamily:"'IBM Plex Mono',monospace",
-        color:C.azulEsc,background:"#fff",outline:"none",
-      }}/>
+      style={{ width,padding:"5px 8px",border:`1.5px solid ${C.border}`,borderRadius:8,
+        fontSize:14,fontFamily:"'IBM Plex Mono',monospace",color:C.azulEsc,
+        background:"#fff",outline:"none",textAlign:"right" }}/>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  ABA CONFIGURAR
-// ─────────────────────────────────────────────────────────────────────────────
-function ConfigTab({ zonas, setZonas, processo, setProcesso, params, setParams }) {
-  const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({});
-  const nextId = useRef(Math.max(...zonas.map(z=>z.id), 0) + 1);
+// ─── ABA ACERVO ─────────────────────────────────────────────────────────────
+function AcervoTab({ membros, setMembros, tipos, setTipos }) {
+  // counts[membroId][tipoId] = number
+  const [counts, setCounts] = useState(() => {
+    const c = {};
+    membros.forEach(m => { c[m.id] = {}; tipos.forEach(t => { c[m.id][t.id] = 0; }); });
+    return c;
+  });
+  const [editTipo, setEditTipo]     = useState(null);
+  const [editTipoDat, setEditTipoDat] = useState({});
+  const nextTipoId = useRef(Math.max(...tipos.map(t=>t.id),0)+1);
 
-  const startEdit = (z) => { setEditId(z.id); setEditData({ ...z }); };
-  const saveEdit  = () => {
-    setZonas(prev => prev.map(z => z.id === editId ? { ...editData } : z));
-    setEditId(null);
-  };
-  const removeZona = (id) => setZonas(prev => prev.filter(z => z.id !== id));
-  const addZona = () => {
-    const id = nextId.current++;
-    const nova = { id, orgao:"Nova Zona", cargo:"Juiz Eleitoral", acumulador:0, ativo:true, recebe:true, competente:true };
-    setZonas(prev => [...prev, nova]);
-    setEditId(id); setEditData({ ...nova });
+  const ensureCounts = useCallback((ms, ts) => {
+    setCounts(prev => {
+      const next = {};
+      ms.forEach(m => {
+        next[m.id] = {};
+        ts.forEach(t => { next[m.id][t.id] = prev[m.id]?.[t.id] ?? 0; });
+      });
+      return next;
+    });
+  }, []);
+
+  const setCount = (mid, tid, val) =>
+    setCounts(prev => ({ ...prev, [mid]:{ ...prev[mid],[tid]:Math.max(0,val) } }));
+
+  // Acumulador calculado por membro
+  const acumuladores = useMemo(() => {
+    const r = {};
+    membros.forEach(m => {
+      r[m.id] = tipos.reduce((s,t) => s + (counts[m.id]?.[t.id]??0)*t.peso_unitario, 0);
+    });
+    return r;
+  }, [membros, tipos, counts]);
+
+  const maxAcc = Math.max(...Object.values(acumuladores), 1);
+
+  const aplicar = () => {
+    setMembros(prev => prev.map(m => ({ ...m, acumulador: acumuladores[m.id] ?? m.acumulador })));
   };
 
-  const cellStyle = { padding:"8px 10px", fontSize:13, color:C.inkSoft, borderBottom:`1px solid ${C.border}`, verticalAlign:"middle" };
-  const thStyle   = { ...cellStyle, fontSize:11.5, fontWeight:800, color:C.inkFaint, letterSpacing:0.8 };
+  const addTipo = () => {
+    const id = nextTipoId.current++;
+    const novo = { id, nome:"Novo tipo", peso_unitario:200, cor:"#999" };
+    setTipos(prev => { const t=[...prev,novo]; ensureCounts(membros,t); return t; });
+    setEditTipo(id); setEditTipoDat({ ...novo });
+  };
+  const saveTipo = () => {
+    setTipos(prev => prev.map(t => t.id===editTipo ? { ...editTipoDat } : t));
+    setEditTipo(null);
+  };
+  const removeTipo = (id) => {
+    setTipos(prev => { const t=prev.filter(x=>x.id!==id); ensureCounts(membros,t); return t; });
+  };
+
+  const thS = { padding:"8px 10px",fontSize:11.5,fontWeight:800,color:C.inkFaint,
+    letterSpacing:0.8,textAlign:"left",borderBottom:`2px solid ${C.border}`,
+    background:"transparent",whiteSpace:"nowrap" };
+  const tdS = { padding:"7px 10px",fontSize:13,color:C.inkSoft,
+    borderBottom:`1px solid ${C.border}`,verticalAlign:"middle" };
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:20, alignItems:"start" }}>
-      {/* Zonas */}
-      <section style={{ background:C.card, border:`2px solid ${C.border}`, borderRadius:18, padding:20 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+    <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
+
+      {/* Tipos de processo */}
+      <section style={{ background:C.card,border:`2px solid ${C.border}`,borderRadius:18,padding:20 }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
           <div>
-            <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800 }}>ÓRGÃOS JULGADORES</div>
-            <div style={{ fontSize:13,color:C.inkSoft,marginTop:2 }}>
-              Insira o acumulador atual de cada cargo (extraído do PJe)
+            <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800 }}>TIPOS DE PROCESSO</div>
+            <div style={{ fontSize:12,color:C.inkSoft,marginTop:2 }}>
+              Defina cada classe e o <b>peso unitário</b> — o pdist que o PJe soma por um processo típico dessa classe
             </div>
           </div>
-          <Btn onClick={addZona} small>+ Adicionar zona</Btn>
+          <Btn onClick={addTipo} small>+ Adicionar tipo</Btn>
+        </div>
+        <div style={{ display:"flex",flexWrap:"wrap",gap:10 }}>
+          {tipos.map(t => {
+            const ed = editTipo===t.id;
+            const d = ed ? editTipoDat : t;
+            return (
+              <div key={t.id} style={{ padding:"10px 14px",borderRadius:12,
+                border:`2px solid ${ed?C.azul:C.border}`,background: ed?"#f0f4ff":C.cardSoft,
+                display:"flex",gap:10,alignItems:"center" }}>
+                {ed ? (
+                  <>
+                    <input value={d.nome} onChange={e=>setEditTipoDat(p=>({...p,nome:e.target.value}))}
+                      style={{ width:160,padding:"4px 8px",border:`1.5px solid ${C.azul}`,borderRadius:7,fontSize:13 }}/>
+                    <label style={{ fontSize:12,color:C.inkSoft }}>Peso unit.</label>
+                    <input type="number" value={d.peso_unitario} min={1}
+                      onChange={e=>setEditTipoDat(p=>({...p,peso_unitario:Number(e.target.value)}))}
+                      style={{ width:80,padding:"4px 8px",border:`1.5px solid ${C.azul}`,borderRadius:7,
+                        fontSize:13,fontFamily:"monospace",textAlign:"right" }}/>
+                    <input type="color" value={d.cor}
+                      onChange={e=>setEditTipoDat(p=>({...p,cor:e.target.value}))}
+                      style={{ width:32,height:32,borderRadius:6,cursor:"pointer",border:"none",padding:2 }}/>
+                    <Btn onClick={saveTipo} small primary>✓</Btn>
+                    <Btn onClick={()=>setEditTipo(null)} small>✕</Btn>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ width:14,height:14,borderRadius:3,background:t.cor,display:"inline-block",flexShrink:0 }}/>
+                    <div>
+                      <div style={{ fontSize:13,fontWeight:700,color:C.ink }}>{t.nome}</div>
+                      <div style={{ fontSize:11,color:C.inkFaint }}>peso unit.: <b style={{ fontFamily:"monospace" }}>{t.peso_unitario.toLocaleString("pt-BR")}</b></div>
+                    </div>
+                    <button onClick={()=>{setEditTipo(t.id);setEditTipoDat({...t});}}
+                      style={{ border:"none",background:"none",cursor:"pointer",color:C.azul,fontSize:12,fontWeight:700,padding:"2px 6px" }}>✎</button>
+                    <button onClick={()=>removeTipo(t.id)}
+                      style={{ border:"none",background:"none",cursor:"pointer",color:C.vermelho,fontSize:14,padding:"2px 6px" }}>×</button>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Tabela de acervo */}
+      <section style={{ background:C.card,border:`2px solid ${C.border}`,borderRadius:18,padding:20 }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
+          <div>
+            <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800 }}>ACERVO EM TRAMITAÇÃO POR MEMBRO</div>
+            <div style={{ fontSize:12,color:C.inkSoft,marginTop:2 }}>
+              Informe a quantidade de processos de cada tipo por membro. O acumulador é calculado automaticamente.
+            </div>
+          </div>
+          <Btn onClick={aplicar} primary small>↑ Aplicar acumuladores à simulação</Btn>
         </div>
 
         <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse" }}>
+          <table style={{ width:"100%",borderCollapse:"collapse",minWidth:600 }}>
             <thead>
               <tr>
-                {["Órgão","Cargo","Acumulador","Ativo","Recebe dist.","Competente",""].map(h=>(
+                <th style={{ ...thS,minWidth:180 }}>Membro / Cargo</th>
+                {tipos.map(t=>(
+                  <th key={t.id} style={{ ...thS,textAlign:"right",minWidth:90 }}>
+                    <div style={{ display:"flex",alignItems:"center",justifyContent:"flex-end",gap:5 }}>
+                      <span style={{ width:10,height:10,borderRadius:2,background:t.cor,display:"inline-block" }}/>
+                      {t.nome}
+                    </div>
+                    <div style={{ fontSize:10,fontWeight:500,color:C.inkFaint }}>peso {t.peso_unitario.toLocaleString("pt-BR")}</div>
+                  </th>
+                ))}
+                <th style={{ ...thS,textAlign:"right",color:C.azulEsc,minWidth:130 }}>Acumulador calc.</th>
+                <th style={{ ...thS,minWidth:180 }}>Barra</th>
+              </tr>
+            </thead>
+            <tbody>
+              {membros.map((m,i) => {
+                const acc = acumuladores[m.id] ?? 0;
+                const pct = maxAcc > 0 ? (acc/maxAcc)*100 : 0;
+                const recebe = m.ativo && m.recebe;
+                return (
+                  <tr key={m.id} style={{ background: i%2===0?"#fafbfd":"#fff", opacity: recebe?1:0.5 }}>
+                    <td style={tdS}>
+                      <div style={{ fontWeight:700,color:C.ink,fontSize:13 }}>{m.orgao}</div>
+                      <div style={{ fontSize:11,color:C.inkFaint }}>{m.cargo}</div>
+                      {!recebe && <div style={{ fontSize:10,color:C.inativo,fontWeight:700 }}>não recebe distribuição</div>}
+                    </td>
+                    {tipos.map(t=>(
+                      <td key={t.id} style={{ ...tdS,textAlign:"right",padding:"4px 8px" }}>
+                        {recebe ? (
+                          <input type="number" value={counts[m.id]?.[t.id]??0} min={0}
+                            onChange={e=>setCount(m.id,t.id,Number(e.target.value))}
+                            style={{ width:70,padding:"4px 6px",border:`1.5px solid ${C.border}`,
+                              borderRadius:7,fontSize:13,fontFamily:"monospace",
+                              textAlign:"right",background:"#fff",outline:"none" }}
+                            onFocus={e=>e.target.select()}/>
+                        ) : (
+                          <span style={{ color:C.inkFaint,fontSize:12 }}>—</span>
+                        )}
+                      </td>
+                    ))}
+                    <td style={{ ...tdS,textAlign:"right",fontFamily:"monospace",
+                      fontWeight:700,fontSize:14,color: recebe?C.azulEsc:C.inkFaint }}>
+                      {acc.toLocaleString("pt-BR")}
+                    </td>
+                    <td style={{ ...tdS,padding:"4px 10px" }}>
+                      <div style={{ height:16,borderRadius:5,background:"#eef1f6",overflow:"hidden" }}>
+                        <div style={{ height:"100%",width:`${pct}%`,
+                          background: recebe?C.azul:C.inativo,
+                          borderRadius:5,transition:"width .4s" }}/>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{ marginTop:14,padding:"11px 14px",borderRadius:11,
+          background:"#f0f6ff",border:`1.5px solid ${C.azul}22`,fontSize:12,color:C.inkSoft,lineHeight:1.5 }}>
+          <b>Como usar:</b> preencha a quantidade de processos em tramitação de cada tipo para cada membro.
+          O acumulador calculado é a soma de <i>quantidade × peso unitário</i>.
+          Clique em <b>"Aplicar acumuladores à simulação"</b> para levar os valores calculados para a aba Simular.
+          Os pesos unitários correspondem ao campo <i>Peso de Distribuição</i> que o PJe grava em cada processo —
+          consulte a tela Informações da Distribuição de um processo representativo de cada classe.
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ─── ABA CONFIGURAR ─────────────────────────────────────────────────────────
+function ConfigTab({ membros, setMembros, processo, setProcesso, params, setParams }) {
+  const [editId, setEditId]   = useState(null);
+  const [editData, setEditData] = useState({});
+  const nextId = useRef(Math.max(...membros.map(m=>m.id),0)+1);
+
+  const startEdit = (m) => { setEditId(m.id); setEditData({...m}); };
+  const saveEdit  = () => {
+    setMembros(prev => prev.map(m => m.id===editId ? {...editData} : m));
+    setEditId(null);
+  };
+  const removeMembro = (id) => setMembros(prev => prev.filter(m=>m.id!==id));
+  const addMembro = () => {
+    const id = nextId.current++;
+    const novo = { id, orgao:"Novo Membro", cargo:"Membro", acumulador:0, ativo:true, recebe:true, competente:true };
+    setMembros(prev => [...prev, novo]);
+    setEditId(id); setEditData({...novo});
+  };
+
+  const cellStyle = { padding:"8px 10px",fontSize:13,color:C.inkSoft,
+    borderBottom:`1px solid ${C.border}`,verticalAlign:"middle" };
+  const thStyle   = { ...cellStyle,fontSize:11.5,fontWeight:800,color:C.inkFaint,letterSpacing:0.8 };
+
+  return (
+    <div style={{ display:"grid",gridTemplateColumns:"1fr 300px",gap:20,alignItems:"start" }}>
+      <section style={{ background:C.card,border:`2px solid ${C.border}`,borderRadius:18,padding:20 }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
+          <div>
+            <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800 }}>MEMBROS / CARGOS</div>
+            <div style={{ fontSize:12,color:C.inkSoft,marginTop:2 }}>
+              Configure cada membro do tribunal. O acumulador pode ser inserido diretamente ou calculado na aba Acervo.
+            </div>
+          </div>
+          <Btn onClick={addMembro} small>+ Adicionar membro</Btn>
+        </div>
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%",borderCollapse:"collapse" }}>
+            <thead>
+              <tr>
+                {["Órgão / Nome","Cargo","Acumulador","Ativo","Recebe dist.","Competente",""].map(h=>(
                   <th key={h} style={thStyle}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {zonas.map(z => {
-                const editing = editId === z.id;
-                const d = editing ? editData : z;
+              {membros.map(m => {
+                const editing = editId===m.id;
+                const d = editing ? editData : m;
                 return (
-                  <tr key={z.id} style={{ background: editing ? "#f0f4ff" : "transparent" }}>
+                  <tr key={m.id} style={{ background:editing?"#f0f4ff":"transparent" }}>
                     <td style={cellStyle}>
                       {editing
                         ? <input value={d.orgao} onChange={e=>setEditData(p=>({...p,orgao:e.target.value}))}
                             style={{ width:"100%",padding:"4px 7px",border:`1.5px solid ${C.azul}`,borderRadius:7,fontSize:13 }}/>
-                        : <span style={{ fontWeight:700,color:C.ink }}>{z.orgao}</span>
-                      }
+                        : <span style={{ fontWeight:700,color:C.ink }}>{m.orgao}</span>}
                     </td>
                     <td style={cellStyle}>
                       {editing
                         ? <input value={d.cargo} onChange={e=>setEditData(p=>({...p,cargo:e.target.value}))}
                             style={{ width:"100%",padding:"4px 7px",border:`1.5px solid ${C.azul}`,borderRadius:7,fontSize:13 }}/>
-                        : z.cargo
-                      }
+                        : m.cargo}
                     </td>
-                    <td style={{ ...cellStyle, textAlign:"right" }}>
+                    <td style={{ ...cellStyle,textAlign:"right" }}>
                       {editing
                         ? <input type="number" value={d.acumulador} min={0}
                             onChange={e=>setEditData(p=>({...p,acumulador:Number(e.target.value)}))}
-                            style={{ width:90,padding:"4px 7px",border:`1.5px solid ${C.azul}`,borderRadius:7,fontSize:13,fontFamily:"monospace",textAlign:"right" }}/>
-                        : <span style={{ fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,color:C.azulEsc }}>
-                            {z.acumulador.toLocaleString("pt-BR")}
-                          </span>
-                      }
+                            style={{ width:100,padding:"4px 7px",border:`1.5px solid ${C.azul}`,borderRadius:7,
+                              fontSize:13,fontFamily:"monospace",textAlign:"right" }}/>
+                        : <span style={{ fontFamily:"monospace",fontWeight:600,color:C.azulEsc }}>
+                            {m.acumulador.toLocaleString("pt-BR")}
+                          </span>}
                     </td>
                     {["ativo","recebe","competente"].map(k=>(
-                      <td key={k} style={{ ...cellStyle, textAlign:"center" }}>
+                      <td key={k} style={{ ...cellStyle,textAlign:"center" }}>
                         {editing
                           ? <input type="checkbox" checked={!!d[k]}
                               onChange={e=>setEditData(p=>({...p,[k]:e.target.checked}))}
                               style={{ width:16,height:16,cursor:"pointer" }}/>
-                          : <span style={{ fontSize:16 }}>{z[k] ? "✓" : "✗"}</span>
-                        }
+                          : <span style={{ fontSize:16 }}>{m[k]?"✓":"✗"}</span>}
                       </td>
                     ))}
-                    <td style={{ ...cellStyle, whiteSpace:"nowrap" }}>
+                    <td style={{ ...cellStyle,whiteSpace:"nowrap" }}>
                       {editing ? (
                         <div style={{ display:"flex",gap:6 }}>
                           <Btn onClick={saveEdit} small primary>Salvar</Btn>
@@ -285,8 +438,8 @@ function ConfigTab({ zonas, setZonas, processo, setProcesso, params, setParams }
                         </div>
                       ) : (
                         <div style={{ display:"flex",gap:6 }}>
-                          <Btn onClick={()=>startEdit(z)} small>Editar</Btn>
-                          <Btn onClick={()=>removeZona(z.id)} small danger>Remover</Btn>
+                          <Btn onClick={()=>startEdit(m)} small>Editar</Btn>
+                          <Btn onClick={()=>removeMembro(m.id)} small danger>Remover</Btn>
                         </div>
                       )}
                     </td>
@@ -296,26 +449,18 @@ function ConfigTab({ zonas, setZonas, processo, setProcesso, params, setParams }
             </tbody>
           </table>
         </div>
-
-        <div style={{ marginTop:14,padding:"11px 14px",borderRadius:11,background:"#f0f6ff",border:`1.5px solid ${C.azul}22`,fontSize:12,color:C.inkSoft,lineHeight:1.5 }}>
-          <b>Como obter o acumulador no PJe:</b> acesse Distribuição → Relatório de Acumuladores (ou consulte a tela
-          Informações da Distribuição de qualquer processo recente). O valor exibido no campo <i>Acumulador</i>
-          é exatamente o que deve ser inserido aqui.
-        </div>
       </section>
 
-      {/* Processo + Parâmetros */}
       <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
-
         <section style={{ background:C.card,border:`2px solid ${C.border}`,borderRadius:18,padding:20 }}>
-          <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800,marginBottom:14 }}>PESOS DO PROCESSO</div>
+          <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800,marginBottom:14 }}>PESOS DO PROCESSO A DISTRIBUIR</div>
           {[
-            { k:"pClasse",  label:"Peso da classe",    hint:"Definido no cadastro da classe judicial" },
-            { k:"pAssunto", label:"Peso do assunto",   hint:"Maior peso entre os assuntos do processo" },
-            { k:"pParte",   label:"Peso das partes",   hint:"Varia conforme n.º de partes (polo passivo)" },
-            { k:"pPrev",    label:"Peso de prevenção", hint:"1 = não incidental; >1 = processo incidental" },
-            { k:"pCargo",   label:"Peso do cargo",     hint:"Fator divisor — igual para todos na JE" },
-          ].map(row => (
+            { k:"pClasse",  label:"Peso da classe",    hint:"Definido no cadastro da classe" },
+            { k:"pAssunto", label:"Peso do assunto",   hint:"Maior peso entre os assuntos" },
+            { k:"pParte",   label:"Peso das partes",   hint:"Varia com n.º de partes" },
+            { k:"pPrev",    label:"Peso de prevenção", hint:"1 = não incidental" },
+            { k:"pCargo",   label:"Peso do cargo",     hint:"Fator divisor" },
+          ].map(row=>(
             <div key={row.k} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",
               padding:"8px 0",borderBottom:`1px solid ${C.border}` }}>
               <div>
@@ -328,168 +473,152 @@ function ConfigTab({ zonas, setZonas, processo, setProcesso, params, setParams }
           ))}
           <div style={{ marginTop:14,padding:"11px 14px",borderRadius:11,background:C.cardSoft,
             border:`1.5px solid ${C.border}`,fontSize:12,color:C.inkSoft,lineHeight:1.6 }}>
-            <div>Peso processual = {processo.pParte} × {processo.pClasse} × {processo.pAssunto}
-              {" = "}<b style={{ color:C.azulEsc }}>{processo.pParte*processo.pClasse*processo.pAssunto}</b>
-            </div>
-            <div style={{ marginTop:4 }}>Peso de distribuição = ({processo.pParte*processo.pClasse*processo.pAssunto} × {processo.pPrev}) × 100 ÷ {processo.pCargo}
-              {" = "}<b style={{ color:C.azulEsc }}>{Math.round((processo.pParte*processo.pClasse*processo.pAssunto*processo.pPrev*100)/processo.pCargo).toLocaleString("pt-BR")}</b>
-            </div>
+            <div>Peso processual = {processo.pParte}×{processo.pClasse}×{processo.pAssunto} = <b style={{ color:C.azulEsc }}>{processo.pParte*processo.pClasse*processo.pAssunto}</b></div>
+            <div>Peso de distribuição = <b style={{ color:C.azulEsc }}>{Math.round((processo.pParte*processo.pClasse*processo.pAssunto*processo.pPrev*100)/processo.pCargo).toLocaleString("pt-BR")}</b></div>
           </div>
         </section>
 
         <section style={{ background:C.card,border:`2px solid ${C.border}`,borderRadius:18,padding:20 }}>
           <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800,marginBottom:14 }}>PARÂMETROS DE DISTRIBUIÇÃO</div>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}` }}>
-            <div>
-              <div style={{ fontSize:13,fontWeight:700,color:C.ink }}>Distância máxima</div>
-              <div style={{ fontSize:10.5,color:C.inkFaint }}>Diferença máxima de carga permitida entre cargos</div>
+          {[
+            { k:"distanciaMaxima",  label:"Distância máxima",        hint:"Diferença de carga permitida",        step:100 },
+            { k:"fatorRepescagem",  label:"Fator de repescagem (%)", hint:"Chance de cargos fora entrarem no sorteio", step:1, max:100 },
+          ].map(row=>(
+            <div key={row.k} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",
+              padding:"8px 0",borderBottom:`1px solid ${C.border}` }}>
+              <div>
+                <div style={{ fontSize:13,fontWeight:700,color:C.ink }}>{row.label}</div>
+                <div style={{ fontSize:10.5,color:C.inkFaint }}>{row.hint}</div>
+              </div>
+              <NumInput value={params[row.k]} min={0} max={row.max??999999} step={row.step??1}
+                onChange={v=>setParams(p=>({...p,[row.k]:v}))}/>
             </div>
-            <NumInput value={params.distanciaMaxima} min={0} max={999999} step={100}
-              onChange={v=>setParams(p=>({...p,distanciaMaxima:v}))}/>
-          </div>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0" }}>
-            <div>
-              <div style={{ fontSize:13,fontWeight:700,color:C.ink }}>Fator de repescagem (%)</div>
-              <div style={{ fontSize:10.5,color:C.inkFaint }}>Chance de cargos fora do limite entrarem no sorteio</div>
-            </div>
-            <NumInput value={params.fatorRepescagem} min={0} max={100}
-              onChange={v=>setParams(p=>({...p,fatorRepescagem:v}))}/>
-          </div>
+          ))}
         </section>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  ABA SIMULAR
-// ─────────────────────────────────────────────────────────────────────────────
-const ROTULOS_PASSO = ["Início","1","2","3-4","5-6","6","7","8","Fim"];
-
+// ─── ABA SIMULAR ─────────────────────────────────────────────────────────────
 const PASSOS_META = [
-  { titulo:"Chegou um processo novo",             chamada:"Antes de começar",   logFn: ()=>[] },
-  { titulo:"Recuperar os órgãos da jurisdição",   chamada:"Passo 1 de 8",
-    logFn:(r)=>[{ tipo:"Dimensão espacial",
-      linhas:["Jurisdição: Comarca selecionada",
-        "Órgãos judiciais selecionados: " + r.passo1.map(z=>`[${z.orgao}]`).join(" ")] }] },
-  { titulo:"Filtrar os órgãos competentes",       chamada:"Passo 2 de 8",
-    logFn:(r)=>[{ tipo:"Dimensão material e procedimental",
-      linhas:["Órgãos judiciais selecionados: " + r.passo2.map(z=>`[${z.orgao}]`).join(" ")] }] },
-  { titulo:"Filtrar cargos ativos e que recebem distribuição", chamada:"Passos 3 e 4 de 8",
-    logFn:()=>[] },
-  { titulo:"Aplicar a distância máxima",          chamada:"Passos 5 e 6 de 8",
-    logFn:(r)=>[{ tipo:"Distância máxima de distribuição", txt:r.limite.toLocaleString("pt-BR")+"." }] },
-  { titulo:"Selecionar cargos elegíveis (com fator de repescagem)", chamada:"Passo 6 de 8",
-    logFn:(r)=>[{ tipo:"Cargos elegíveis (após aplicação da distância máxima)",
-      txt: r.elegiveis.map(z=>`[${z.cargo}-${z.orgao}]`).join("") }] },
-  { titulo:"Sortear um cargo entre os elegíveis", chamada:"Passo 7 de 8",
-    logFn:(r,zonas)=>{
-      const s=zonas.find(z=>z.id===r.sorteadoId);
-      return [
-        { tipo:"Órgão julgador sorteado", txt: s.orgao+"." },
-        { tipo:"Cargo sorteado",          txt: s.cargo+"." },
-      ];
-    }},
-  { titulo:"Atualizar o acumulador do cargo sorteado", chamada:"Passo 8 de 8",
-    logFn:(r)=>[
-      { tipo:"Peso processual",       txt:`${r.pproc}.` },
-      { tipo:"Peso de distribuição",  txt:`${r.pdist.toLocaleString("pt-BR")}.` },
-    ]},
-  { titulo:"Pronto — o processo tem destino",     chamada:"Resultado final", logFn:()=>[] },
+  { titulo:"Chegou um processo novo",                          chamada:"Antes de começar" },
+  { titulo:"Recuperar os membros da jurisdição",               chamada:"Passo 1 de 8" },
+  { titulo:"Filtrar os membros competentes",                   chamada:"Passo 2 de 8" },
+  { titulo:"Filtrar cargos ativos que recebem distribuição",   chamada:"Passos 3 e 4 de 8" },
+  { titulo:"Aplicar a distância máxima",                       chamada:"Passos 5 e 6 de 8" },
+  { titulo:"Selecionar elegíveis (com fator de repescagem)",   chamada:"Passo 6 de 8" },
+  { titulo:"Sortear um membro entre os elegíveis",             chamada:"Passo 7 de 8" },
+  { titulo:"Atualizar o acumulador do membro sorteado",        chamada:"Passo 8 de 8" },
+  { titulo:"Pronto — o processo tem relator",                  chamada:"Resultado final" },
 ];
 
-function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico }) {
-  const [sim, setSim]     = useState(null); // resultado do algoritmo
-  const [passo, setPasso] = useState(0);
+function logDePasso(n, sim, membros) {
+  if (!sim) return [];
+  const s = membros.find(m=>m.id===sim.sorteadoId);
+  switch(n) {
+    case 1: return [{ tipo:"Dimensão espacial", linhas:[
+      "Tribunal: TRE Ceará — 2.º Grau",
+      "Membros selecionados: " + sim.passo1.map(m=>`[${m.orgao}]`).join(" ") ] }];
+    case 2: return [{ tipo:"Dimensão material e procedimental", linhas:[
+      "Membros competentes: " + sim.passo2.map(m=>`[${m.orgao}]`).join(" ") ] }];
+    case 4: return [{ tipo:"Distância máxima de distribuição", txt:`${sim.limite.toLocaleString("pt-BR")}.` }];
+    case 5: return [{ tipo:"Cargos elegíveis (após aplicação da distância máxima)",
+      txt: sim.elegiveis.map(m=>`[${m.cargo}-${m.orgao}]`).join("") }];
+    case 6: return s ? [
+      { tipo:"Órgão julgador sorteado", txt:`${s.orgao}.` },
+      { tipo:"Cargo sorteado",          txt:`${s.cargo}.` },
+    ] : [];
+    case 7: return [
+      { tipo:"Peso processual",      txt:`${sim.pproc}.` },
+      { tipo:"Peso de distribuição", txt:`${sim.pdist.toLocaleString("pt-BR")}.` },
+    ];
+    default: return [];
+  }
+}
+
+function SimularTab({ membros, setMembros, processo, params, historico, setHistorico }) {
+  const [sim, setSim]       = useState(null);
+  const [passo, setPasso]   = useState(0);
   const [atualizou, setAtualizou] = useState(false);
 
   const iniciarSim = useCallback(() => {
-    const resultado = executarDistribuicao(zonas, processo, params);
-    setSim(resultado);
-    setPasso(0);
-    setAtualizou(false);
-  }, [zonas, processo, params]);
+    const r = executarDistribuicao(membros, processo, params);
+    if (!r) { alert("Nenhum membro elegível. Verifique a configuração."); return; }
+    setSim(r); setPasso(0); setAtualizou(false);
+  }, [membros, processo, params]);
 
   const aplicarAcumulador = useCallback(() => {
     if (!sim || atualizou) return;
-    setZonas(prev => prev.map(z =>
-      z.id === sim.sorteadoId ? { ...z, acumulador: z.acumulador + sim.pdist } : z
+    setMembros(prev => prev.map(m =>
+      m.id===sim.sorteadoId ? { ...m, acumulador: m.acumulador+sim.pdist } : m
     ));
     setHistorico(prev => [{
       ts: new Date().toLocaleString("pt-BR"),
       sorteadoId: sim.sorteadoId,
-      sorteadoNome: zonas.find(z=>z.id===sim.sorteadoId)?.orgao ?? "?",
+      sorteadoNome: membros.find(m=>m.id===sim.sorteadoId)?.orgao ?? "?",
       pdist: sim.pdist,
-      snapshot: zonas.map(z=>({...z})),
+      snapshot: membros.map(m=>({...m})),
     }, ...prev]);
     setAtualizou(true);
-  }, [sim, atualizou, zonas, setZonas, setHistorico]);
+  }, [sim, atualizou, membros, setMembros, setHistorico]);
 
-  // Derivar estado visual de cada zona a partir do passo atual
   const cargosVisuais = useMemo(() => {
     if (!sim) return [];
-    return zonas.map(z => {
-      let status = "default";
-      let dim = false;
-      const competente   = z.competente;
-      const ativoRecebe  = z.ativo && z.recebe;
-      const dentroDistancia = z.acumulador <= sim.limite;
-      const repescado    = sim.repescadosIds.has(z.id);
-      const elegivel     = sim.elegiveis.some(e => e.id === z.id);
-      const sorteado     = z.id === sim.sorteadoId;
+    return membros.map(m => {
+      let status="default", dim=false;
+      const comp   = m.competente;
+      const ar     = m.ativo && m.recebe;
+      const dentro = m.acumulador <= sim.limite;
+      const repesc = sim.repescadosIds.has(m.id);
+      const eleg   = sim.elegiveis.some(e=>e.id===m.id);
+      const sort   = m.id===sim.sorteadoId;
 
-      if (passo >= 2 && !competente)                              { status="sem-competencia"; dim=true; }
-      if (passo >= 3 && competente && !ativoRecebe)               { status="inativo"; dim=true; }
-      if (passo >= 4 && competente && ativoRecebe && !dentroDistancia) { status="fora-distancia"; dim=true; }
-      if (passo >= 5 && competente && ativoRecebe) {
-        if (dentroDistancia)  { status="elegivel"; dim=false; }
-        else if (repescado)   { status="repescado"; dim=false; }
-        else                  { status="fora-distancia"; dim=true; }
+      if (passo>=2 && !comp)               { status="sem-competencia"; dim=true; }
+      if (passo>=3 && comp && !ar)         { status="inativo"; dim=true; }
+      if (passo>=4 && comp && ar && !dentro) { status="fora-distancia"; dim=true; }
+      if (passo>=5 && comp && ar) {
+        if (dentro)        { status="elegivel"; dim=false; }
+        else if (repesc)   { status="repescado"; dim=false; }
+        else               { status="fora-distancia"; dim=true; }
       }
-      if (passo >= 6 && sorteado)                         { status="sorteado"; dim=false; }
-      if (passo >= 6 && !sorteado && elegivel)            { dim=true; }
+      if (passo>=6 && sort)           { status="sorteado"; dim=false; }
+      if (passo>=6 && !sort && eleg)  { dim=true; }
 
-      const accExibido = passo >= 7 && sorteado
-        ? z.acumulador + sim.pdist
-        : z.acumulador;
-
-      return { ...z, status, dim, accExibido };
+      const accExibido = passo>=7 && sort ? m.acumulador+sim.pdist : m.acumulador;
+      return { ...m, status, dim, accExibido };
     });
-  }, [sim, passo, zonas]);
+  }, [sim, passo, membros]);
 
   const maxAcc = useMemo(() =>
-    Math.max(...zonas.map(z => z.acumulador)) + (sim?.pdist ?? 0),
-  [zonas, sim]);
+    Math.max(...membros.map(m=>m.acumulador),1) + (sim?.pdist??0), [membros,sim]);
 
-  // Log acumulado até o passo atual
   const logLinhas = useMemo(() => {
     if (!sim) return [];
-    return PASSOS_META.slice(1, passo + 1)
-      .flatMap(pm => pm.logFn(sim, zonas))
-      .filter(l => l.tipo !== "(sem linha própria)");
-  }, [sim, passo, zonas]);
+    return Array.from({length:passo},(_, i)=>i+1)
+      .flatMap(n => logDePasso(n, sim, membros))
+      .filter(l=>l.tipo!=="(sem linha própria)");
+  }, [sim, passo, membros]);
 
-  const P = PASSOS_META[passo];
-  const sorteadoZona = sim ? zonas.find(z=>z.id===sim.sorteadoId) : null;
-
-  // Texto da explicação contextualizado
   const explicacoes = useMemo(() => {
     if (!sim) return Array(9).fill("");
-    const s = sorteadoZona;
+    const s = membros.find(m=>m.id===sim.sorteadoId);
+    const semRecebe = membros.filter(m=>!(m.ativo&&m.recebe)&&m.competente).map(m=>m.orgao).join(", ");
     return [
-      "Um processo acabou de ser autuado e precisa cair em algum órgão julgador. Vamos acompanhar, passo a passo, como o PJe decide o destino dele.",
-      "O sistema começa olhando TODOS os órgãos julgadores da jurisdição. Ainda não filtrou nada — é a foto completa de quem poderia, em tese, receber o processo.",
-      "Agora ficam só os órgãos que têm competência para aquela classe e assunto. Quem não julga esse tipo de processo sai da lista aqui.",
-      `Dentro de cada órgão, o que conta é o CARGO. Cargo inativo ou que não está marcado para receber distribuição sai. ${zonas.filter(z=>!(z.ativo&&z.recebe)&&z.competente).map(z=>z.orgao).join(", ")||"Nenhum cargo"} foi(ram) excluído(s) nesta etapa. Estes passos não geram linha própria no log.`,
-      `A distância máxima é a diferença de carga permitida entre os cargos. O menor acumulador é ${sim.menorAcc.toLocaleString("pt-BR")} e o limite é ${sim.limite.toLocaleString("pt-BR")} (menor + ${params.distanciaMaxima.toLocaleString("pt-BR")}). Quem ultrapassa esse limite fica de fora — a menos que seja repescado.`,
-      `${sim.repescadosIds.size > 0
-        ? `${sim.repescadosIds.size} cargo(s) estavam fora do limite mas foram repescados com o fator de ${params.fatorRepescagem}%.`
-        : `Nenhum cargo foi repescado nesta rodada.`} São ${sim.elegiveis.length} cargo(s) no total elegíveis para o sorteio.`,
-      `Entre os elegíveis, o sistema sorteia de forma ponderada (quem tem menos carga tem mais chance). O resultado desta rodada foi: ${s?.orgao} — ${s?.cargo}.`,
-      `O peso da distribuição (${sim.pdist.toLocaleString("pt-BR")}) é somado ao acumulador do cargo sorteado. É assim que o sistema lembra da carga de cada um para os próximos sorteios.`,
-      `Processo distribuído para ${s?.orgao} — ${s?.cargo}. Clique em "Atualizar acumuladores" para registrar este resultado e usá-lo na próxima simulação.`,
+      "Um processo chegou para distribuição no 2.º grau do TRE Ceará. Vamos acompanhar como o PJe escolhe o relator.",
+      `O sistema lista TODOS os ${sim.passo1.length} membros da jurisdição. Ainda sem filtros.`,
+      `Ficam só os ${sim.passo2.length} membros competentes para a classe/assunto. Todos estão marcados como competentes neste cenário.`,
+      `Cargos inativos ou que não recebem distribuição são excluídos. ${semRecebe ? semRecebe + " foram excluídos." : "Nenhum excluído nesta etapa."} Resultado: ${sim.passo34.length} cargos ativos.`,
+      `Menor acumulador: ${sim.menorAcc.toLocaleString("pt-BR")}. Limite da distância máxima: ${sim.limite.toLocaleString("pt-BR")} (menor + ${params.distanciaMaxima.toLocaleString("pt-BR")}). Membros acima do limite ficam de fora, salvo repescagem.`,
+      `${sim.repescadosIds.size > 0 ? `${sim.repescadosIds.size} membro(s) foram repescados com o fator de ${params.fatorRepescagem}%.` : `Nenhum membro foi repescado nesta rodada.`} Total elegíveis: ${sim.elegiveis.length}.`,
+      `Sorteio ponderado — quem tem menor acumulador tem maior peso. Resultado: ${s?.orgao} (${s?.cargo}).`,
+      `Peso de distribuição (${sim.pdist.toLocaleString("pt-BR")}) somado ao acumulador de ${s?.orgao}. O próximo sorteio partirá deste novo estado.`,
+      `${s?.orgao} foi sorteado como relator. Clique em "Atualizar acumuladores" para registrar na configuração e habilitar a próxima rodada.`,
     ];
-  }, [sim, zonas, sorteadoZona, params]);
+  }, [sim, membros, params]);
+
+  const P = PASSOS_META[passo];
+  const ROTULOS = ["Início","1","2","3-4","5-6","6","7","8","Fim"];
 
   if (!sim) {
     return (
@@ -498,8 +627,8 @@ function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico
         <div style={{ fontSize:48 }}>⚖️</div>
         <div style={{ fontSize:22,fontWeight:700,color:C.ink }}>Pronto para simular</div>
         <div style={{ fontSize:14,color:C.inkSoft,maxWidth:480,lineHeight:1.6 }}>
-          Configure os órgãos e os pesos do processo na aba <b>Configurar</b> e clique no botão abaixo
-          para executar o algoritmo de distribuição com sorteio real.
+          Preencha o acervo na aba <b>Acervo</b>, aplique os acumuladores e configure o processo
+          na aba <b>Configurar</b>. Depois clique no botão abaixo.
         </div>
         <Btn onClick={iniciarSim} primary>▶ Iniciar simulação</Btn>
       </div>
@@ -508,100 +637,86 @@ function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico
 
   return (
     <div>
-      {/* Progresso */}
       <div style={{ display:"flex",gap:6,marginBottom:16 }}>
-        {ROTULOS_PASSO.map((rot,i) => (
-          <div key={i} onClick={()=>setPasso(i)}
-            style={{ flex:1,cursor:"pointer",textAlign:"center" }}>
+        {ROTULOS.map((rot,i)=>(
+          <div key={i} onClick={()=>setPasso(i)} style={{ flex:1,cursor:"pointer",textAlign:"center" }}>
             <div style={{ height:7,borderRadius:5,background:i<=passo?C.azul:"#e2dccf",transition:"background .4s" }}/>
-            <div style={{ fontSize:10,marginTop:5,color:i===passo?C.azulEsc:C.inkFaint,
-              fontWeight:i===passo?800:600 }}>{rot}</div>
+            <div style={{ fontSize:10,marginTop:5,color:i===passo?C.azulEsc:C.inkFaint,fontWeight:i===passo?800:600 }}>{rot}</div>
           </div>
         ))}
       </div>
 
-      {/* Legenda */}
-      <div style={{ display:"flex",flexWrap:"wrap",gap:12,alignItems:"center",marginBottom:14 }}>
+      <div style={{ display:"flex",flexWrap:"wrap",gap:10,alignItems:"center",marginBottom:14 }}>
         <span style={{ fontSize:11,fontWeight:800,color:C.inkFaint,letterSpacing:1 }}>COR:</span>
         {Object.values(ESTADOS).map(e=>(
           <span key={e.label} style={{ display:"inline-flex",alignItems:"center",gap:5 }}>
-            <span style={{ width:13,height:13,borderRadius:3,background:e.cor,display:"inline-block" }}/>
+            <span style={{ width:12,height:12,borderRadius:3,background:e.cor,display:"inline-block" }}/>
             <span style={{ fontSize:11,color:C.inkSoft,fontWeight:600 }}>{e.label}</span>
           </span>
         ))}
       </div>
 
-      {/* 2 colunas: barras | log PJe */}
       <div style={{ display:"grid",gridTemplateColumns:"1fr 360px",gap:16,alignItems:"start" }}>
-
-        {/* Barras */}
         <section style={{ background:C.card,border:`2px solid ${C.border}`,borderRadius:18,padding:18,position:"relative" }}>
-          <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800,marginBottom:4 }}>QUEM ESTÁ CONCORRENDO</div>
-          <div style={{ fontSize:12,color:C.inkSoft,marginBottom:20 }}>Acumuladores atuais de cada cargo</div>
+          <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800,marginBottom:4 }}>MEMBROS DO TRIBUNAL</div>
+          <div style={{ fontSize:12,color:C.inkSoft,marginBottom:18 }}>Acumuladores atuais de cada cargo</div>
 
-          <div style={{ position:"relative",paddingTop: passo>=4 ? 42 : 4 }}>
-            {passo >= 4 && (
+          <div style={{ position:"relative",paddingTop:passo>=4?40:4 }}>
+            {passo>=4 && (
               <>
-                <div style={{ position:"absolute",top:-6,bottom:-6,
-                  left:`${(sim.limite/maxAcc)*100}%`,width:0,
-                  borderLeft:`2.5px dashed ${C.vermelho}`,zIndex:4 }}/>
+                <div style={{ position:"absolute",top:-6,bottom:-6,left:`${(sim.limite/maxAcc)*100}%`,
+                  width:0,borderLeft:`2.5px dashed ${C.vermelho}`,zIndex:4 }}/>
                 <div style={{ position:"absolute",top:0,right:`${100-(sim.limite/maxAcc)*100}%`,
-                  paddingRight:7,textAlign:"right",whiteSpace:"nowrap",zIndex:5 }}>
-                  <div style={{ fontSize:10.5,color:C.vermelho,fontWeight:800 }}>LIMITE DA DISTÂNCIA MÁXIMA</div>
-                  <div style={{ fontSize:14,color:C.vermelho,fontWeight:600,fontFamily:"monospace" }}>{sim.limite.toLocaleString("pt-BR")}</div>
+                  paddingRight:6,textAlign:"right",whiteSpace:"nowrap",zIndex:5 }}>
+                  <div style={{ fontSize:10.5,color:C.vermelho,fontWeight:800 }}>LIMITE DA DIST. MÁX.</div>
+                  <div style={{ fontSize:13,color:C.vermelho,fontWeight:600,fontFamily:"monospace" }}>{sim.limite.toLocaleString("pt-BR")}</div>
                 </div>
               </>
             )}
 
-            {passo >= 1 && cargosVisuais.map(c => {
-              const e = ESTADOS[c.status];
-              const pct = (c.accExibido/maxAcc)*100;
-              const isSorteado = c.status==="sorteado";
+            {passo>=1 && cargosVisuais.map(m=>{
+              const e=ESTADOS[m.status];
+              const pct=(m.accExibido/maxAcc)*100;
+              const isSort=m.status==="sorteado";
               return (
-                <div key={c.id} style={{
-                  marginBottom:14,opacity:c.dim?0.38:1,transition:"opacity .4s",
-                  ...(passo>=7 && isSorteado ? { background:"#fff7e3",borderRadius:12,padding:"10px 12px",margin:"-2px -4px 14px" } : {})
-                }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5 }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                      <span style={{ fontSize:14,fontWeight:800,color:C.ink }}>{c.orgao}</span>
-                      <span style={{ fontSize:11.5,color:C.inkSoft }}>· {c.cargo}</span>
+                <div key={m.id} style={{ marginBottom:13,opacity:m.dim?0.35:1,transition:"opacity .4s",
+                  ...(passo>=7&&isSort?{background:"#fff7e3",borderRadius:12,padding:"8px 10px",margin:"-2px -4px 13px"}:{}) }}>
+                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4 }}>
+                    <div>
+                      <span style={{ fontSize:13.5,fontWeight:800,color:C.ink }}>{m.orgao}</span>
+                      <span style={{ fontSize:11,color:C.inkSoft,marginLeft:6 }}>· {m.cargo}</span>
                     </div>
-                    <Tag cor={e.cor} bg={e.bg}>{isSorteado?"★ ":""}{e.label}</Tag>
+                    <Tag cor={e.cor} bg={e.bg}>{isSort?"★ ":""}{e.label}</Tag>
                   </div>
-                  <div style={{ position:"relative",height:28,borderRadius:8,background:"#eef1f6",
+                  <div style={{ position:"relative",height:26,borderRadius:7,background:"#eef1f6",
                     overflow:"hidden",border:`1.5px solid ${C.border}` }}>
-                    <div style={{
-                      position:"absolute",left:0,top:0,bottom:0,width:`${pct}%`,
-                      background: isSorteado ? `linear-gradient(90deg,${C.ouro},#ffc94d)` : e.cor,
-                      borderRadius:6,transition:"width .6s cubic-bezier(.22,.61,.36,1)",
-                      boxShadow: isSorteado ? `0 0 14px ${C.ouro}99` : "none",
-                    }}/>
-                    <div style={{ position:"absolute",right:9,top:"50%",transform:"translateY(-50%)",
+                    <div style={{ position:"absolute",left:0,top:0,bottom:0,width:`${pct}%`,
+                      background:isSort?`linear-gradient(90deg,${C.ouro},#ffc94d)`:e.cor,
+                      borderRadius:6,transition:"width .6s cubic-bezier(.22,.61,.36,1)" }}/>
+                    <div style={{ position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",
                       fontSize:12,fontWeight:700,fontFamily:"monospace",color:C.ink,
                       textShadow:"0 0 3px rgba(255,255,255,.9)" }}>
-                      {c.accExibido.toLocaleString("pt-BR")}
-                      {passo>=7 && isSorteado && <span style={{ color:"#1d6b3f" }}> (+{sim.pdist.toLocaleString("pt-BR")})</span>}
+                      {m.accExibido.toLocaleString("pt-BR")}
+                      {passo>=7&&isSort&&<span style={{ color:"#1d6b3f" }}> (+{sim.pdist.toLocaleString("pt-BR")})</span>}
                     </div>
                   </div>
                 </div>
               );
             })}
 
-            {passo < 1 && (
-              <div style={{ padding:"26px 8px",textAlign:"center",color:C.inkFaint,fontSize:13,lineHeight:1.5 }}>
-                As zonas aparecem aqui a partir do passo 1.
+            {passo<1 && (
+              <div style={{ padding:"24px 8px",textAlign:"center",color:C.inkFaint,fontSize:13 }}>
+                Os membros aparecem a partir do passo 1.
               </div>
             )}
           </div>
         </section>
 
-        {/* Coluna PJe log */}
         <div style={{ position:"relative" }}>
           <div style={{ position:"absolute",top:-14,right:16,zIndex:20,background:C.azulEsc,color:"#fff",
             padding:"5px 13px",borderRadius:999,fontSize:11,fontWeight:800,letterSpacing:1,
             boxShadow:"0 5px 14px rgba(7,28,86,.38)",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap" }}>
-            <span style={{ fontSize:13 }}>👁</span> ACOMPANHE AQUI
+            <span>👁</span> LOG PJe
           </div>
           <section style={{ background:C.card,border:`3px solid ${C.azulEsc}`,borderRadius:18,
             overflow:"hidden",boxShadow:`0 0 0 4px rgba(7,28,86,.1),0 14px 34px rgba(7,28,86,.28)` }}>
@@ -613,23 +728,23 @@ function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico
               </div>
               <div style={{ fontSize:12,fontWeight:800 }}>PJe · Informações da Distribuição</div>
             </div>
-            <div style={{ padding:16 }}>
-              <div style={{ fontSize:11,color:C.inkFaint,marginBottom:10,lineHeight:1.4 }}>
-                Itens do Log — cada passo do algoritmo grava uma linha aqui.
+            <div style={{ padding:14 }}>
+              <div style={{ fontSize:11,color:C.inkFaint,marginBottom:10 }}>
+                Aba "Itens do Log" — o que o servidor vê no sistema.
               </div>
-              {logLinhas.length === 0 ? (
-                <div style={{ minHeight:100,fontSize:12,color:C.inkFaint,fontStyle:"italic" }}>
-                  {passo===0 ? "Ainda não há registros." : "Este passo não gera linha própria no log."}
+              {logLinhas.length===0 ? (
+                <div style={{ minHeight:90,fontSize:12,color:C.inkFaint,fontStyle:"italic" }}>
+                  {passo===0?"Nenhum registro ainda.":"Este passo não gera linha própria no log."}
                 </div>
               ) : (
-                <div style={{ minHeight:100 }}>
+                <div style={{ minHeight:90 }}>
                   <table style={{ width:"100%",borderCollapse:"collapse",background:"#fff" }}>
                     <thead><tr><th style={TH_LOG}>Item</th></tr></thead>
                     <tbody>
                       {logLinhas.map((l,i)=>{
-                        const partes = l.linhas ? [l.tipo,...l.linhas] : [`${l.tipo}: ${l.txt}`];
+                        const partes=l.linhas?[l.tipo,...l.linhas]:[`${l.tipo}: ${l.txt}`];
                         return (
-                          <tr key={i} style={{ background: i%2===0?"#f9f9f9":"#fff" }}>
+                          <tr key={i} style={{ background:i%2===0?"#f9f9f9":"#fff" }}>
                             <td style={TD_LOG}>
                               {partes.map((p,j)=>(<React.Fragment key={j}>{j>0&&<br/>}{p}</React.Fragment>))}
                             </td>
@@ -639,7 +754,7 @@ function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico
                     </tbody>
                   </table>
                   <div style={{ textAlign:"right",color:"#777",fontSize:12,marginTop:6,fontFamily:PJE_FONT }}>
-                    {logLinhas.length} resultado(s) encontrado(s)
+                    {logLinhas.length} resultado(s)
                   </div>
                 </div>
               )}
@@ -648,16 +763,15 @@ function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico
         </div>
       </div>
 
-      {/* Faixa inferior: explicação + navegação */}
       <div style={{ position:"sticky",bottom:0,background:`linear-gradient(180deg,rgba(244,246,250,0),${C.bg} 35%)`,
-        padding:"8px 0 16px",marginTop:16 }}>
+        padding:"8px 0 16px",marginTop:14 }}>
         <div style={{ background:C.card,border:`2px solid ${C.borderStrong}`,borderRadius:18,
-          padding:"14px 18px",display:"flex",alignItems:"center",gap:16,
+          padding:"14px 18px",display:"flex",alignItems:"center",gap:14,
           boxShadow:"0 8px 24px rgba(60,45,20,.1)" }}>
-          <div style={{ minWidth:50,height:50,borderRadius:13,
+          <div style={{ minWidth:48,height:48,borderRadius:12,
             background:passo===0||passo===8?C.verde:C.azul,
             display:"flex",alignItems:"center",justifyContent:"center",
-            fontSize:20,fontWeight:800,color:"#fff",fontFamily:"monospace" }}>
+            fontSize:19,fontWeight:800,color:"#fff",fontFamily:"monospace" }}>
             {passo===0?"▶":passo===8?"✓":passo}
           </div>
           <div style={{ flex:1 }}>
@@ -668,17 +782,11 @@ function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico
               {explicacoes[passo]}
             </div>
           </div>
-          <div style={{ display:"flex",gap:10,flexShrink:0,flexWrap:"wrap",justifyContent:"flex-end" }}>
+          <div style={{ display:"flex",gap:8,flexShrink:0,flexWrap:"wrap",justifyContent:"flex-end" }}>
             {passo===8 && !atualizou && (
-              <Btn onClick={aplicarAcumulador} primary small>
-                ↑ Atualizar acumuladores
-              </Btn>
+              <Btn onClick={aplicarAcumulador} primary small>↑ Atualizar acumuladores</Btn>
             )}
-            {passo===8 && (
-              <Btn onClick={iniciarSim} small>
-                ↺ Nova simulação
-              </Btn>
-            )}
+            {passo===8 && <Btn onClick={iniciarSim} small>↺ Nova simulação</Btn>}
             <Btn onClick={()=>setPasso(p=>Math.max(0,p-1))} disabled={passo===0} small>← Voltar</Btn>
             <Btn onClick={()=>setPasso(p=>Math.min(8,p+1))} disabled={passo===8} small primary>
               {passo===0?"Começar →":"Próximo →"}
@@ -690,24 +798,16 @@ function SimularTab({ zonas, setZonas, processo, params, historico, setHistorico
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  ABA HISTÓRICO
-// ─────────────────────────────────────────────────────────────────────────────
-function HistoricoTab({ historico, zonas }) {
-  if (historico.length === 0) {
-    return (
-      <div style={{ textAlign:"center",padding:"60px 0",color:C.inkFaint,fontSize:14 }}>
-        Nenhuma simulação registrada ainda. Rode uma simulação e clique em "Atualizar acumuladores".
-      </div>
-    );
-  }
-
-  const thS = { padding:"8px 10px",fontSize:11.5,fontWeight:800,color:C.inkFaint,
-    letterSpacing:0.8,background:"transparent",textAlign:"left",
-    borderBottom:`2px solid ${C.border}` };
-  const tdS = { padding:"8px 10px",fontSize:13,color:C.inkSoft,
-    borderBottom:`1px solid ${C.border}`,verticalAlign:"middle" };
-
+// ─── ABA HISTÓRICO ───────────────────────────────────────────────────────────
+function HistoricoTab({ historico }) {
+  if (historico.length===0) return (
+    <div style={{ textAlign:"center",padding:"60px 0",color:C.inkFaint,fontSize:14 }}>
+      Nenhuma simulação registrada. Rode uma simulação e clique em "Atualizar acumuladores".
+    </div>
+  );
+  const thS={ padding:"8px 10px",fontSize:11.5,fontWeight:800,color:C.inkFaint,
+    letterSpacing:0.8,textAlign:"left",borderBottom:`2px solid ${C.border}` };
+  const tdS={ padding:"8px 10px",fontSize:13,color:C.inkSoft,borderBottom:`1px solid ${C.border}`,verticalAlign:"middle" };
   return (
     <section style={{ background:C.card,border:`2px solid ${C.border}`,borderRadius:18,padding:20 }}>
       <div style={{ fontSize:11,letterSpacing:1.5,color:C.inkFaint,fontWeight:800,marginBottom:14 }}>
@@ -720,27 +820,25 @@ function HistoricoTab({ historico, zonas }) {
               <th style={thS}>#</th>
               <th style={thS}>Data/Hora</th>
               <th style={thS}>Sorteado</th>
-              <th style={thS}>Peso dist.</th>
-              {historico[0].snapshot.map(z=>(
-                <th key={z.id} style={{ ...thS,textAlign:"right" }}>{z.orgao}</th>
+              <th style={{ ...thS,textAlign:"right" }}>Peso dist.</th>
+              {historico[0].snapshot.map(m=>(
+                <th key={m.id} style={{ ...thS,textAlign:"right",fontSize:10.5,minWidth:80 }}>{m.orgao}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {historico.map((h,i)=>(
-              <tr key={i} style={{ background: i%2===0?"#fafbfd":"#fff" }}>
+              <tr key={i} style={{ background:i%2===0?"#fafbfd":"#fff" }}>
                 <td style={tdS}>{historico.length-i}</td>
-                <td style={{ ...tdS,whiteSpace:"nowrap",fontSize:12 }}>{h.ts}</td>
+                <td style={{ ...tdS,whiteSpace:"nowrap",fontSize:11 }}>{h.ts}</td>
                 <td style={{ ...tdS,fontWeight:700,color:C.ouro }}>{h.sorteadoNome}</td>
                 <td style={{ ...tdS,fontFamily:"monospace",textAlign:"right" }}>{h.pdist.toLocaleString("pt-BR")}</td>
-                {h.snapshot.map(z=>(
-                  <td key={z.id} style={{
-                    ...tdS,fontFamily:"monospace",textAlign:"right",
-                    color: z.id===h.sorteadoId ? C.verde : C.inkSoft,
-                    fontWeight: z.id===h.sorteadoId ? 700 : 400,
-                  }}>
-                    {z.acumulador.toLocaleString("pt-BR")}
-                    {z.id===h.sorteadoId && <span style={{ color:C.verde,fontSize:11 }}> +{h.pdist.toLocaleString("pt-BR")}</span>}
+                {h.snapshot.map(m=>(
+                  <td key={m.id} style={{ ...tdS,fontFamily:"monospace",textAlign:"right",
+                    color:m.id===h.sorteadoId?C.verde:C.inkSoft,
+                    fontWeight:m.id===h.sorteadoId?700:400 }}>
+                    {m.acumulador.toLocaleString("pt-BR")}
+                    {m.id===h.sorteadoId&&<span style={{ color:C.verde,fontSize:10 }}> +{h.pdist.toLocaleString("pt-BR")}</span>}
                   </td>
                 ))}
               </tr>
@@ -752,17 +850,17 @@ function HistoricoTab({ historico, zonas }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  APP RAIZ
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── APP ────────────────────────────────────────────────────────────────────
 function App() {
-  const [aba, setAba]           = useState("simular");
-  const [zonas, setZonas]       = useState(DEFAULT_ZONAS);
-  const [processo, setProcesso] = useState(DEFAULT_PROCESSO);
-  const [params, setParams]     = useState(DEFAULT_PARAMS);
+  const [aba, setAba]             = useState("acervo");
+  const [membros, setMembros]     = useState(DEFAULT_MEMBROS);
+  const [tipos, setTipos]         = useState(DEFAULT_TIPOS);
+  const [processo, setProcesso]   = useState(DEFAULT_PROCESSO);
+  const [params, setParams]       = useState(DEFAULT_PARAMS);
   const [historico, setHistorico] = useState([]);
 
   const tabs = [
+    { id:"acervo",    label:"📂 Acervo" },
     { id:"config",    label:"⚙ Configurar" },
     { id:"simular",   label:"▶ Simular" },
     { id:"historico", label:`📊 Histórico${historico.length>0?" ("+historico.length+")":""}` },
@@ -777,55 +875,52 @@ function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Spectral:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
         *{box-sizing:border-box;}
-        input[type=number]{appearance:textfield;}
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button{opacity:1;}
+        input[type=number]{-moz-appearance:textfield;}
+        input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{opacity:1;}
       `}</style>
 
-      {/* Cabeçalho */}
       <header style={{ padding:"18px 30px 14px",borderBottom:`2px solid ${C.border}`,
-        background:"rgba(255,255,255,0.65)",backdropFilter:"blur(6px)" }}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12 }}>
-          <div>
-            <div style={{ fontSize:11,letterSpacing:2,color:C.azulEsc,fontWeight:800 }}>
-              ASPJE / TSE · ENCONTRO NACIONAL PJe
-            </div>
-            <h1 style={{ margin:"3px 0 0",fontSize:26,fontWeight:700,letterSpacing:-0.4,color:C.ink,
-              fontFamily:"'Spectral',Georgia,serif" }}>
-              Simulador de Distribuição PJe
-            </h1>
+        background:"rgba(255,255,255,0.65)",backdropFilter:"blur(6px)",
+        display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12 }}>
+        <div>
+          <div style={{ fontSize:11,letterSpacing:2,color:C.azulEsc,fontWeight:800 }}>
+            TRE CEARÁ · 2.º GRAU · DISTRIBUIÇÃO PJe
           </div>
-          {/* Abas */}
-          <div style={{ display:"flex",gap:6 }}>
-            {tabs.map(t=>(
-              <button key={t.id} onClick={()=>setAba(t.id)} style={{
-                padding:"9px 18px",border:"none",borderRadius:11,cursor:"pointer",
-                fontFamily:"inherit",fontWeight:700,fontSize:13,
-                background: aba===t.id ? C.azulEsc : "#eef1f6",
-                color: aba===t.id ? "#fff" : C.ink,
-                boxShadow: aba===t.id ? `0 4px 12px ${C.azulEsc}44` : "none",
-                transition:"all .2s",
-              }}>{t.label}</button>
-            ))}
-          </div>
+          <h1 style={{ margin:"3px 0 0",fontSize:25,fontWeight:700,letterSpacing:-0.4,color:C.ink,
+            fontFamily:"'Spectral',Georgia,serif" }}>
+            Simulador de Distribuição — Segundo Grau
+          </h1>
+        </div>
+        <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
+          {tabs.map(t=>(
+            <button key={t.id} onClick={()=>setAba(t.id)} style={{
+              padding:"9px 18px",border:"none",borderRadius:11,cursor:"pointer",
+              fontFamily:"inherit",fontWeight:700,fontSize:13,
+              background:aba===t.id?C.azulEsc:"#eef1f6",
+              color:aba===t.id?"#fff":C.ink,
+              boxShadow:aba===t.id?`0 4px 12px ${C.azulEsc}44`:"none",
+              transition:"all .2s",
+            }}>{t.label}</button>
+          ))}
         </div>
       </header>
 
-      {/* Conteúdo */}
       <main style={{ padding:"20px 30px 40px" }}>
+        {aba==="acervo" && (
+          <AcervoTab membros={membros} setMembros={setMembros}
+            tipos={tipos} setTipos={setTipos}/>
+        )}
         {aba==="config" && (
-          <ConfigTab zonas={zonas} setZonas={setZonas}
+          <ConfigTab membros={membros} setMembros={setMembros}
             processo={processo} setProcesso={setProcesso}
             params={params} setParams={setParams}/>
         )}
         {aba==="simular" && (
-          <SimularTab zonas={zonas} setZonas={setZonas}
+          <SimularTab membros={membros} setMembros={setMembros}
             processo={processo} params={params}
             historico={historico} setHistorico={setHistorico}/>
         )}
-        {aba==="historico" && (
-          <HistoricoTab historico={historico} zonas={zonas}/>
-        )}
+        {aba==="historico" && <HistoricoTab historico={historico}/>}
       </main>
     </div>
   );

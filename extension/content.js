@@ -141,7 +141,7 @@
     );
   }
 
-  // ── nó atual via Ajax ─────────────────────────────────────────────────────
+  // ── nó atual via Ajax (JSF/RichFaces) ────────────────────────────────────
 
   async function extrairNoAtual(tr) {
     const btn = tr.querySelector('[id^="btnMostrarNos"]');
@@ -154,13 +154,12 @@
     const elementId = `fPP:processosTable:${n}:nosAtuais`;
 
     // Must run in page's main world — content script window is isolated.
-    // Python equivalent: page.evaluate(f"mostrarNosAtuais{n}('{n}')")
     executarNaPagina(
       `if(typeof mostrarNosAtuais${n}==='function') mostrarNosAtuais${n}('${n}');`
     );
 
     const t0 = Date.now();
-    while (Date.now() - t0 < 5000) {   // 5s max (Python uses 8s; we skip if slow)
+    while (Date.now() - t0 < 5000) {
       const el = document.getElementById(elementId) ||
                  document.querySelector(`[id*=":${n}:nosAtuais"]`);
       const txt = limpar(el?.innerText || el?.textContent || '');
@@ -168,6 +167,82 @@
       await aguardar(200);
     }
     return '';
+  }
+
+  // ── tarefas via "Visualizar" click (Angular) ──────────────────────────────
+
+  async function extrairTarefasViaClick(tr) {
+    // Find "Visualizar" button (text or aria-label)
+    const btnVis = [...tr.querySelectorAll('button, a, [role="button"]')].find(el => {
+      const txt = semAcento((el.innerText || el.textContent || el.getAttribute('aria-label') || '').toLowerCase());
+      return txt.includes('visualizar');
+    });
+    if (!btnVis) return '';
+
+    const contarOverlays = () => document.querySelectorAll(
+      '.cdk-overlay-pane, .mat-dialog-container, .mat-mdc-dialog-container'
+    ).length;
+    const antes = contarOverlays();
+
+    clicarElemento(btnVis);
+
+    let resultado = '';
+    const t0 = Date.now();
+
+    while (Date.now() - t0 < 6000) {
+      await aguardar(300);
+
+      // Strategy A: Angular Material dialog appeared
+      if (contarOverlays() > antes) {
+        const dlg = [...document.querySelectorAll(
+          '.mat-dialog-container, .mat-mdc-dialog-container'
+        )].pop();
+        const txt = dlg ? limpar(dlg.innerText || '') : '';
+        if (txt) {
+          resultado = txt;
+          const btnFechar = dlg?.querySelector(
+            'button[aria-label*="echar"], button[aria-label*="lose"], [mat-dialog-close]'
+          );
+          if (btnFechar) {
+            clicarElemento(btnFechar);
+          } else {
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+              key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+            }));
+          }
+          await aguardar(500);
+          break;
+        }
+      }
+
+      // Strategy B: expanded detail row (next sibling without a process number)
+      const next = tr.nextElementSibling;
+      if (next && next.tagName === 'TR' && !PADRAO_PROCESSO.test(next.innerText || '')) {
+        const txt = limpar(next.innerText || '');
+        if (txt) {
+          resultado = txt;
+          clicarElemento(btnVis); // toggle collapse
+          await aguardar(300);
+          break;
+        }
+      }
+
+      // Strategy C: expansion panel within the row
+      const panel = tr.querySelector(
+        '.mat-expansion-panel-content:not([style*="height: 0"]), [class*="expansion-panel-content"]'
+      );
+      if (panel) {
+        const txt = limpar(panel.innerText || '');
+        if (txt) {
+          resultado = txt;
+          clicarElemento(btnVis);
+          await aguardar(300);
+          break;
+        }
+      }
+    }
+
+    return resultado;
   }
 
   // ── page extraction ───────────────────────────────────────────────────────
@@ -208,6 +283,10 @@
       // 2) Fallback: JSF/RichFaces Ajax button (Python script approach)
       if (!reg.tarefas_atuais) {
         reg.tarefas_atuais = await extrairNoAtual(tr);
+      }
+      // 3) Fallback: Angular "Visualizar" button click
+      if (!reg.tarefas_atuais) {
+        reg.tarefas_atuais = await extrairTarefasViaClick(tr);
       }
 
       if (!reg.autuado_em) {

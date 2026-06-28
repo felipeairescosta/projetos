@@ -81,17 +81,18 @@ btnDiag.addEventListener('click', async () => {
     const results = await api.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
       func: () => {
-        const tables = [...document.querySelectorAll('table')].map(t => ({
-          id: t.id || '(sem id)',
-          rows: t.rows.length,
-          cls: (t.className || '').slice(0, 40),
-        }));
+        const norm = s => (s || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+        const tables = [...document.querySelectorAll('table')].map(t => {
+          const headerCells = [...(t.querySelector('thead tr, tr') || t).querySelectorAll('th,td')]
+            .map(c => norm(c.innerText)).filter(Boolean).slice(0, 6);
+          return { id: t.id || '(sem id)', rows: t.rows.length, cls: (t.className || '').slice(0, 40), headers: headerCells };
+        });
         const iframes = [...document.querySelectorAll('iframe')].map(f => ({
           id: f.id || '(sem id)',
-          src: (f.src || f.getAttribute('src') || '').slice(0, 80),
+          src: (f.src || f.getAttribute('src') || '').slice(0, 100),
         }));
         return {
-          url: location.href.slice(0, 80),
+          url: location.href.slice(0, 100),
           tables: tables.slice(0, 15),
           iframes: iframes.slice(0, 10),
           hasPjeTable: !!document.querySelector('#fPP\\:processosTable'),
@@ -106,10 +107,13 @@ btnDiag.addEventListener('click', async () => {
       lines.push(`--- Frame ${i} (frameId: ${r.frameId}) ---`);
       lines.push(`URL: ${d.url}`);
       lines.push(`#fPP:processosTable: ${d.hasPjeTable}`);
-      if (d.iframes.length) lines.push(`iframes: ${JSON.stringify(d.iframes)}`);
+      if (d.iframes.length) {
+        lines.push('iframes:');
+        d.iframes.forEach(f => lines.push(`  id="${f.id}" src="${f.src}"`));
+      }
       if (d.tables.length) {
         lines.push('tabelas:');
-        d.tables.forEach(t => lines.push(`  id="${t.id}" rows=${t.rows} class="${t.cls}"`));
+        d.tables.forEach(t => lines.push(`  id="${t.id}" rows=${t.rows} | ${t.headers.join(' | ')}`));
       } else {
         lines.push('(nenhuma tabela)');
       }

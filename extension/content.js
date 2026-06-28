@@ -488,14 +488,29 @@
     let pagina = 1;
     const visitadas = new Set();
 
-    while (true) {
-      const sig = assinatura(tabela);
-      if (sig && visitadas.has(sig)) break;
-      visitadas.add(sig);
+    let motivoParada = '';
+    // Deduplicate on extracted process numbers (not raw table text, which varies
+    // during Angular loading and causes false "already seen" matches).
+    const processosVistos = new Set();
+    let paginasSemRegistros = 0;
 
+    while (true) {
       mostrarOverlay(`⏳ Extraindo página ${pagina}…\n${todos.length} processo(s) coletados`);
 
       const dados = await extrairPagina(tabela, mapa, pagina);
+
+      // Dedup by process number set — break only when ALL numbers on this page
+      // were already collected (true pagination loop), not on loading-state text.
+      if (dados.length > 0) {
+        const chave = dados.map(r => r.processo).sort().join('|');
+        if (processosVistos.has(chave)) { motivoParada = 'página repetida (mesmos processos)'; break; }
+        processosVistos.add(chave);
+        paginasSemRegistros = 0;
+      } else {
+        paginasSemRegistros++;
+        if (paginasSemRegistros >= 3) { motivoParada = '3 páginas consecutivas sem processos'; break; }
+      }
+
       todos.push(...dados);
 
       const proximoRes = encontrarBotaoProxima();
@@ -505,14 +520,16 @@
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}\n${paginacaoInfo}`);
 
-      await aguardar(800); // let Angular settle after Visualizar clicks before paginating
+      await aguardar(800);
+
+      if (!proximoRes) { motivoParada = 'botão próxima não encontrado'; break; }
 
       // proximaPagina returns the new table reference (Angular may recreate it)
       const novaTabela = await proximaPagina(tabela);
-      if (!novaTabela) break;
-      tabela = novaTabela; // update reference for next iteration
+      if (!novaTabela) { motivoParada = 'clique no botão não alterou a tabela (timeout 30s)'; break; }
+      tabela = novaTabela;
       pagina++;
-      if (pagina > 500) break;
+      if (pagina > 500) { motivoParada = 'limite de 500 páginas atingido'; break; }
     }
 
     removerOverlay();
@@ -523,7 +540,7 @@
     }
 
     download(toCSV(todos));
-    sendResponse({ ok: true, rows: todos.length, paginas: pagina });
+    sendResponse({ ok: true, rows: todos.length, paginas: pagina, parada: motivoParada });
   }
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {

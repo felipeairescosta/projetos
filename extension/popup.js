@@ -76,8 +76,9 @@ btn.addEventListener('click', async () => {
     );
 
     if (response?.ok) {
+      const parada = response.parada ? `\nParou: ${response.parada}` : '';
       setStatus('success',
-        `✓ ${response.rows} processo${response.rows !== 1 ? 's' : ''} exportado${response.rows !== 1 ? 's' : ''} em ${response.paginas} página${response.paginas !== 1 ? 's' : ''}.`
+        `✓ ${response.rows} processo${response.rows !== 1 ? 's' : ''} exportado${response.rows !== 1 ? 's' : ''} em ${response.paginas} página${response.paginas !== 1 ? 's' : ''}.${parada}`
       );
     } else {
       setStatus('error', response?.error || 'Erro desconhecido.');

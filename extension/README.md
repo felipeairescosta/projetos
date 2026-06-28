@@ -30,9 +30,8 @@ Extensão para Chrome e Firefox que exporta os resultados de qualquer consulta d
 
 | Ambiente | URL |
 |---|---|
-| TRE-CE | `pje.tre-ce.jus.br` |
-| 1º Grau (TSE) | `pje1g-ce.tse.jus.br` |
-| 2º Grau (TSE) | `pje2g-ce.tse.jus.br` |
+| 1º Grau | `pje1g-ce.tse.jus.br` |
+| 2º Grau | `pje.tre-ce.jus.br` |
 
 ## Estrutura
 

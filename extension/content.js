@@ -1,5 +1,3 @@
-// Runs in every frame (all_frames: true).
-// Only the frame that actually contains #fPP:processosTable responds.
 if (window.__pjeExtratorLoaded) { /* already registered */ }
 window.__pjeExtratorLoaded = true;
 
@@ -28,21 +26,45 @@ window.__pjeExtratorLoaded = true;
 
   function limpar(texto) {
     if (!texto) return '';
-    return String(texto).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+    return String(texto).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
   }
 
   const aguardar = ms => new Promise(r => setTimeout(r, ms));
 
-  function assinatura() {
-    const tb = document.querySelector('#fPP\\:processosTable\\:tb');
-    return limpar(tb?.innerText || '');
+  // ── table detection ───────────────────────────────────────────────────────
+  // Strategy 1: exact PJe/RichFaces ID.
+  // Strategy 2: any element whose ID contains "processosTable", take inner table.
+  // Strategy 3: largest table whose text contains a process number pattern.
+
+  function encontrarTabela() {
+    const s1 = document.querySelector('#fPP\\:processosTable');
+    if (s1) return s1;
+
+    const s2 = document.querySelector('[id*="processosTable"]');
+    if (s2) return s2.tagName === 'TABLE' ? s2 : (s2.querySelector('table') || s2);
+
+    const todas = [...document.querySelectorAll('table')];
+    const comProcesso = todas.filter(t =>
+      PADRAO_PROCESSO.test(t.innerText || '') && t.rows.length > 1
+    );
+    if (comProcesso.length > 0) {
+      return comProcesso.reduce((a, b) => a.rows.length > b.rows.length ? a : b);
+    }
+
+    return null;
   }
 
-  async function aguardarEstavel(timeoutMs = 30000) {
+  // ── signatures & wait ─────────────────────────────────────────────────────
+
+  function assinatura(tabela) {
+    return limpar(tabela?.innerText || '');
+  }
+
+  async function aguardarEstavel(tabela, timeoutMs = 30000) {
     const t0 = Date.now();
     let prev = null, streak = 0;
     while (Date.now() - t0 < timeoutMs) {
-      const cur = assinatura();
+      const cur = assinatura(tabela);
       streak = (cur && cur === prev) ? streak + 1 : 0;
       prev = cur;
       if (cur && streak >= 2) return;
@@ -79,10 +101,12 @@ window.__pjeExtratorLoaded = true;
 
   // ── page extraction ───────────────────────────────────────────────────────
 
-  async function extrairPagina(numeroPagina) {
-    await aguardarEstavel();
+  async function extrairPagina(tabela, numeroPagina) {
+    await aguardarEstavel(tabela);
 
-    const linhas = document.querySelectorAll('#fPP\\:processosTable\\:tb tr');
+    // Prefer tbody rows; fall back to all tr in the table.
+    const tbody = tabela.querySelector('tbody') || tabela.querySelector('[id$="\\:tb"]') || tabela;
+    const linhas = tbody.querySelectorAll('tr');
     const dados  = [];
 
     for (const tr of linhas) {
@@ -118,14 +142,18 @@ window.__pjeExtratorLoaded = true;
 
   // ── pagination ────────────────────────────────────────────────────────────
 
-  async function proximaPagina() {
-    await aguardarEstavel();
-    const antes = assinatura();
+  async function proximaPagina(tabela) {
+    await aguardarEstavel(tabela);
+    const antes = assinatura(tabela);
 
-    const table = document.getElementById('fPP:processosTable:scTabela_table');
+    // Look for paginator near the table (parent or sibling).
+    const root = tabela.closest('form') || tabela.parentElement || document;
+    const table = root.querySelector('[id*="scTabela_table"], [id*="scrollerTable"]')
+                  || document.querySelector('[id*="scTabela_table"], [id*="scrollerTable"]');
+
     if (!table) return false;
 
-    const cells = [...table.querySelectorAll('td.rich-datascr-button')];
+    const cells = [...table.querySelectorAll('td.rich-datascr-button, td[class*="datascr-button"]')];
 
     let alvo = cells.find(td => {
       const txt = limpar(td.innerText || td.textContent || '');
@@ -146,8 +174,8 @@ window.__pjeExtratorLoaded = true;
     const t0 = Date.now();
     while (Date.now() - t0 < 20000) {
       await aguardar(500);
-      if (assinatura() !== antes) {
-        await aguardarEstavel();
+      if (assinatura(tabela) !== antes) {
+        await aguardarEstavel(tabela);
         return true;
       }
     }
@@ -200,23 +228,29 @@ window.__pjeExtratorLoaded = true;
   // ── main ──────────────────────────────────────────────────────────────────
 
   async function exportarTudo(sendResponse) {
+    const tabela = encontrarTabela();
+    if (!tabela) {
+      sendResponse({ ok: false, error: 'Tabela não encontrada neste frame.' });
+      return;
+    }
+
     const todos = [];
     let pagina = 1;
     const visitadas = new Set();
 
     while (true) {
-      const sig = assinatura();
+      const sig = assinatura(tabela);
       if (sig && visitadas.has(sig)) break;
       visitadas.add(sig);
 
       mostrarOverlay(`⏳ Extraindo página ${pagina}…\n${todos.length} processo(s) coletados`);
 
-      const dados = await extrairPagina(pagina);
+      const dados = await extrairPagina(tabela, pagina);
       todos.push(...dados);
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}`);
 
-      if (!await proximaPagina()) break;
+      if (!await proximaPagina(tabela)) break;
       pagina++;
     }
 
@@ -231,10 +265,13 @@ window.__pjeExtratorLoaded = true;
     sendResponse({ ok: true, rows: todos.length, paginas: pagina });
   }
 
-  // Each frame self-checks. Only the frame with the table responds.
+  // Only respond if this frame has the table.
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.action !== 'exportCSV') return;
-    if (!document.querySelector('#fPP\\:processosTable')) return; // not our frame
+    if (!encontrarTabela()) {
+      sendResponse({ ok: false, error: 'Tabela não encontrada neste frame.' });
+      return;
+    }
     exportarTudo(sendResponse);
     return true;
   });

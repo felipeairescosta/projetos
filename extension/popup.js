@@ -15,33 +15,57 @@ async function getTab() {
   return tab;
 }
 
+// Detect the frame that has the process table.
+// Tries #fPP:processosTable first, then falls back to any table
+// containing a process number pattern — handles any frame/ID variant.
+const DETECTION_FUNC = () => {
+  const PADRAO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
+  if (document.querySelector('#fPP\\:processosTable')) return 'specific';
+  if (document.querySelector('[id*="processosTable"]'))  return 'id-partial';
+  const tables = [...document.querySelectorAll('table')];
+  if (tables.some(t => PADRAO.test(t.innerText || '') && t.rows.length > 1)) return 'content';
+  return null;
+};
+
+// Poll all frames until table appears (max timeoutMs).
+async function encontrarFrame(tabId, timeoutMs = 20000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    const frames = await api.scripting.executeScript({
+      target: { tabId, allFrames: true },
+      func: DETECTION_FUNC,
+    }).catch(() => []);
+
+    const target = frames?.find(f => f.result !== null && f.result !== undefined);
+    if (target) return target;
+
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  return null;
+}
+
 // ── Export ────────────────────────────────────────────────────────────────────
 
 btn.addEventListener('click', async () => {
   btn.disabled = true;
   diagOut.style.display = 'none';
-  setStatus('loading', 'Aguardando...');
+  setStatus('loading', 'Procurando tabela de processos...');
 
   try {
     const tab = await getTab();
     if (!tab?.id) { setStatus('error', 'Não foi possível identificar a aba ativa.'); return; }
 
-    // Find which frame contains the PJe table
-    const frames = await api.scripting.executeScript({
-      target: { tabId: tab.id, allFrames: true },
-      func: () => !!document.querySelector('#fPP\\:processosTable'),
-    });
-
-    const targetFrame = frames?.find(f => f.result === true);
-    if (!targetFrame) {
-      setStatus('error', 'Tabela não encontrada. Use o botão 🔍 Diagnóstico e compartilhe o resultado.');
-      return;
-    }
-
+    // Inject in all frames first
     await api.scripting.executeScript({
-      target: { tabId: tab.id, frameIds: [targetFrame.frameId] },
+      target: { tabId: tab.id, allFrames: true },
       files: ['content.js'],
     }).catch(() => {});
+
+    const targetFrame = await encontrarFrame(tab.id, 20000);
+    if (!targetFrame) {
+      setStatus('error', 'Tabela não encontrada. Execute a consulta no PJe e aguarde os resultados aparecerem antes de exportar.');
+      return;
+    }
 
     setStatus('loading', 'Extraindo processos de todas as páginas… acompanhe na página do PJe.');
 
@@ -81,21 +105,25 @@ btnDiag.addEventListener('click', async () => {
     const results = await api.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
       func: () => {
+        const PADRAO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
         const norm = s => (s || '').replace(/\s+/g, ' ').trim().slice(0, 60);
-        const tables = [...document.querySelectorAll('table')].map(t => {
-          const headerCells = [...(t.querySelector('thead tr, tr') || t).querySelectorAll('th,td')]
-            .map(c => norm(c.innerText)).filter(Boolean).slice(0, 6);
-          return { id: t.id || '(sem id)', rows: t.rows.length, cls: (t.className || '').slice(0, 40), headers: headerCells };
-        });
+        const tables = [...document.querySelectorAll('table')].map(t => ({
+          id: t.id || '(sem id)',
+          rows: t.rows.length,
+          temProcesso: PADRAO.test(t.innerText || ''),
+          headers: [...(t.querySelector('thead tr, tr') || t)
+            .querySelectorAll('th,td')].map(c => norm(c.innerText)).filter(Boolean).slice(0, 5),
+        }));
         const iframes = [...document.querySelectorAll('iframe')].map(f => ({
           id: f.id || '(sem id)',
           src: (f.src || f.getAttribute('src') || '').slice(0, 100),
         }));
         return {
           url: location.href.slice(0, 100),
+          hasPjeTable: !!document.querySelector('#fPP\\:processosTable'),
+          temProcessoEmTabela: tables.some(t => t.temProcesso),
           tables: tables.slice(0, 15),
           iframes: iframes.slice(0, 10),
-          hasPjeTable: !!document.querySelector('#fPP\\:processosTable'),
         };
       },
     });
@@ -106,14 +134,16 @@ btnDiag.addEventListener('click', async () => {
       const d = r.result;
       lines.push(`--- Frame ${i} (frameId: ${r.frameId}) ---`);
       lines.push(`URL: ${d.url}`);
-      lines.push(`#fPP:processosTable: ${d.hasPjeTable}`);
+      lines.push(`#fPP:processosTable: ${d.hasPjeTable} | tem nº processo em tabela: ${d.temProcessoEmTabela}`);
       if (d.iframes.length) {
         lines.push('iframes:');
         d.iframes.forEach(f => lines.push(`  id="${f.id}" src="${f.src}"`));
       }
       if (d.tables.length) {
         lines.push('tabelas:');
-        d.tables.forEach(t => lines.push(`  id="${t.id}" rows=${t.rows} | ${t.headers.join(' | ')}`));
+        d.tables.forEach(t => lines.push(
+          `  id="${t.id}" rows=${t.rows} proc=${t.temProcesso} | ${t.headers.join(' | ')}`
+        ));
       } else {
         lines.push('(nenhuma tabela)');
       }

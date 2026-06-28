@@ -88,7 +88,7 @@ window.__pjeExtratorLoaded = true;
 
   function assinatura(tabela) { return limpar(tabela?.innerText || ''); }
 
-  async function aguardarEstavel(tabela, timeoutMs = 30000) {
+  async function aguardarEstavel(tabela, timeoutMs = 15000) {
     const t0 = Date.now();
     let prev = null, streak = 0;
     while (Date.now() - t0 < timeoutMs) {
@@ -154,12 +154,12 @@ window.__pjeExtratorLoaded = true;
     );
 
     const t0 = Date.now();
-    while (Date.now() - t0 < 10000) {
+    while (Date.now() - t0 < 5000) {   // 5s max (Python uses 8s; we skip if slow)
       const el = document.getElementById(elementId) ||
                  document.querySelector(`[id*=":${n}:nosAtuais"]`);
       const txt = limpar(el?.innerText || el?.textContent || '');
       if (txt) return txt;
-      await aguardar(300);
+      await aguardar(200);
     }
     return '';
   }
@@ -304,8 +304,8 @@ window.__pjeExtratorLoaded = true;
     `);
 
     const t0 = Date.now();
-    while (Date.now() - t0 < 20000) {
-      await aguardar(500);
+    while (Date.now() - t0 < 15000) {
+      await aguardar(400);
       if (assinatura(tabela) !== antes) {
         await aguardarEstavel(tabela);
         return true;
@@ -366,10 +366,9 @@ window.__pjeExtratorLoaded = true;
       return;
     }
 
-    // Show frame diagnostic for 4s so user can read what was found
-    const diagTxt = diagnosticarFrame(tabela);
-    mostrarOverlay(`=== DIAGNÓSTICO DO FRAME ===\n${diagTxt}\n\nIniciando em 4s…`);
-    await aguardar(4000);
+    // Brief diagnostic (1s) then start immediately
+    mostrarOverlay(`⏳ Iniciando extração…\n${diagnosticarFrame(tabela)}`);
+    await aguardar(1000);
 
     const mapa = mapearColunas(tabela) || INDICE_FALLBACK;
     const todos = [];
@@ -392,7 +391,6 @@ window.__pjeExtratorLoaded = true;
         : 'próxima: NÃO ENCONTRADA';
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}\n${paginacaoInfo}`);
-      await aguardar(1000);
 
       const avancou = await proximaPagina(tabela);
       if (!avancou) break;

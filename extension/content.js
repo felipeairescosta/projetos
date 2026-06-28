@@ -366,20 +366,17 @@
   }
 
   function clicarElemento(el) {
-    // Dispatch from isolated world
-    el.focus?.();
-    for (const tipo of ['mousedown', 'mouseup', 'click']) {
-      el.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true, view: window }));
-    }
-    el.click?.();
-
-    // Relay to MAIN world via shared DOM CustomEvent + temporary data attribute.
-    // DOM events dispatched by content scripts propagate to main-world listeners;
-    // this ensures Angular zone.js picks up the click.
-    const tempId = '__pje_' + Date.now();
-    el.setAttribute('data-pje-click', tempId);
-    document.dispatchEvent(new CustomEvent('__pje_click__', { detail: { id: tempId } }));
-    setTimeout(() => el.removeAttribute('data-pje-click'), 2000);
+    // Set attribute on the shared DOM; MutationObserver in content_main.js (MAIN world)
+    // detects this and fires the click where Angular zone.js is listening.
+    el.setAttribute('data-pje-click', Date.now().toString());
+    // Fallback: if main world doesn't handle it within 300 ms, click from isolated world.
+    setTimeout(() => {
+      if (el.hasAttribute('data-pje-click')) {
+        el.removeAttribute('data-pje-click');
+        el.focus?.();
+        el.click?.();
+      }
+    }, 300);
   }
 
   // Returns the new table element on success, null on failure.

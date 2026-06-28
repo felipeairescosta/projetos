@@ -15,11 +15,11 @@
       if (!el.hasAttribute('data-pje-click')) continue;
       el.removeAttribute('data-pje-click');
       el.focus?.();
-      ['mousedown', 'mouseup', 'click'].forEach(ev =>
-        el.dispatchEvent(new MouseEvent(ev, { bubbles: true, cancelable: true }))
-      );
-      // Do NOT call el.click() — dispatchEvent('click') already sent one click.
-      // A second click would toggle dialogs/menus closed immediately after opening.
+      // Single el.click() is enough: fires one trusted-style click inside the
+      // Angular zone (MutationObserver is zone-patched), triggering change
+      // detection. Using dispatchEvent + el.click() caused two clicks, which
+      // toggled dialogs open then immediately closed.
+      el.click();
     }
   }).observe(document.documentElement, {
     subtree: true,

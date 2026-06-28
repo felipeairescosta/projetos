@@ -83,4 +83,9 @@ footer {
   font-size: 10px;
   color: #888;
   border-top: 1px solid #dde3ed;
+  line-height: 1.7;
+}
+.footer-dev {
+  font-size: 9px;
+  color: #aaa;
 }

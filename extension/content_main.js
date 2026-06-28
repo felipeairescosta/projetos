@@ -15,15 +15,17 @@
       if (!el.hasAttribute('data-pje-click')) continue;
       el.removeAttribute('data-pje-click');
       el.focus?.();
-      // Full synthetic event sequence required for Angular Material paginator:
-      // mousedown + mouseup + click dispatch + el.click() registers as a real
-      // navigation gesture inside zone.js. el.click() alone is insufficient.
-      // Visualizar (toggle dialog) bypasses this relay entirely and calls
-      // btnVis.click() directly from the isolated world, so no double-click here.
+      // Dispatch exactly ONE click (plus the gesture events before it).
+      // Adding el.click() after dispatchEvent fires two click events, which
+      // causes the Angular Material paginator to advance two pages per step
+      // (producing 104/194 records instead of all 194).
+      // Visualizar bypasses this relay entirely (direct btnVis.click() from
+      // the isolated world), so only paginator clicks come through here.
       ['mousedown', 'mouseup', 'click'].forEach(ev =>
-        el.dispatchEvent(new MouseEvent(ev, { bubbles: true, cancelable: true }))
+        el.dispatchEvent(new MouseEvent(ev, {
+          bubbles: true, cancelable: true, composed: true, view: window,
+        }))
       );
-      el.click();
     }
   }).observe(document.documentElement, {
     subtree: true,

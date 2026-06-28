@@ -4,7 +4,6 @@ window.__pjeExtratorLoaded = true;
 (() => {
   const PADRAO_PROCESSO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
 
-  // Canonical field names → keywords that appear in <th> text (lowercase, no accents)
   const HEADER_KEYWORDS = {
     processo:            ['processo', 'número', 'numero'],
     caracteristicas:     ['caracteristic'],
@@ -17,7 +16,6 @@ window.__pjeExtratorLoaded = true;
     ultima_movimentacao: ['ultima', 'última', 'movimenta'],
   };
 
-  // Fallback fixed indices if table has no readable headers (from extrair_pje_v17.py)
   const INDICE_FALLBACK = {
     processo:            0,
     caracteristicas:     1,
@@ -49,8 +47,8 @@ window.__pjeExtratorLoaded = true;
 
   const aguardar = ms => new Promise(r => setTimeout(r, ms));
 
-  // Execute JS in the page's MAIN world (content scripts are isolated — page functions
-  // like mostrarNosAtuaisN are not visible from the content script's window).
+  // Execute JS in the PAGE's main world (content scripts are isolated;
+  // mostrarNosAtuaisN lives in the page's window, not here).
   function executarNaPagina(codigo) {
     const s = document.createElement('script');
     s.textContent = `(()=>{ try{ ${codigo} }catch(e){} })();`;
@@ -58,23 +56,18 @@ window.__pjeExtratorLoaded = true;
     s.remove();
   }
 
-  // ── column auto-detection from <th> headers ───────────────────────────────
+  // ── column auto-detection ─────────────────────────────────────────────────
 
   function mapearColunas(tabela) {
     const ths = [...tabela.querySelectorAll('thead th, thead td')];
     if (ths.length === 0) return null;
-
     const mapa = {};
     ths.forEach((th, i) => {
       const txt = semAcento(limpar(th.innerText || th.textContent || ''));
       for (const [campo, palavras] of Object.entries(HEADER_KEYWORDS)) {
-        if (palavras.some(p => txt.includes(semAcento(p)))) {
-          mapa[campo] = i;
-          break;
-        }
+        if (palavras.some(p => txt.includes(semAcento(p)))) { mapa[campo] = i; break; }
       }
     });
-
     return ('processo' in mapa) ? mapa : null;
   }
 
@@ -83,26 +76,17 @@ window.__pjeExtratorLoaded = true;
   function encontrarTabela() {
     const s1 = document.querySelector('#fPP\\:processosTable');
     if (s1) return s1;
-
     const s2 = document.querySelector('[id*="processosTable"]');
     if (s2) return s2.tagName === 'TABLE' ? s2 : (s2.querySelector('table') || s2);
-
     const todas = [...document.querySelectorAll('table')];
-    const comProcesso = todas.filter(t =>
-      PADRAO_PROCESSO.test(t.innerText || '') && t.rows.length > 1
-    );
-    if (comProcesso.length > 0) {
-      return comProcesso.reduce((a, b) => a.rows.length > b.rows.length ? a : b);
-    }
-
+    const comProcesso = todas.filter(t => PADRAO_PROCESSO.test(t.innerText || '') && t.rows.length > 1);
+    if (comProcesso.length > 0) return comProcesso.reduce((a, b) => a.rows.length > b.rows.length ? a : b);
     return null;
   }
 
   // ── signatures & wait ─────────────────────────────────────────────────────
 
-  function assinatura(tabela) {
-    return limpar(tabela?.innerText || '');
-  }
+  function assinatura(tabela) { return limpar(tabela?.innerText || ''); }
 
   async function aguardarEstavel(tabela, timeoutMs = 30000) {
     const t0 = Date.now();
@@ -116,10 +100,44 @@ window.__pjeExtratorLoaded = true;
     }
   }
 
+  // ── frame diagnostic (shown in overlay at start) ──────────────────────────
+
+  function diagnosticarFrame(tabela) {
+    const norm = s => (s || '').slice(0, 60);
+
+    // Paginator: try RichFaces JSF first, then any paginator pattern
+    const pag =
+      document.getElementById('fPP:processosTable:scTabela_table') ||
+      document.querySelector('[id*="scTabela_table"]') ||
+      document.querySelector('[id*="scrollerTable"]') ||
+      document.querySelector('[id*="paginador"]') ||
+      document.querySelector('[id*="paginator"]') ||
+      document.querySelector('.rich-datascr') ||
+      document.querySelector('.mat-paginator') ||
+      document.querySelector('[class*="paginator"]');
+
+    const pagId   = pag ? norm(pag.id || 'sem id') : 'NÃO ENCONTRADO';
+    const richBtns = pag ? pag.querySelectorAll('td.rich-datascr-button').length : 0;
+    const matNext  = !!document.querySelector('.mat-paginator-navigation-next, [aria-label="Next page"], [aria-label="Próxima página"]');
+
+    // First btnMostrarNos in table
+    let btnNoId = 'NÃO ENCONTRADO';
+    for (const tr of tabela.querySelectorAll('tbody tr, tr')) {
+      const btn = tr.querySelector('[id^="btnMostrarNos"]');
+      if (btn) { btnNoId = norm(btn.id); break; }
+    }
+
+    return (
+      `Tabela: ${norm(tabela.id || 'sem id')}\n` +
+      `Paginador: ${pagId} | rich-btns:${richBtns} | mat-next:${matNext}\n` +
+      `BtnNósAtuais: ${btnNoId}\n` +
+      `Frame: ${location.href.slice(0, 80)}`
+    );
+  }
+
   // ── nó atual via Ajax ─────────────────────────────────────────────────────
 
   async function extrairNoAtual(tr) {
-    // Button confirmed in Python script: id="btnMostrarNos{N}"
     const btn = tr.querySelector('[id^="btnMostrarNos"]');
     if (!btn) return '';
 
@@ -129,15 +147,12 @@ window.__pjeExtratorLoaded = true;
     const n = m[1];
     const elementId = `fPP:processosTable:${n}:nosAtuais`;
 
-    // CRITICAL: content scripts run in an isolated JS world.
-    // window.mostrarNosAtuaisN is defined in the PAGE's world, not here.
-    // Injecting a <script> tag executes in the main world where the function exists.
+    // Must run in page's main world — content script window is isolated.
     // Python equivalent: page.evaluate(f"mostrarNosAtuais{n}('{n}')")
     executarNaPagina(
       `if(typeof mostrarNosAtuais${n}==='function') mostrarNosAtuais${n}('${n}');`
     );
 
-    // Poll for the element to be populated (DOM is shared between worlds)
     const t0 = Date.now();
     while (Date.now() - t0 < 10000) {
       const el = document.getElementById(elementId) ||
@@ -158,7 +173,6 @@ window.__pjeExtratorLoaded = true;
 
   async function extrairPagina(tabela, mapa, numeroPagina) {
     await aguardarEstavel(tabela);
-
     const tbody = tabela.querySelector('tbody') || tabela;
     const linhas = tbody.querySelectorAll('tr');
     const dados = [];
@@ -179,10 +193,8 @@ window.__pjeExtratorLoaded = true;
       }
 
       if (!PADRAO_PROCESSO.test(reg.processo)) reg.processo = matchProc[0];
-
       reg.no_atual = await extrairNoAtual(tr);
 
-      // Processos sigilosos
       if (!reg.autuado_em) {
         for (const c of ['caracteristicas', 'autuado_em', 'classe_judicial',
                          'polo_ativo', 'polo_passivo', 'ultima_movimentacao']) {
@@ -192,75 +204,104 @@ window.__pjeExtratorLoaded = true;
 
       dados.push(reg);
     }
-
     return dados;
   }
 
   // ── pagination ────────────────────────────────────────────────────────────
 
+  function encontrarBotaoProxima() {
+    // Strategy 1: RichFaces JSF paginator (confirmed in Python script)
+    const richPag =
+      document.getElementById('fPP:processosTable:scTabela_table') ||
+      document.querySelector('[id*="scTabela_table"]') ||
+      document.querySelector('[id*="scrollerTable"]') ||
+      document.querySelector('.rich-datascr');
+
+    if (richPag) {
+      const cells = [...richPag.querySelectorAll('td.rich-datascr-button')];
+      let alvo = cells.find(td => {
+        const txt = (td.innerText || td.textContent || '').trim();
+        return txt === '»' && !(td.className || '').includes('dsbld');
+      });
+      if (!alvo && cells.length >= 2) {
+        const c = cells[cells.length - 2];
+        if (!(c.className || '').includes('dsbld')) alvo = c;
+      }
+      if (alvo) return { el: alvo, via: `richfaces:${richPag.id || 'sem id'}` };
+    }
+
+    // Strategy 2: Angular Material paginator
+    const matNext = document.querySelector(
+      '.mat-paginator-navigation-next:not([disabled]), ' +
+      '[aria-label="Next page"]:not([disabled]), ' +
+      '[aria-label="Próxima página"]:not([disabled])'
+    );
+    if (matNext) return { el: matNext, via: 'angular-material' };
+
+    // Strategy 3: any id/class containing "paginador" or "paginator"
+    const genPag = document.querySelector('[id*="paginador"], [id*="paginator"], [class*="paginador"], [class*="paginator"]');
+    if (genPag) {
+      const btns = [...genPag.querySelectorAll('button, a, td, li, span')];
+      const next = btns.find(el => {
+        const txt = (el.innerText || el.textContent || '').trim();
+        const dis = el.disabled || el.getAttribute('aria-disabled') === 'true' ||
+                    (el.className || '').includes('disabled') ||
+                    (el.className || '').includes('dsbld');
+        return !dis && (txt === '»' || txt === '›' || txt === '>' || txt === 'Próxima');
+      });
+      if (next) return { el: next, via: `generic:${genPag.id || genPag.className.slice(0, 30)}` };
+    }
+
+    // Strategy 4: last resort — any visible » or › anywhere in document
+    const any = [...document.querySelectorAll('button, td, a, li')].find(el => {
+      const txt = (el.innerText || el.textContent || '').trim();
+      const dis = el.disabled || el.getAttribute('aria-disabled') === 'true' ||
+                  (el.className || '').includes('disabled') ||
+                  (el.className || '').includes('dsbld');
+      return !dis && (txt === '»' || txt === '›');
+    });
+    if (any) return { el: any, via: `fallback:${any.tagName}` };
+
+    return null;
+  }
+
   async function proximaPagina(tabela) {
     await aguardarEstavel(tabela);
     const antes = assinatura(tabela);
 
-    // Exact paginator ID from Python script (getElementById skips CSS colon escaping)
-    const paginatorTable =
-      document.getElementById('fPP:processosTable:scTabela_table') ||
-      document.querySelector('[id*="scTabela_table"]') ||
-      document.querySelector('[id*="scrollerTable"]') ||
-      document.querySelector('[id*="paginador"]') ||
-      document.querySelector('[id*="paginator"]') ||
-      document.querySelector('.rich-datascr');
+    const resultado = encontrarBotaoProxima();
 
-    if (!paginatorTable) {
-      mostrarOverlay('⚠ Paginador não encontrado\n(fPP:processosTable:scTabela_table)\nVerifique o Diagnóstico.');
-      return false;
-    }
+    if (!resultado) return false;
 
-    const cells = [...paginatorTable.querySelectorAll('td.rich-datascr-button')];
+    const { el: alvo, via } = resultado;
 
-    if (cells.length === 0) {
-      mostrarOverlay(`⚠ Paginador encontrado (id="${paginatorTable.id}")\nmas sem botões rich-datascr-button.`);
-      return false;
-    }
-
-    // Primary: » not disabled — same as Python
-    let alvo = cells.find(td => {
-      const txt = (td.innerText || td.textContent || '').trim();
-      return txt === '»' && !(td.className || '').includes('dsbld');
-    });
-
-    // Fallback: second-to-last button — same as Python's cells.length - 2
-    if (!alvo && cells.length >= 2) {
-      const c = cells[cells.length - 2];
-      if (!(c.className || '').includes('dsbld')) alvo = c;
-    }
-
-    if (!alvo) return false; // last page
-
-    // Fire events from content script (DOM events bubble to main-world listeners)
+    // Dispatch from content script
     for (const tipo of ['mousedown', 'mouseup', 'click']) {
       alvo.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true, view: window }));
     }
 
-    // Belt-and-suspenders: also fire click via script injection in main world
-    const pid = paginatorTable.id;
-    if (pid) {
-      executarNaPagina(`
-        (function(){
-          var t=document.getElementById('${pid}');
-          if(!t) return;
-          var cells=Array.from(t.querySelectorAll('td.rich-datascr-button'));
-          var btn=cells.find(function(td){
-            var txt=(td.innerText||td.textContent||'').trim();
-            return txt==='»'&&!(td.className||'').includes('dsbld');
+    // Also fire via script injection in main world (belt-and-suspenders)
+    // We encode the element's position so we can re-find it
+    const tagName  = alvo.tagName;
+    const elId     = alvo.id || '';
+    const elClass  = (alvo.className || '').split(' ').filter(Boolean)[0] || '';
+    const elText   = (alvo.innerText || alvo.textContent || '').trim().replace(/'/g, "\\'");
+
+    executarNaPagina(`
+      (function(){
+        var candidates = Array.from(document.querySelectorAll('${tagName}'));
+        var el = candidates.find(function(e){
+          var txt = (e.innerText||e.textContent||'').trim();
+          return txt==='${elText}' && ${elId ? `e.id==='${elId}'` : 'true'};
+        });
+        if(!el && '${elId}') el = document.getElementById('${elId}');
+        if(el){
+          ['mousedown','mouseup','click'].forEach(function(ev){
+            el.dispatchEvent(new MouseEvent(ev,{bubbles:true,cancelable:true,view:window}));
           });
-          if(!btn&&cells.length>=2){var c=cells[cells.length-2];if(!(c.className||'').includes('dsbld'))btn=c;}
-          if(btn){['mousedown','mouseup','click'].forEach(function(ev){
-            btn.dispatchEvent(new MouseEvent(ev,{bubbles:true,cancelable:true,view:window}));
-          });}
-        })();
-      `);
-    }
+        }
+      })();
+    `);
 
     const t0 = Date.now();
     while (Date.now() - t0 < 20000) {
@@ -302,11 +343,11 @@ window.__pjeExtratorLoaded = true;
     if (!overlay) {
       overlay = Object.assign(document.createElement('div'), {
         style: [
-          'position:fixed', 'bottom:20px', 'right:20px', 'z-index:2147483647',
+          'position:fixed', 'top:16px', 'right:16px', 'z-index:2147483647',
           'background:#003366', 'color:#fff', 'padding:12px 16px',
-          'border-radius:8px', 'font:13px/1.5 sans-serif',
-          'box-shadow:0 4px 12px rgba(0,0,0,.35)', 'max-width:340px',
-          'white-space:pre-wrap',
+          'border-radius:8px', 'font:12px/1.6 monospace',
+          'box-shadow:0 4px 12px rgba(0,0,0,.4)', 'max-width:380px',
+          'white-space:pre-wrap', 'word-break:break-all',
         ].join(';'),
       });
       document.body.appendChild(overlay);
@@ -325,8 +366,12 @@ window.__pjeExtratorLoaded = true;
       return;
     }
 
-    const mapa = mapearColunas(tabela) || INDICE_FALLBACK;
+    // Show frame diagnostic for 4s so user can read what was found
+    const diagTxt = diagnosticarFrame(tabela);
+    mostrarOverlay(`=== DIAGNÓSTICO DO FRAME ===\n${diagTxt}\n\nIniciando em 4s…`);
+    await aguardar(4000);
 
+    const mapa = mapearColunas(tabela) || INDICE_FALLBACK;
     const todos = [];
     let pagina = 1;
     const visitadas = new Set();
@@ -341,7 +386,13 @@ window.__pjeExtratorLoaded = true;
       const dados = await extrairPagina(tabela, mapa, pagina);
       todos.push(...dados);
 
-      mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}`);
+      const proximoRes = encontrarBotaoProxima();
+      const paginacaoInfo = proximoRes
+        ? `próxima: ${proximoRes.via}`
+        : 'próxima: NÃO ENCONTRADA';
+
+      mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}\n${paginacaoInfo}`);
+      await aguardar(1000);
 
       const avancou = await proximaPagina(tabela);
       if (!avancou) break;

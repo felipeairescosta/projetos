@@ -18,7 +18,8 @@
       ['mousedown', 'mouseup', 'click'].forEach(ev =>
         el.dispatchEvent(new MouseEvent(ev, { bubbles: true, cancelable: true }))
       );
-      el.click?.();
+      // Do NOT call el.click() — dispatchEvent('click') already sent one click.
+      // A second click would toggle dialogs/menus closed immediately after opening.
     }
   }).observe(document.documentElement, {
     subtree: true,

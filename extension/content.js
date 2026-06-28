@@ -366,31 +366,11 @@
   }
 
   function clicarElemento(el) {
-    // Dispatch mouse events from content script
+    el.focus?.();
     for (const tipo of ['mousedown', 'mouseup', 'click']) {
       el.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true, view: window }));
     }
-
-    // Also fire via main-world script injection
-    const elId  = el.id || '';
-    const oc    = (el.getAttribute('onclick') || '').replace(/\\/g, '\\\\').replace(/`/g, '\\`');
-    const elTxt = (el.innerText || el.textContent || '').trim().replace(/'/g, "\\'");
-    const tag   = el.tagName;
-
-    executarNaPagina(`(function(){
-      var el = ${elId ? `document.getElementById('${elId}')` : 'null'};
-      if(!el){
-        el = Array.from(document.querySelectorAll('${tag}')).find(function(e){
-          return (e.innerText||e.textContent||'').trim()==='${elTxt}';
-        });
-      }
-      if(el){
-        ${oc ? `try{ (function(){ ${oc} }).call(el); }catch(_){}` : ''}
-        ['mousedown','mouseup','click'].forEach(function(ev){
-          el.dispatchEvent(new MouseEvent(ev,{bubbles:true,cancelable:true,view:window}));
-        });
-      }
-    })();`);
+    el.click?.();
   }
 
   // Returns the new table element on success, null on failure.

@@ -23,7 +23,7 @@ btn.addEventListener('click', async () => {
 
     // Inject content script on demand (handles cases where page reloaded)
     await api.scripting.executeScript({
-      target: { tabId: tab.id },
+      target: { tabId: tab.id, allFrames: true },
       files: ['content.js'],
     }).catch(() => {}); // ignore if already injected
 

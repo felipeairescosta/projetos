@@ -1,4 +1,6 @@
-if (window.__pjeExtratorLoaded) { /* already active */ }
+// Runs in every frame (all_frames: true).
+// Only the frame that actually contains #fPP:processosTable responds.
+if (window.__pjeExtratorLoaded) { /* already registered */ }
 window.__pjeExtratorLoaded = true;
 
 (() => {
@@ -22,47 +24,17 @@ window.__pjeExtratorLoaded = true;
     'no_atual', 'ultima_movimentacao',
   ];
 
-  // Active document/window — may be an iframe's context
-  let activeDoc = document;
-  let activeWin  = window;
-
-  // ── find the right document (top-level or iframe) ─────────────────────────
-
-  function encontrarDocumento() {
-    // Try top-level first
-    if (document.querySelector('#fPP\\:processosTable')) {
-      return { doc: document, win: window };
-    }
-
-    // Walk iframes (same-origin only — cross-origin will throw)
-    for (const iframe of document.querySelectorAll('iframe')) {
-      try {
-        const iDoc = iframe.contentDocument || iframe.contentWindow?.document;
-        const iWin = iframe.contentWindow;
-        if (iDoc && iDoc.querySelector('#fPP\\:processosTable')) {
-          return { doc: iDoc, win: iWin };
-        }
-      } catch (_) {
-        // cross-origin iframe — skip
-      }
-    }
-
-    return null;
-  }
-
   // ── helpers ───────────────────────────────────────────────────────────────
 
   function limpar(texto) {
     if (!texto) return '';
-    return String(texto).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+    return String(texto).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
   }
 
-  function aguardar(ms) {
-    return new Promise(r => setTimeout(r, ms));
-  }
+  const aguardar = ms => new Promise(r => setTimeout(r, ms));
 
   function assinatura() {
-    const tb = activeDoc.querySelector('#fPP\\:processosTable\\:tb');
+    const tb = document.querySelector('#fPP\\:processosTable\\:tb');
     return limpar(tb?.innerText || '');
   }
 
@@ -91,15 +63,13 @@ window.__pjeExtratorLoaded = true;
     const elementId = `fPP:processosTable:${n}:nosAtuais`;
 
     try {
-      const fn = activeWin[`mostrarNosAtuais${n}`];
+      const fn = window[`mostrarNosAtuais${n}`];
       if (typeof fn === 'function') fn(n);
-    } catch (_) {
-      return '';
-    }
+    } catch (_) { return ''; }
 
     const t0 = Date.now();
     while (Date.now() - t0 < 8000) {
-      const el = activeDoc.getElementById(elementId);
+      const el = document.getElementById(elementId);
       const txt = limpar(el?.innerText || el?.textContent || '');
       if (txt) return txt;
       await aguardar(200);
@@ -112,7 +82,7 @@ window.__pjeExtratorLoaded = true;
   async function extrairPagina(numeroPagina) {
     await aguardarEstavel();
 
-    const linhas = activeDoc.querySelectorAll('#fPP\\:processosTable\\:tb tr');
+    const linhas = document.querySelectorAll('#fPP\\:processosTable\\:tb tr');
     const dados  = [];
 
     for (const tr of linhas) {
@@ -133,7 +103,6 @@ window.__pjeExtratorLoaded = true;
 
       reg.no_atual = await extrairNoAtual(tr);
 
-      // Sigiloso: autuado_em vazio mas processo preenchido
       if (!reg.autuado_em) {
         for (const c of ['caracteristicas', 'autuado_em', 'classe_judicial',
                          'polo_ativo', 'polo_passivo', 'ultima_movimentacao']) {
@@ -153,7 +122,7 @@ window.__pjeExtratorLoaded = true;
     await aguardarEstavel();
     const antes = assinatura();
 
-    const table = activeDoc.getElementById('fPP:processosTable:scTabela_table');
+    const table = document.getElementById('fPP:processosTable:scTabela_table');
     if (!table) return false;
 
     const cells = [...table.querySelectorAll('td.rich-datascr-button')];
@@ -206,7 +175,7 @@ window.__pjeExtratorLoaded = true;
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
   }
 
-  // ── progress overlay (always on top-level document) ───────────────────────
+  // ── progress overlay ──────────────────────────────────────────────────────
 
   let overlay = null;
 
@@ -231,15 +200,6 @@ window.__pjeExtratorLoaded = true;
   // ── main ──────────────────────────────────────────────────────────────────
 
   async function exportarTudo(sendResponse) {
-    const ctx = encontrarDocumento();
-    if (!ctx) {
-      sendResponse({ ok: false, error: 'Tabela do PJe não encontrada. Execute uma consulta e aguarde os resultados carregarem.' });
-      return;
-    }
-
-    activeDoc = ctx.doc;
-    activeWin = ctx.win;
-
     const todos = [];
     let pagina = 1;
     const visitadas = new Set();
@@ -271,8 +231,10 @@ window.__pjeExtratorLoaded = true;
     sendResponse({ ok: true, rows: todos.length, paginas: pagina });
   }
 
+  // Each frame self-checks. Only the frame with the table responds.
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.action !== 'exportCSV') return;
+    if (!document.querySelector('#fPP\\:processosTable')) return; // not our frame
     exportarTudo(sendResponse);
     return true;
   });

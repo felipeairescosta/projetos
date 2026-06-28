@@ -1,13 +1,9 @@
-// Guard against multiple injections
-if (window.__pjeExtratorLoaded) {
-  // already loaded — just re-register listener is safe since we clear below
-}
+if (window.__pjeExtratorLoaded) { /* already active */ }
 window.__pjeExtratorLoaded = true;
 
 (() => {
   const PADRAO_PROCESSO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
 
-  // td index for each column (-1 = last td). Mirrors extrair_pje_v17.py.
   const INDICE_TD = {
     processo:            0,
     caracteristicas:     1,
@@ -17,7 +13,7 @@ window.__pjeExtratorLoaded = true;
     classe_judicial:     5,
     polo_ativo:          6,
     polo_passivo:        7,
-    ultima_movimentacao: -1,   // no_atual comes from Ajax, not a td index
+    ultima_movimentacao: -1,
   };
 
   const COLUNAS_CSV = [
@@ -26,7 +22,35 @@ window.__pjeExtratorLoaded = true;
     'no_atual', 'ultima_movimentacao',
   ];
 
-  // ── helpers ──────────────────────────────────────────────────────────────
+  // Active document/window — may be an iframe's context
+  let activeDoc = document;
+  let activeWin  = window;
+
+  // ── find the right document (top-level or iframe) ─────────────────────────
+
+  function encontrarDocumento() {
+    // Try top-level first
+    if (document.querySelector('#fPP\\:processosTable')) {
+      return { doc: document, win: window };
+    }
+
+    // Walk iframes (same-origin only — cross-origin will throw)
+    for (const iframe of document.querySelectorAll('iframe')) {
+      try {
+        const iDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        const iWin = iframe.contentWindow;
+        if (iDoc && iDoc.querySelector('#fPP\\:processosTable')) {
+          return { doc: iDoc, win: iWin };
+        }
+      } catch (_) {
+        // cross-origin iframe — skip
+      }
+    }
+
+    return null;
+  }
+
+  // ── helpers ───────────────────────────────────────────────────────────────
 
   function limpar(texto) {
     if (!texto) return '';
@@ -37,9 +61,8 @@ window.__pjeExtratorLoaded = true;
     return new Promise(r => setTimeout(r, ms));
   }
 
-  // Snapshot of the visible table body — used to detect page changes.
   function assinatura() {
-    const tb = document.querySelector('#fPP\\:processosTable\\:tb');
+    const tb = activeDoc.querySelector('#fPP\\:processosTable\\:tb');
     return limpar(tb?.innerText || '');
   }
 
@@ -68,16 +91,15 @@ window.__pjeExtratorLoaded = true;
     const elementId = `fPP:processosTable:${n}:nosAtuais`;
 
     try {
-      const fn = window[`mostrarNosAtuais${n}`];
+      const fn = activeWin[`mostrarNosAtuais${n}`];
       if (typeof fn === 'function') fn(n);
     } catch (_) {
       return '';
     }
 
-    // Poll until the Ajax response populates the element (max 8 s)
     const t0 = Date.now();
     while (Date.now() - t0 < 8000) {
-      const el = document.getElementById(elementId);
+      const el = activeDoc.getElementById(elementId);
       const txt = limpar(el?.innerText || el?.textContent || '');
       if (txt) return txt;
       await aguardar(200);
@@ -90,12 +112,12 @@ window.__pjeExtratorLoaded = true;
   async function extrairPagina(numeroPagina) {
     await aguardarEstavel();
 
-    const linhas = document.querySelectorAll('#fPP\\:processosTable\\:tb tr');
-    const dados = [];
+    const linhas = activeDoc.querySelectorAll('#fPP\\:processosTable\\:tb tr');
+    const dados  = [];
 
     for (const tr of linhas) {
       const textoLinha = limpar(tr.innerText || '');
-      const matchProc = PADRAO_PROCESSO.exec(textoLinha);
+      const matchProc  = PADRAO_PROCESSO.exec(textoLinha);
       if (!matchProc) continue;
 
       const tds = tr.querySelectorAll('td');
@@ -107,7 +129,6 @@ window.__pjeExtratorLoaded = true;
         reg[col] = (real >= 0 && real < qtd) ? limpar(tds[real]?.innerText) : '';
       }
 
-      // Fallback: ensure processo has the number
       if (!PADRAO_PROCESSO.test(reg.processo)) reg.processo = matchProc[0];
 
       reg.no_atual = await extrairNoAtual(tr);
@@ -132,7 +153,7 @@ window.__pjeExtratorLoaded = true;
     await aguardarEstavel();
     const antes = assinatura();
 
-    const table = document.getElementById('fPP:processosTable:scTabela_table');
+    const table = activeDoc.getElementById('fPP:processosTable:scTabela_table');
     if (!table) return false;
 
     const cells = [...table.querySelectorAll('td.rich-datascr-button')];
@@ -142,7 +163,6 @@ window.__pjeExtratorLoaded = true;
       return txt === '»' && !(td.className || '').includes('dsbld');
     });
 
-    // Fallback: second-to-last button if no explicit '»'
     if (!alvo && cells.length >= 2) {
       const c = cells[cells.length - 2];
       if (!(c.className || '').includes('dsbld')) alvo = c;
@@ -154,12 +174,10 @@ window.__pjeExtratorLoaded = true;
       alvo.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true }));
     }
 
-    // Wait up to 20 s for the table to change
     const t0 = Date.now();
     while (Date.now() - t0 < 20000) {
       await aguardar(500);
-      const depois = assinatura();
-      if (depois && depois !== antes) {
+      if (assinatura() !== antes) {
         await aguardarEstavel();
         return true;
       }
@@ -167,30 +185,28 @@ window.__pjeExtratorLoaded = true;
     return false;
   }
 
-  // ── CSV generation ────────────────────────────────────────────────────────
+  // ── CSV + download ────────────────────────────────────────────────────────
 
   function toCSV(dados) {
-    const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const linhas = [COLUNAS_CSV.map(esc).join(',')];
-    for (const row of dados) linhas.push(COLUNAS_CSV.map(c => esc(row[c])).join(','));
-    return linhas.join('\r\n');
+    const esc  = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const head = COLUNAS_CSV.map(esc).join(',');
+    const rows = dados.map(r => COLUNAS_CSV.map(c => esc(r[c])).join(','));
+    return [head, ...rows].join('\r\n');
   }
 
   function download(csv) {
     const data = new Date().toISOString().slice(0, 10);
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), {
-      href: url,
-      download: `pje_trece_${data}.csv`,
-      style: 'display:none',
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href: url, download: `pje_trece_${data}.csv`, style: 'display:none',
     });
     document.body.appendChild(a);
     a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
   }
 
-  // ── progress overlay ──────────────────────────────────────────────────────
+  // ── progress overlay (always on top-level document) ───────────────────────
 
   let overlay = null;
 
@@ -210,19 +226,19 @@ window.__pjeExtratorLoaded = true;
     overlay.textContent = txt;
   }
 
-  function removerOverlay() {
-    overlay?.remove();
-    overlay = null;
-  }
+  function removerOverlay() { overlay?.remove(); overlay = null; }
 
   // ── main ──────────────────────────────────────────────────────────────────
 
   async function exportarTudo(sendResponse) {
-    const tableEl = document.querySelector('#fPP\\:processosTable');
-    if (!tableEl) {
-      sendResponse({ ok: false, error: 'Tabela do PJe não encontrada. Execute uma consulta primeiro.' });
+    const ctx = encontrarDocumento();
+    if (!ctx) {
+      sendResponse({ ok: false, error: 'Tabela do PJe não encontrada. Execute uma consulta e aguarde os resultados carregarem.' });
       return;
     }
+
+    activeDoc = ctx.doc;
+    activeWin = ctx.win;
 
     const todos = [];
     let pagina = 1;
@@ -240,8 +256,7 @@ window.__pjeExtratorLoaded = true;
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}`);
 
-      const temProxima = await proximaPagina();
-      if (!temProxima) break;
+      if (!await proximaPagina()) break;
       pagina++;
     }
 
@@ -256,11 +271,9 @@ window.__pjeExtratorLoaded = true;
     sendResponse({ ok: true, rows: todos.length, paginas: pagina });
   }
 
-  // Replace any previous listener by re-registering (guard at top prevents
-  // duplicate listeners since the module scope is fresh per injection).
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.action !== 'exportCSV') return;
     exportarTudo(sendResponse);
-    return true; // keep async channel open
+    return true;
   });
 })();

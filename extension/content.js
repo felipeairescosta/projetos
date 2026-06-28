@@ -366,11 +366,19 @@
   }
 
   function clicarElemento(el) {
+    // Dispatch from isolated world first
     el.focus?.();
     for (const tipo of ['mousedown', 'mouseup', 'click']) {
       el.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true, view: window }));
     }
     el.click?.();
+
+    // Relay to MAIN world via a temporary data attribute + postMessage
+    // (Angular zone.js reliably responds to events dispatched from the main world)
+    const tempId = '__pje_' + Date.now();
+    el.setAttribute('data-pje-click', tempId);
+    window.postMessage({ __pje__: 'click', id: tempId }, '*');
+    setTimeout(() => el.removeAttribute('data-pje-click'), 2000);
   }
 
   // Returns the new table element on success, null on failure.

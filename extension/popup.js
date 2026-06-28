@@ -27,11 +27,13 @@ btn.addEventListener('click', async () => {
       files: ['content.js'],
     }).catch(() => {}); // ignore if already injected
 
+    setStatus('loading', 'Extraindo processos de todas as páginas… acompanhe na página do PJe.');
+
     const response = await api.tabs.sendMessage(tab.id, { action: 'exportCSV' });
 
     if (response.ok) {
       setStatus('success',
-        `✓ ${response.rows} linha${response.rows !== 1 ? 's' : ''} exportada${response.rows !== 1 ? 's' : ''} (${response.cols} coluna${response.cols !== 1 ? 's' : ''}).`
+        `✓ ${response.rows} processo${response.rows !== 1 ? 's' : ''} exportado${response.rows !== 1 ? 's' : ''} em ${response.paginas} página${response.paginas !== 1 ? 's' : ''}.`
       );
     } else {
       setStatus('error', response.error || 'Erro desconhecido.');

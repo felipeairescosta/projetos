@@ -50,6 +50,33 @@ main { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .btn-primary:active  { background: #002244; }
 .btn-primary:disabled { background: #9eb3cc; cursor: not-allowed; }
 
+.btn-secondary {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #003366;
+  border-radius: 6px;
+  background: transparent;
+  color: #003366;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-secondary:hover { background: #e8edf5; }
+
+#diag-output {
+  font-size: 10px;
+  background: #1a1a2e;
+  color: #a8d8a8;
+  padding: 8px;
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 footer {
   text-align: center;
   padding: 8px;

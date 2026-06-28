@@ -30,7 +30,7 @@
   const COLUNAS_CSV = [
     'processo', 'caracteristicas', 'orgao_julgador', 'relator',
     'autuado_em', 'classe_judicial', 'polo_ativo', 'polo_passivo',
-    'no_atual', 'ultima_movimentacao',
+    'tarefas_atuais', 'ultima_movimentacao',
   ];
 
   // ── helpers ───────────────────────────────────────────────────────────────
@@ -185,14 +185,14 @@
       const qtd = tds.length;
       const reg = { pagina: numeroPagina };
 
-      for (const campo of COLUNAS_CSV.filter(c => c !== 'no_atual')) {
+      for (const campo of COLUNAS_CSV.filter(c => c !== 'tarefas_atuais')) {
         const idx = mapa[campo];
         if (idx === undefined) { reg[campo] = ''; continue; }
         reg[campo] = lerCelula(tds, idx, qtd);
       }
 
       if (!PADRAO_PROCESSO.test(reg.processo)) reg.processo = matchProc[0];
-      reg.no_atual = await extrairNoAtual(tr);
+      reg.tarefas_atuais = await extrairNoAtual(tr);
 
       if (!reg.autuado_em) {
         for (const c of ['caracteristicas', 'autuado_em', 'classe_judicial',

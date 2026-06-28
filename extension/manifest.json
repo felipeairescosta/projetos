@@ -19,9 +19,9 @@
   "content_scripts": [
     {
       "matches": [
-        "*://pje.tre.ce.gov.br/*",
-        "*://pje1g.tre.ce.gov.br/*",
-        "*://pje2g.tre.ce.gov.br/*"
+        "*://pje.tre-ce.jus.br/*",
+        "*://pje1g-ce.tse.jus.br/*",
+        "*://pje2g-ce.tse.jus.br/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
@@ -29,9 +29,9 @@
   ],
   "permissions": ["activeTab", "scripting"],
   "host_permissions": [
-    "*://pje.tre.ce.gov.br/*",
-    "*://pje1g.tre.ce.gov.br/*",
-    "*://pje2g.tre.ce.gov.br/*"
+    "*://pje.tre-ce.jus.br/*",
+    "*://pje1g-ce.tse.jus.br/*",
+    "*://pje2g-ce.tse.jus.br/*"
   ],
   "browser_specific_settings": {
     "gecko": {

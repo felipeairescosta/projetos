@@ -366,18 +366,19 @@
   }
 
   function clicarElemento(el) {
-    // Dispatch from isolated world first
+    // Dispatch from isolated world
     el.focus?.();
     for (const tipo of ['mousedown', 'mouseup', 'click']) {
       el.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true, view: window }));
     }
     el.click?.();
 
-    // Relay to MAIN world via a temporary data attribute + postMessage
-    // (Angular zone.js reliably responds to events dispatched from the main world)
+    // Relay to MAIN world via shared DOM CustomEvent + temporary data attribute.
+    // DOM events dispatched by content scripts propagate to main-world listeners;
+    // this ensures Angular zone.js picks up the click.
     const tempId = '__pje_' + Date.now();
     el.setAttribute('data-pje-click', tempId);
-    window.postMessage({ __pje__: 'click', id: tempId }, '*');
+    document.dispatchEvent(new CustomEvent('__pje_click__', { detail: { id: tempId } }));
     setTimeout(() => el.removeAttribute('data-pje-click'), 2000);
   }
 
@@ -494,6 +495,8 @@
         : 'próxima: NÃO ENCONTRADA';
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}\n${paginacaoInfo}`);
+
+      await aguardar(800); // let Angular settle after Visualizar clicks before paginating
 
       // proximaPagina returns the new table reference (Angular may recreate it)
       const novaTabela = await proximaPagina(tabela);

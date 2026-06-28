@@ -19,7 +19,7 @@ async function getTab() {
 // Tries #fPP:processosTable first, then falls back to any table
 // containing a process number pattern — handles any frame/ID variant.
 const DETECTION_FUNC = () => {
-  const PADRAO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
+  const PADRAO = /\d{7}-\d{2}\.\d{4}\.6\.\d{2,4}\.\d{4}/;
   if (document.querySelector('#fPP\\:processosTable')) return 'specific';
   if (document.querySelector('[id*="processosTable"]'))  return 'id-partial';
   const tables = [...document.querySelectorAll('table')];
@@ -105,7 +105,7 @@ btnDiag.addEventListener('click', async () => {
     const results = await api.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
       func: () => {
-        const PADRAO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
+        const PADRAO = /\d{7}-\d{2}\.\d{4}\.6\.\d{2,4}\.\d{4}/;
         const norm = s => (s || '').replace(/\s+/g, ' ').trim().slice(0, 60);
         const tables = [...document.querySelectorAll('table')].map(t => ({
           id: t.id || '(sem id)',

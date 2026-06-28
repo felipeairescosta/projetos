@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "PJe TRE-CE — Exportar CSV",
-  "version": "1.0.0",
-  "description": "Exporta resultados de consulta do PJe TRE-CE para CSV",
+  "name": "PJe TRE — Exportar CSV",
+  "version": "1.1.0",
+  "description": "Exporta resultados de consulta do PJe (qualquer TRE) para CSV",
   "icons": {
     "16":  "icons/icon16.png",
     "48":  "icons/icon48.png",
@@ -18,27 +18,17 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://pje1g-ce.tse.jus.br/*",
-        "*://pje.tre-ce.jus.br/*",
-        "*://pje-ui.tse.jus.br/*",
-        "*://pje-frontend.tse.jus.br/*"
-      ],
+      "matches": ["*://*.jus.br/*"],
       "js": ["content.js"],
       "run_at": "document_idle",
       "all_frames": true
     }
   ],
   "permissions": ["activeTab", "scripting"],
-  "host_permissions": [
-    "*://pje1g-ce.tse.jus.br/*",
-    "*://pje.tre-ce.jus.br/*",
-    "*://pje-ui.tse.jus.br/*",
-    "*://pje-frontend.tse.jus.br/*"
-  ],
+  "host_permissions": ["*://*.jus.br/*"],
   "browser_specific_settings": {
     "gecko": {
-      "id": "pje-trece-csv@felipeairescosta",
+      "id": "pje-tre-csv@felipeairescosta",
       "strict_min_version": "109.0"
     }
   }

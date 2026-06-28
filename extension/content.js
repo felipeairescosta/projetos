@@ -1,7 +1,7 @@
 (() => {
   if (window.__pjeExtratorLoaded) return;
   window.__pjeExtratorLoaded = true;
-  const PADRAO_PROCESSO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
+  const PADRAO_PROCESSO = /\d{7}-\d{2}\.\d{4}\.6\.\d{2,4}\.\d{4}/;
 
   const HEADER_KEYWORDS = {
     processo:            ['processo', 'número', 'numero'],

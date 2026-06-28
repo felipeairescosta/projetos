@@ -392,7 +392,8 @@
   }
 
   // Returns the new table element on success, null on failure.
-  // Re-finds the table dynamically so Angular re-renders don't break us.
+  // Angular removes the old table from the DOM when navigating — never fall back
+  // to the detached old reference, or extrairPagina will read 0 rows.
   async function proximaPagina(tabela) {
     await aguardarEstavel(tabela);
     const antes = assinatura(tabela);
@@ -408,14 +409,18 @@
       clicarElemento(r.el);
 
       const t0 = Date.now();
-      while (Date.now() - t0 < 10000) {
+      while (Date.now() - t0 < 12000) {
         await aguardar(400);
-        // Re-find table each poll — Angular may have re-created the element
-        const tabelaAtual = encontrarTabela() || tabela;
-        const sig = assinatura(tabelaAtual);
+        // Only accept a table that is LIVE in the document and has new content.
+        // Never fall back to the old (possibly detached) reference — Angular
+        // removes the previous table from the DOM during navigation, so reading
+        // from it gives 0 rows even though innerText briefly shows old/empty content.
+        const tabelaViva = encontrarTabela();
+        if (!tabelaViva) continue; // still loading; table not in DOM yet
+        const sig = assinatura(tabelaViva);
         if (sig && sig !== antes) {
-          await aguardarEstavel(tabelaAtual);
-          return tabelaAtual; // return new reference
+          await aguardarEstavel(tabelaViva);
+          return tabelaViva;
         }
       }
 

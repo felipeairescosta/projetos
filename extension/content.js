@@ -275,10 +275,14 @@
 
       if (!PADRAO_PROCESSO.test(reg.processo)) reg.processo = matchProc[0];
 
-      // 1) Try reading from table cell if header was detected (Angular renders inline)
+      // 1) Try reading from table cell if header was detected AND cell has real content
+      //    (ignore "Visualizar" — that's the button label, not actual task data)
       const idxTarefa = mapa['tarefas_atuais'];
       if (idxTarefa !== undefined) {
-        reg.tarefas_atuais = lerCelula(tds, idxTarefa, qtd);
+        const txt = lerCelula(tds, idxTarefa, qtd);
+        if (txt && !/^visualizar$/i.test(txt.trim())) {
+          reg.tarefas_atuais = txt;
+        }
       }
       // 2) Fallback: JSF/RichFaces Ajax button (Python script approach)
       if (!reg.tarefas_atuais) {

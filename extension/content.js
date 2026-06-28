@@ -12,6 +12,7 @@
     classe_judicial:     ['classe'],
     polo_ativo:          ['polo ativo', 'ativo'],
     polo_passivo:        ['polo passivo', 'passivo'],
+    tarefas_atuais:      ['tarefa', 'nó atual', 'no atual', 'node'],
     ultima_movimentacao: ['ultima', 'última', 'movimenta'],
   };
 
@@ -102,35 +103,41 @@
   // ── frame diagnostic (shown in overlay at start) ──────────────────────────
 
   function diagnosticarFrame(tabela) {
-    const norm = s => (s || '').slice(0, 60);
+    const norm = s => (s || '').slice(0, 50);
 
-    // Paginator: try RichFaces JSF first, then any paginator pattern
     const pag =
       document.getElementById('fPP:processosTable:scTabela_table') ||
       document.querySelector('[id*="scTabela_table"]') ||
-      document.querySelector('[id*="scrollerTable"]') ||
-      document.querySelector('[id*="paginador"]') ||
-      document.querySelector('[id*="paginator"]') ||
       document.querySelector('.rich-datascr') ||
       document.querySelector('.mat-paginator') ||
       document.querySelector('[class*="paginator"]');
 
-    const pagId   = pag ? norm(pag.id || 'sem id') : 'NÃO ENCONTRADO';
-    const richBtns = pag ? pag.querySelectorAll('td.rich-datascr-button').length : 0;
-    const matNext  = !!document.querySelector('.mat-paginator-navigation-next, [aria-label="Next page"], [aria-label="Próxima página"]');
+    const pagId    = pag ? norm(pag.id || 'sem id') : 'NÃO ENCONTRADO';
+    const matNext  = !!document.querySelector('.mat-paginator-navigation-next, [aria-label="Next page"]');
 
-    // First btnMostrarNos in table
-    let btnNoId = 'NÃO ENCONTRADO';
-    for (const tr of tabela.querySelectorAll('tbody tr, tr')) {
-      const btn = tr.querySelector('[id^="btnMostrarNos"]');
-      if (btn) { btnNoId = norm(btn.id); break; }
+    // Column headers detected
+    const ths = [...tabela.querySelectorAll('thead th, thead td')];
+    const headers = ths.map(th => norm(limpar(th.innerText || th.textContent || ''))).filter(Boolean);
+
+    // First row: button IDs and cell count
+    let btnNoId = 'NÃO ENCONTRADO', celulas = 0;
+    const primeiraLinha = tabela.querySelector('tbody tr, tr');
+    if (primeiraLinha) {
+      const btn = primeiraLinha.querySelector('[id^="btnMostrarNos"]');
+      if (btn) btnNoId = norm(btn.id);
+      celulas = primeiraLinha.querySelectorAll('td').length;
+      // Any other buttons
+      const outrosBtns = [...primeiraLinha.querySelectorAll('button, a')]
+        .map(b => norm(b.id || b.getAttribute('aria-label') || b.title || b.className))
+        .filter(Boolean).slice(0, 3);
+      if (outrosBtns.length) btnNoId += ' | outros: ' + outrosBtns.join(', ');
     }
 
     return (
-      `Tabela: ${norm(tabela.id || 'sem id')}\n` +
-      `Paginador: ${pagId} | rich-btns:${richBtns} | mat-next:${matNext}\n` +
-      `BtnNósAtuais: ${btnNoId}\n` +
-      `Frame: ${location.href.slice(0, 80)}`
+      `Tabela: ${norm(tabela.id || 'sem id')} (${celulas} colunas)\n` +
+      `Headers: ${headers.length ? headers.join(' | ') : 'nenhum'}\n` +
+      `Paginador: ${pagId} | mat-next:${matNext}\n` +
+      `BtnTarefas: ${btnNoId}`
     );
   }
 
@@ -192,7 +199,16 @@
       }
 
       if (!PADRAO_PROCESSO.test(reg.processo)) reg.processo = matchProc[0];
-      reg.tarefas_atuais = await extrairNoAtual(tr);
+
+      // 1) Try reading from table cell if header was detected (Angular renders inline)
+      const idxTarefa = mapa['tarefas_atuais'];
+      if (idxTarefa !== undefined) {
+        reg.tarefas_atuais = lerCelula(tds, idxTarefa, qtd);
+      }
+      // 2) Fallback: JSF/RichFaces Ajax button (Python script approach)
+      if (!reg.tarefas_atuais) {
+        reg.tarefas_atuais = await extrairNoAtual(tr);
+      }
 
       if (!reg.autuado_em) {
         for (const c of ['caracteristicas', 'autuado_em', 'classe_judicial',

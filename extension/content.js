@@ -229,11 +229,13 @@
       if (alvo) return { el: alvo, via: `richfaces:${richPag.id || 'sem id'}` };
     }
 
-    // Strategy 2: Angular Material paginator
+    // Strategy 2: Angular Material paginator (classic and MDC/v15+)
     const matNext = document.querySelector(
       '.mat-paginator-navigation-next:not([disabled]), ' +
+      '.mat-mdc-paginator-navigation-next:not([disabled]), ' +
       '[aria-label="Next page"]:not([disabled]), ' +
-      '[aria-label="Próxima página"]:not([disabled])'
+      '[aria-label="Próxima página"]:not([disabled]), ' +
+      '[aria-label="Próxima"]:not([disabled])'
     );
     if (matNext) return { el: matNext, via: 'angular-material' };
 
@@ -292,14 +294,16 @@
     })();`);
   }
 
+  // Returns the new table element on success, null on failure.
+  // Re-finds the table dynamically so Angular re-renders don't break us.
   async function proximaPagina(tabela) {
     await aguardarEstavel(tabela);
     const antes = assinatura(tabela);
 
     const resultado = encontrarBotaoProxima();
-    if (!resultado) return false;
+    if (!resultado) return null;
 
-    // Up to 3 click attempts (covers slow Ajax page loads)
+    // Up to 3 click attempts
     for (let tentativa = 0; tentativa < 3; tentativa++) {
       const r = tentativa === 0 ? resultado : encontrarBotaoProxima();
       if (!r) break;
@@ -309,17 +313,19 @@
       const t0 = Date.now();
       while (Date.now() - t0 < 10000) {
         await aguardar(400);
-        if (assinatura(tabela) !== antes) {
-          await aguardarEstavel(tabela);
-          return true;
+        // Re-find table each poll — Angular may have re-created the element
+        const tabelaAtual = encontrarTabela() || tabela;
+        const sig = assinatura(tabelaAtual);
+        if (sig && sig !== antes) {
+          await aguardarEstavel(tabelaAtual);
+          return tabelaAtual; // return new reference
         }
       }
 
-      // Didn't change yet — wait 1s and retry
       await aguardar(1000);
     }
 
-    return false;
+    return null;
   }
 
   // ── CSV + download ────────────────────────────────────────────────────────
@@ -368,17 +374,19 @@
   // ── main ──────────────────────────────────────────────────────────────────
 
   async function exportarTudo(sendResponse) {
-    const tabela = encontrarTabela();
-    if (!tabela) {
+    const tabelaInicial = encontrarTabela();
+    if (!tabelaInicial) {
       sendResponse({ ok: false, error: 'Tabela não encontrada neste frame.' });
       return;
     }
 
     // Brief diagnostic (1s) then start immediately
-    mostrarOverlay(`⏳ Iniciando extração…\n${diagnosticarFrame(tabela)}`);
+    mostrarOverlay(`⏳ Iniciando extração…\n${diagnosticarFrame(tabelaInicial)}`);
     await aguardar(1000);
 
-    const mapa = mapearColunas(tabela) || INDICE_FALLBACK;
+    // Use let so Angular re-renders can update the reference
+    let tabela = tabelaInicial;
+    let mapa = mapearColunas(tabela) || INDICE_FALLBACK;
     const todos = [];
     let pagina = 1;
     const visitadas = new Set();
@@ -400,8 +408,10 @@
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}\n${paginacaoInfo}`);
 
-      const avancou = await proximaPagina(tabela);
-      if (!avancou) break;
+      // proximaPagina returns the new table reference (Angular may recreate it)
+      const novaTabela = await proximaPagina(tabela);
+      if (!novaTabela) break;
+      tabela = novaTabela; // update reference for next iteration
       pagina++;
       if (pagina > 500) break;
     }

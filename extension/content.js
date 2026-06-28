@@ -111,26 +111,49 @@ window.__pjeExtratorLoaded = true;
   // ── nó atual via Ajax ─────────────────────────────────────────────────────
 
   async function extrairNoAtual(tr) {
-    const btn = tr.querySelector('[id^="btnMostrarNos"]');
+    // Try multiple button ID patterns used across PJe versions
+    const btn =
+      tr.querySelector('[id^="btnMostrarNos"]') ||
+      tr.querySelector('[id*="MostrarNos"]') ||
+      tr.querySelector('[id*="mostrarNos"]') ||
+      tr.querySelector('button[onclick*="mostrarNos"]') ||
+      tr.querySelector('a[onclick*="mostrarNos"]');
+
     if (!btn) return '';
 
-    const m = btn.id.match(/btnMostrarNos(\d+)/);
+    // Extract row index from button id or onclick
+    const idSrc = btn.id || btn.getAttribute('onclick') || '';
+    const m = idSrc.match(/[Mm]ostrarNos[Aa]tuais(\d+)/);
     if (!m) return '';
 
     const n = m[1];
-    const elementId = `fPP:processosTable:${n}:nosAtuais`;
 
+    // Try calling the global JS function registered by RichFaces/JSF
     try {
-      const fn = window[`mostrarNosAtuais${n}`];
-      if (typeof fn === 'function') fn(n);
-    } catch (_) { return ''; }
+      const fn =
+        window[`mostrarNosAtuais${n}`] ||
+        window[`MostrarNosAtuais${n}`] ||
+        window[`mostrarNos${n}`];
+      if (typeof fn === 'function') {
+        try { fn(n); } catch (_) { fn(); }
+      } else {
+        // Fallback: dispatch click on the button itself
+        btn.click();
+      }
+    } catch (_) {
+      try { btn.click(); } catch (_2) { return ''; }
+    }
 
+    // Wait for the nosAtuais panel/element to appear — try multiple ID patterns
     const t0 = Date.now();
-    while (Date.now() - t0 < 8000) {
-      const el = document.getElementById(elementId);
+    while (Date.now() - t0 < 12000) {
+      const el =
+        document.getElementById(`fPP:processosTable:${n}:nosAtuais`) ||
+        document.querySelector(`[id*=":${n}:nosAtuais"]`) ||
+        document.querySelector(`[id$=":nosAtuais"]`);
       const txt = limpar(el?.innerText || el?.textContent || '');
       if (txt) return txt;
-      await aguardar(200);
+      await aguardar(300);
     }
     return '';
   }
@@ -189,27 +212,44 @@ window.__pjeExtratorLoaded = true;
     await aguardarEstavel(tabela);
     const antes = assinatura(tabela);
 
-    // Look anywhere in the document for paginator (different PJe views use different IDs)
-    const paginatorTable =
+    // Collect all candidate pagination cells from the document (RichFaces scroller)
+    // Strategy 1: search inside known container IDs
+    const container =
+      document.querySelector('[id*="scroller"]') ||       // fPP:processosTable:scroller
       document.querySelector('[id*="scTabela_table"]') ||
       document.querySelector('[id*="scrollerTable"]') ||
       document.querySelector('[id*="paginador"]') ||
-      document.querySelector('[id*="paginator"]');
+      document.querySelector('[id*="paginator"]') ||
+      document.querySelector('.rich-datascr');            // RichFaces native class
 
-    if (!paginatorTable) return false;
+    let cells = container
+      ? [...container.querySelectorAll(
+          'td.rich-datascr-button, td[class*="datascr-button"], td[class*="paginator"]'
+        )]
+      : [];
 
-    const cells = [...paginatorTable.querySelectorAll(
-      'td.rich-datascr-button, td[class*="datascr-button"], td[class*="paginator"]'
-    )];
+    // Strategy 2: if nothing found above, search entire document
+    if (cells.length === 0) {
+      cells = [...document.querySelectorAll(
+        'td.rich-datascr-button, td[class*="datascr-button"], td[class*="rich-datascr"]'
+      )];
+    }
 
+    const isDisabled = td => {
+      const cls = td.className || '';
+      return cls.includes('dsbld') || cls.includes('dis') || td.getAttribute('aria-disabled') === 'true';
+    };
+
+    // Prefer cell whose text is exactly »  (RichFaces "last visible next")
     let alvo = cells.find(td => {
-      const txt = limpar(td.innerText || td.textContent || '');
-      return txt === '»' && !(td.className || '').includes('dsbld');
+      const txt = (td.innerText || td.textContent || '').trim();
+      return (txt === '»' || txt === '›' || txt === '>') && !isDisabled(td);
     });
 
-    if (!alvo && cells.length >= 2) {
-      const c = cells[cells.length - 2];
-      if (!(c.className || '').includes('dsbld')) alvo = c;
+    // Fallback: second-to-last enabled button (typically "next" in RichFaces row)
+    if (!alvo) {
+      const enabled = cells.filter(td => !isDisabled(td));
+      if (enabled.length >= 1) alvo = enabled[enabled.length - 1];
     }
 
     if (!alvo) return false;
@@ -300,8 +340,13 @@ window.__pjeExtratorLoaded = true;
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}`);
 
-      if (!await proximaPagina(tabela)) break;
+      const avancoui = await proximaPagina(tabela);
+      if (!avancoui) {
+        mostrarOverlay(`✔ Extração concluída — ${todos.length} processo(s) em ${pagina} página(s).`);
+        break;
+      }
       pagina++;
+      if (pagina > 500) break; // safety cap
     }
 
     removerOverlay();

@@ -4,7 +4,21 @@ window.__pjeExtratorLoaded = true;
 (() => {
   const PADRAO_PROCESSO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
 
-  const INDICE_TD = {
+  // Canonical field names → keywords that appear in <th> text (lowercase, no accents)
+  const HEADER_KEYWORDS = {
+    processo:            ['processo', 'número', 'numero'],
+    caracteristicas:     ['caracteristic'],
+    orgao_julgador:      ['órgão', 'orgao', 'orgão'],
+    relator:             ['relator'],
+    autuado_em:          ['autuad'],
+    classe_judicial:     ['classe'],
+    polo_ativo:          ['polo ativo', 'ativo'],
+    polo_passivo:        ['polo passivo', 'passivo'],
+    ultima_movimentacao: ['ultima', 'última', 'movimenta'],
+  };
+
+  // Fallback fixed indices if table has no readable headers (from extrair_pje_v17.py)
+  const INDICE_FALLBACK = {
     processo:            0,
     caracteristicas:     1,
     orgao_julgador:      2,
@@ -26,15 +40,37 @@ window.__pjeExtratorLoaded = true;
 
   function limpar(texto) {
     if (!texto) return '';
-    return String(texto).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+    return String(texto).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  function semAcento(s) {
+    return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   }
 
   const aguardar = ms => new Promise(r => setTimeout(r, ms));
 
+  // ── column auto-detection from <th> headers ───────────────────────────────
+
+  function mapearColunas(tabela) {
+    const ths = [...tabela.querySelectorAll('thead th, thead td')];
+    if (ths.length === 0) return null; // no headers found
+
+    const mapa = {};
+    ths.forEach((th, i) => {
+      const txt = semAcento(limpar(th.innerText || th.textContent || ''));
+      for (const [campo, palavras] of Object.entries(HEADER_KEYWORDS)) {
+        if (palavras.some(p => txt.includes(semAcento(p)))) {
+          mapa[campo] = i;
+          break;
+        }
+      }
+    });
+
+    // Must have at least "processo" mapped to be valid
+    return ('processo' in mapa) ? mapa : null;
+  }
+
   // ── table detection ───────────────────────────────────────────────────────
-  // Strategy 1: exact PJe/RichFaces ID.
-  // Strategy 2: any element whose ID contains "processosTable", take inner table.
-  // Strategy 3: largest table whose text contains a process number pattern.
 
   function encontrarTabela() {
     const s1 = document.querySelector('#fPP\\:processosTable');
@@ -101,32 +137,39 @@ window.__pjeExtratorLoaded = true;
 
   // ── page extraction ───────────────────────────────────────────────────────
 
-  async function extrairPagina(tabela, numeroPagina) {
+  function lerCelula(tds, idx, total) {
+    const real = idx >= 0 ? idx : total + idx;
+    return (real >= 0 && real < total) ? limpar(tds[real]?.innerText) : '';
+  }
+
+  async function extrairPagina(tabela, mapa, numeroPagina) {
     await aguardarEstavel(tabela);
 
-    // Prefer tbody rows; fall back to all tr in the table.
-    const tbody = tabela.querySelector('tbody') || tabela.querySelector('[id$="\\:tb"]') || tabela;
+    const tbody = tabela.querySelector('tbody') || tabela;
     const linhas = tbody.querySelectorAll('tr');
-    const dados  = [];
+    const dados = [];
 
     for (const tr of linhas) {
       const textoLinha = limpar(tr.innerText || '');
-      const matchProc  = PADRAO_PROCESSO.exec(textoLinha);
+      const matchProc = PADRAO_PROCESSO.exec(textoLinha);
       if (!matchProc) continue;
 
       const tds = tr.querySelectorAll('td');
       const qtd = tds.length;
       const reg = { pagina: numeroPagina };
 
-      for (const [col, idx] of Object.entries(INDICE_TD)) {
-        const real = idx >= 0 ? idx : qtd + idx;
-        reg[col] = (real >= 0 && real < qtd) ? limpar(tds[real]?.innerText) : '';
+      for (const campo of COLUNAS_CSV.filter(c => c !== 'no_atual')) {
+        const idx = mapa[campo];
+        if (idx === undefined) { reg[campo] = ''; continue; }
+        reg[campo] = lerCelula(tds, idx, qtd);
       }
 
+      // Sanity check: if "processo" cell doesn't have the number, use regex match
       if (!PADRAO_PROCESSO.test(reg.processo)) reg.processo = matchProc[0];
 
       reg.no_atual = await extrairNoAtual(tr);
 
+      // Processos sigilosos
       if (!reg.autuado_em) {
         for (const c of ['caracteristicas', 'autuado_em', 'classe_judicial',
                          'polo_ativo', 'polo_passivo', 'ultima_movimentacao']) {
@@ -146,14 +189,18 @@ window.__pjeExtratorLoaded = true;
     await aguardarEstavel(tabela);
     const antes = assinatura(tabela);
 
-    // Look for paginator near the table (parent or sibling).
-    const root = tabela.closest('form') || tabela.parentElement || document;
-    const table = root.querySelector('[id*="scTabela_table"], [id*="scrollerTable"]')
-                  || document.querySelector('[id*="scTabela_table"], [id*="scrollerTable"]');
+    // Look anywhere in the document for paginator (different PJe views use different IDs)
+    const paginatorTable =
+      document.querySelector('[id*="scTabela_table"]') ||
+      document.querySelector('[id*="scrollerTable"]') ||
+      document.querySelector('[id*="paginador"]') ||
+      document.querySelector('[id*="paginator"]');
 
-    if (!table) return false;
+    if (!paginatorTable) return false;
 
-    const cells = [...table.querySelectorAll('td.rich-datascr-button, td[class*="datascr-button"]')];
+    const cells = [...paginatorTable.querySelectorAll(
+      'td.rich-datascr-button, td[class*="datascr-button"], td[class*="paginator"]'
+    )];
 
     let alvo = cells.find(td => {
       const txt = limpar(td.innerText || td.textContent || '');
@@ -234,6 +281,9 @@ window.__pjeExtratorLoaded = true;
       return;
     }
 
+    // Auto-detect column order from headers; fall back to fixed indices
+    const mapa = mapearColunas(tabela) || INDICE_FALLBACK;
+
     const todos = [];
     let pagina = 1;
     const visitadas = new Set();
@@ -245,7 +295,7 @@ window.__pjeExtratorLoaded = true;
 
       mostrarOverlay(`⏳ Extraindo página ${pagina}…\n${todos.length} processo(s) coletados`);
 
-      const dados = await extrairPagina(tabela, pagina);
+      const dados = await extrairPagina(tabela, mapa, pagina);
       todos.push(...dados);
 
       mostrarOverlay(`✔ Página ${pagina} — ${dados.length} processos\nTotal: ${todos.length}`);
@@ -265,7 +315,6 @@ window.__pjeExtratorLoaded = true;
     sendResponse({ ok: true, rows: todos.length, paginas: pagina });
   }
 
-  // Only respond if this frame has the table.
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.action !== 'exportCSV') return;
     if (!encontrarTabela()) {

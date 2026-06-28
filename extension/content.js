@@ -265,52 +265,61 @@ window.__pjeExtratorLoaded = true;
     return null;
   }
 
+  function clicarElemento(el) {
+    // Dispatch mouse events from content script
+    for (const tipo of ['mousedown', 'mouseup', 'click']) {
+      el.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true, view: window }));
+    }
+
+    // Also fire via main-world script injection
+    const elId  = el.id || '';
+    const oc    = (el.getAttribute('onclick') || '').replace(/\\/g, '\\\\').replace(/`/g, '\\`');
+    const elTxt = (el.innerText || el.textContent || '').trim().replace(/'/g, "\\'");
+    const tag   = el.tagName;
+
+    executarNaPagina(`(function(){
+      var el = ${elId ? `document.getElementById('${elId}')` : 'null'};
+      if(!el){
+        el = Array.from(document.querySelectorAll('${tag}')).find(function(e){
+          return (e.innerText||e.textContent||'').trim()==='${elTxt}';
+        });
+      }
+      if(el){
+        ${oc ? `try{ (function(){ ${oc} }).call(el); }catch(_){}` : ''}
+        ['mousedown','mouseup','click'].forEach(function(ev){
+          el.dispatchEvent(new MouseEvent(ev,{bubbles:true,cancelable:true,view:window}));
+        });
+      }
+    })();`);
+  }
+
   async function proximaPagina(tabela) {
     await aguardarEstavel(tabela);
     const antes = assinatura(tabela);
 
     const resultado = encontrarBotaoProxima();
-
     if (!resultado) return false;
 
-    const { el: alvo, via } = resultado;
+    // Up to 3 click attempts (covers slow Ajax page loads)
+    for (let tentativa = 0; tentativa < 3; tentativa++) {
+      const r = tentativa === 0 ? resultado : encontrarBotaoProxima();
+      if (!r) break;
 
-    // Dispatch from content script
-    for (const tipo of ['mousedown', 'mouseup', 'click']) {
-      alvo.dispatchEvent(new MouseEvent(tipo, { bubbles: true, cancelable: true, view: window }));
-    }
+      clicarElemento(r.el);
 
-    // Also fire via script injection in main world (belt-and-suspenders)
-    // We encode the element's position so we can re-find it
-    const tagName  = alvo.tagName;
-    const elId     = alvo.id || '';
-    const elClass  = (alvo.className || '').split(' ').filter(Boolean)[0] || '';
-    const elText   = (alvo.innerText || alvo.textContent || '').trim().replace(/'/g, "\\'");
-
-    executarNaPagina(`
-      (function(){
-        var candidates = Array.from(document.querySelectorAll('${tagName}'));
-        var el = candidates.find(function(e){
-          var txt = (e.innerText||e.textContent||'').trim();
-          return txt==='${elText}' && ${elId ? `e.id==='${elId}'` : 'true'};
-        });
-        if(!el && '${elId}') el = document.getElementById('${elId}');
-        if(el){
-          ['mousedown','mouseup','click'].forEach(function(ev){
-            el.dispatchEvent(new MouseEvent(ev,{bubbles:true,cancelable:true,view:window}));
-          });
+      const t0 = Date.now();
+      while (Date.now() - t0 < 10000) {
+        await aguardar(400);
+        if (assinatura(tabela) !== antes) {
+          await aguardarEstavel(tabela);
+          return true;
         }
-      })();
-    `);
-
-    const t0 = Date.now();
-    while (Date.now() - t0 < 15000) {
-      await aguardar(400);
-      if (assinatura(tabela) !== antes) {
-        await aguardarEstavel(tabela);
-        return true;
       }
+
+      // Didn't change yet — wait 1s and retry
+      await aguardar(1000);
     }
+
     return false;
   }
 

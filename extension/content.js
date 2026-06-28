@@ -197,8 +197,21 @@
       if (bd) bd.click();
     };
 
+    // After the overlay appears, wait until its content stabilises before
+    // capturing — the dialog may load task data asynchronously after opening.
+    const aguardarEstabilizarTexto = async (lerTxt) => {
+      let prev = '';
+      for (let k = 0; k < 8; k++) {        // up to 4 s (8 × 500 ms)
+        await aguardar(500);
+        const cur = lerTxt();
+        if (cur && cur === prev) return cur; // stable for two consecutive reads
+        if (cur) prev = cur;
+      }
+      return prev;
+    };
+
     const t0 = Date.now();
-    while (Date.now() - t0 < 8000) {
+    while (Date.now() - t0 < 12000) {
       await aguardar(400);
 
       // A: cell content changed (Angular replaced button with lazy-loaded text)
@@ -207,27 +220,33 @@
         if (txt && txt !== snapCell && !/^visualizar$/i.test(txt.trim())) return txt;
       }
 
-      // B: any CDK pane's content changed (catches dialogs, menus, popovers)
+      // B: any CDK pane appeared or changed — wait for content to stabilise
       const panesAgora = [...document.querySelectorAll('.cdk-overlay-container .cdk-overlay-pane')];
       for (let i = 0; i < panesAgora.length; i++) {
         const txt = limpar(panesAgora[i].innerText || '');
         if (!txt || txt.length < 5) continue;
         const txtAntes = textosPanesAntes[i] ?? '';
         if (txt !== txtAntes) {
+          const pane = panesAgora[i];
+          const final = await aguardarEstabilizarTexto(() => limpar(pane.innerText || ''));
           fecharOverlay();
-          await aguardar(600);
-          return txt;
+          await aguardar(500);
+          return final || txt;
         }
       }
 
       // C: CDK container text changed but pane scan missed it
       const cdkNow = limpar(cdkContainer?.innerText || '');
       if (cdkNow !== snapCdkTotal && cdkNow.length > 5) {
+        const final = await aguardarEstabilizarTexto(
+          () => limpar(cdkContainer?.innerText || '')
+        );
         fecharOverlay();
-        await aguardar(600);
-        return (cdkNow.length > snapCdkTotal.length
-          ? cdkNow.slice(snapCdkTotal.length).trim()
-          : cdkNow);
+        await aguardar(500);
+        const txt = final || cdkNow;
+        return (txt.length > snapCdkTotal.length
+          ? txt.slice(snapCdkTotal.length).trim()
+          : txt);
       }
 
       // D: Angular detail row appeared as next sibling (expandable rows)

@@ -1,7 +1,6 @@
-if (window.__pjeExtratorLoaded) { /* already registered */ }
-window.__pjeExtratorLoaded = true;
-
 (() => {
+  if (window.__pjeExtratorLoaded) return;
+  window.__pjeExtratorLoaded = true;
   const PADRAO_PROCESSO = /\d{7}-\d{2}\.\d{4}\.6\.06\.\d{4}/;
 
   const HEADER_KEYWORDS = {

@@ -334,9 +334,21 @@
       '.mat-mdc-paginator-navigation-next:not([disabled]), ' +
       '[aria-label="Next page"]:not([disabled]), ' +
       '[aria-label="Próxima página"]:not([disabled]), ' +
-      '[aria-label="Próxima"]:not([disabled])'
+      '[aria-label="Próxima"]:not([disabled]), ' +
+      '[aria-label="Próxima pagina"]:not([disabled]), ' +
+      '[aria-label="Página seguinte"]:not([disabled]), ' +
+      '[aria-label="Avançar"]:not([disabled])'
     );
     if (matNext) return { el: matNext, via: 'angular-material' };
+
+    // Strategy 2b: case-insensitive aria-label substring match for "next" / "próxima"
+    const ariaNext = [...document.querySelectorAll('button')].find(btn => {
+      if (btn.disabled || btn.getAttribute('aria-disabled') === 'true') return false;
+      const aria = (btn.getAttribute('aria-label') || '').toLowerCase();
+      return aria.includes('next') || aria.includes('próxima') || aria.includes('proxima') ||
+             aria.includes('seguinte') || aria.includes('avanç');
+    });
+    if (ariaNext) return { el: ariaNext, via: `aria-label:${ariaNext.getAttribute('aria-label')}` };
 
     // Strategy 3: any id/class containing "paginador" or "paginator"
     const genPag = document.querySelector('[id*="paginador"], [id*="paginator"], [class*="paginador"], [class*="paginator"]');

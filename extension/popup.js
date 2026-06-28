@@ -119,7 +119,7 @@ btnDiag.addEventListener('click', async () => {
           src: (f.src || f.getAttribute('src') || '').slice(0, 100),
         }));
 
-        // Paginator diagnostic
+        // JSF/RichFaces paginator diagnostic
         const pag = document.getElementById('fPP:processosTable:scTabela_table');
         const pagBotoes = pag
           ? [...pag.querySelectorAll('td.rich-datascr-button')].map(td => ({
@@ -132,6 +132,22 @@ btnDiag.addEventListener('click', async () => {
         const primeiraLinha = document.querySelector('#fPP\\:processosTable\\:tb tr, [id*="processosTable"] tbody tr');
         const btnNo = primeiraLinha ? primeiraLinha.querySelector('[id^="btnMostrarNos"]') : null;
 
+        // Angular Material paginator diagnostic
+        const matPag = document.querySelector('.mat-paginator, .mat-mdc-paginator');
+        const genPag = document.querySelector('[class*="paginator"], [id*="paginator"], [class*="paginat"]');
+        const matNextEl = document.querySelector(
+          '.mat-paginator-navigation-next, .mat-mdc-paginator-navigation-next, ' +
+          '[aria-label="Next page"], [aria-label="Próxima página"], [aria-label="Próxima"], ' +
+          '[aria-label="Próxima pagina"]'
+        );
+        // All buttons — key info for debugging Angular paginators
+        const todosOsBotoes = [...document.querySelectorAll('button')].map(b => ({
+          txt: ((b.innerText || b.textContent || '').replace(/\s+/g,' ').trim()).slice(0, 25),
+          aria: (b.getAttribute('aria-label') || '').slice(0, 50),
+          cls: (b.className || '').slice(0, 60),
+          dis: b.disabled || b.getAttribute('aria-disabled') === 'true',
+        })).filter(b => b.txt || b.aria).slice(0, 25);
+
         return {
           url: location.href.slice(0, 100),
           hasPjeTable: !!document.querySelector('#fPP\\:processosTable'),
@@ -140,6 +156,9 @@ btnDiag.addEventListener('click', async () => {
           iframes: iframes.slice(0, 10),
           paginador: pag ? { id: pag.id, botoes: pagBotoes } : null,
           btnMostrarNos: btnNo ? { id: btnNo.id, onclick: (btnNo.getAttribute('onclick') || '').slice(0, 100) } : null,
+          matPaginador: matPag ? matPag.className.slice(0, 80) : (genPag ? `(generic) ${(genPag.className||genPag.id||'').slice(0,60)}` : null),
+          matNext: matNextEl ? { aria: matNextEl.getAttribute('aria-label'), cls: matNextEl.className.slice(0,60), dis: matNextEl.disabled } : null,
+          botoes: todosOsBotoes,
         };
       },
     });
@@ -152,15 +171,29 @@ btnDiag.addEventListener('click', async () => {
       lines.push(`URL: ${d.url}`);
       lines.push(`#fPP:processosTable: ${d.hasPjeTable} | tem nº processo em tabela: ${d.temProcessoEmTabela}`);
       if (d.paginador) {
-        lines.push(`paginador: id="${d.paginador.id}" | ${d.paginador.botoes?.length ?? 0} botão(ões) rich-datascr-button`);
-        (d.paginador.botoes || []).forEach((b, i) => lines.push(`  [${i}] txt="${b.txt}" cls="${b.cls}"`));
+        lines.push(`paginador JSF: id="${d.paginador.id}" | ${d.paginador.botoes?.length ?? 0} botão(ões) rich-datascr-button`);
+        (d.paginador.botoes || []).forEach((b, j) => lines.push(`  [${j}] txt="${b.txt}" cls="${b.cls}"`));
       } else {
-        lines.push('paginador: NÃO ENCONTRADO (fPP:processosTable:scTabela_table)');
+        lines.push('paginador JSF: NÃO ENCONTRADO');
+      }
+      if (d.matPaginador) {
+        lines.push(`paginador Angular: ${d.matPaginador}`);
+        if (d.matNext) {
+          lines.push(`  next btn: aria="${d.matNext.aria}" cls="${d.matNext.cls}" disabled=${d.matNext.dis}`);
+        } else {
+          lines.push('  next btn: NÃO ENCONTRADO (mat-paginator-navigation-next / aria-label)');
+        }
+      } else {
+        lines.push('paginador Angular: NÃO ENCONTRADO (.mat-paginator / [class*=paginator])');
       }
       if (d.btnMostrarNos) {
         lines.push(`btnMostrarNos: id="${d.btnMostrarNos.id}" | onclick="${d.btnMostrarNos.onclick}"`);
       } else {
         lines.push('btnMostrarNos: NÃO ENCONTRADO na primeira linha');
+      }
+      if (d.botoes?.length) {
+        lines.push(`botões (${d.botoes.length}):`);
+        d.botoes.forEach(b => lines.push(`  txt="${b.txt}" aria="${b.aria}" dis=${b.dis} | ${b.cls}`));
       }
       if (d.iframes.length) {
         lines.push('iframes:');

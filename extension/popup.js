@@ -118,12 +118,28 @@ btnDiag.addEventListener('click', async () => {
           id: f.id || '(sem id)',
           src: (f.src || f.getAttribute('src') || '').slice(0, 100),
         }));
+
+        // Paginator diagnostic
+        const pag = document.getElementById('fPP:processosTable:scTabela_table');
+        const pagBotoes = pag
+          ? [...pag.querySelectorAll('td.rich-datascr-button')].map(td => ({
+              txt: (td.innerText || td.textContent || '').trim(),
+              cls: (td.className || '').slice(0, 80),
+            }))
+          : null;
+
+        // Nó atual buttons diagnostic (first row only)
+        const primeiraLinha = document.querySelector('#fPP\\:processosTable\\:tb tr, [id*="processosTable"] tbody tr');
+        const btnNo = primeiraLinha ? primeiraLinha.querySelector('[id^="btnMostrarNos"]') : null;
+
         return {
           url: location.href.slice(0, 100),
           hasPjeTable: !!document.querySelector('#fPP\\:processosTable'),
           temProcessoEmTabela: tables.some(t => t.temProcesso),
           tables: tables.slice(0, 15),
           iframes: iframes.slice(0, 10),
+          paginador: pag ? { id: pag.id, botoes: pagBotoes } : null,
+          btnMostrarNos: btnNo ? { id: btnNo.id, onclick: (btnNo.getAttribute('onclick') || '').slice(0, 100) } : null,
         };
       },
     });
@@ -135,6 +151,17 @@ btnDiag.addEventListener('click', async () => {
       lines.push(`--- Frame ${i} (frameId: ${r.frameId}) ---`);
       lines.push(`URL: ${d.url}`);
       lines.push(`#fPP:processosTable: ${d.hasPjeTable} | tem nº processo em tabela: ${d.temProcessoEmTabela}`);
+      if (d.paginador) {
+        lines.push(`paginador: id="${d.paginador.id}" | ${d.paginador.botoes?.length ?? 0} botão(ões) rich-datascr-button`);
+        (d.paginador.botoes || []).forEach((b, i) => lines.push(`  [${i}] txt="${b.txt}" cls="${b.cls}"`));
+      } else {
+        lines.push('paginador: NÃO ENCONTRADO (fPP:processosTable:scTabela_table)');
+      }
+      if (d.btnMostrarNos) {
+        lines.push(`btnMostrarNos: id="${d.btnMostrarNos.id}" | onclick="${d.btnMostrarNos.onclick}"`);
+      } else {
+        lines.push('btnMostrarNos: NÃO ENCONTRADO na primeira linha');
+      }
       if (d.iframes.length) {
         lines.push('iframes:');
         d.iframes.forEach(f => lines.push(`  id="${f.id}" src="${f.src}"`));

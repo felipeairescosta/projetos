@@ -187,7 +187,12 @@
     const textosPanesAntes = panesAntes.map(p => limpar(p.innerText || ''));
     const snapCdkTotal = limpar(cdkContainer?.innerText || '');
 
-    clicarElemento(btnVis);
+    // Direct isolated-world click — single event, no MutationObserver relay.
+    // Routing through clicarElemento (content_main.js) with the full
+    // mousedown+mouseup+click sequence caused two click events on the toggle
+    // button, opening and immediately closing the overlay.
+    btnVis.focus?.();
+    btnVis.click();
 
     const fecharOverlay = () => {
       document.dispatchEvent(new KeyboardEvent('keydown', {
@@ -254,7 +259,8 @@
       if (next && next.tagName === 'TR' && !PADRAO_PROCESSO.test(next.innerText || '')) {
         const txt = limpar(next.innerText || '');
         if (txt && txt.length > 5) {
-          clicarElemento(btnVis);
+          btnVis.focus?.();
+          btnVis.click();
           await aguardar(400);
           return txt;
         }

@@ -15,10 +15,14 @@
       if (!el.hasAttribute('data-pje-click')) continue;
       el.removeAttribute('data-pje-click');
       el.focus?.();
-      // Single el.click() is enough: fires one trusted-style click inside the
-      // Angular zone (MutationObserver is zone-patched), triggering change
-      // detection. Using dispatchEvent + el.click() caused two clicks, which
-      // toggled dialogs open then immediately closed.
+      // Full synthetic event sequence required for Angular Material paginator:
+      // mousedown + mouseup + click dispatch + el.click() registers as a real
+      // navigation gesture inside zone.js. el.click() alone is insufficient.
+      // Visualizar (toggle dialog) bypasses this relay entirely and calls
+      // btnVis.click() directly from the isolated world, so no double-click here.
+      ['mousedown', 'mouseup', 'click'].forEach(ev =>
+        el.dispatchEvent(new MouseEvent(ev, { bubbles: true, cancelable: true }))
+      );
       el.click();
     }
   }).observe(document.documentElement, {

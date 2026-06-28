@@ -172,77 +172,77 @@
   // ── tarefas via "Visualizar" click (Angular) ──────────────────────────────
 
   async function extrairTarefasViaClick(tr) {
-    // Find "Visualizar" button (text or aria-label)
     const btnVis = [...tr.querySelectorAll('button, a, [role="button"]')].find(el => {
       const txt = semAcento((el.innerText || el.textContent || el.getAttribute('aria-label') || '').toLowerCase());
       return txt.includes('visualizar');
     });
     if (!btnVis) return '';
 
-    const contarOverlays = () => document.querySelectorAll(
-      '.cdk-overlay-pane, .mat-dialog-container, .mat-mdc-dialog-container'
-    ).length;
-    const antes = contarOverlays();
+    const targetCell = btnVis.closest('td');
+    const snapCell = limpar(targetCell?.innerText || '');
+
+    // Snapshot every CDK overlay pane and its current text
+    const cdkContainer = document.querySelector('.cdk-overlay-container');
+    const panesAntes = [...document.querySelectorAll('.cdk-overlay-container .cdk-overlay-pane')];
+    const textosPanesAntes = panesAntes.map(p => limpar(p.innerText || ''));
+    const snapCdkTotal = limpar(cdkContainer?.innerText || '');
 
     clicarElemento(btnVis);
 
-    let resultado = '';
+    const fecharOverlay = () => {
+      document.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+      }));
+      const bd = document.querySelector('.cdk-overlay-backdrop');
+      if (bd) bd.click();
+    };
+
     const t0 = Date.now();
+    while (Date.now() - t0 < 8000) {
+      await aguardar(400);
 
-    while (Date.now() - t0 < 6000) {
-      await aguardar(300);
+      // A: cell content changed (Angular replaced button with lazy-loaded text)
+      if (targetCell) {
+        const txt = limpar(targetCell.innerText || '');
+        if (txt && txt !== snapCell && !/^visualizar$/i.test(txt.trim())) return txt;
+      }
 
-      // Strategy A: Angular Material dialog appeared
-      if (contarOverlays() > antes) {
-        const dlg = [...document.querySelectorAll(
-          '.mat-dialog-container, .mat-mdc-dialog-container'
-        )].pop();
-        const txt = dlg ? limpar(dlg.innerText || '') : '';
-        if (txt) {
-          resultado = txt;
-          const btnFechar = dlg?.querySelector(
-            'button[aria-label*="echar"], button[aria-label*="lose"], [mat-dialog-close]'
-          );
-          if (btnFechar) {
-            clicarElemento(btnFechar);
-          } else {
-            document.dispatchEvent(new KeyboardEvent('keydown', {
-              key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-            }));
-          }
-          await aguardar(500);
-          break;
+      // B: any CDK pane's content changed (catches dialogs, menus, popovers)
+      const panesAgora = [...document.querySelectorAll('.cdk-overlay-container .cdk-overlay-pane')];
+      for (let i = 0; i < panesAgora.length; i++) {
+        const txt = limpar(panesAgora[i].innerText || '');
+        if (!txt || txt.length < 5) continue;
+        const txtAntes = textosPanesAntes[i] ?? '';
+        if (txt !== txtAntes) {
+          fecharOverlay();
+          await aguardar(600);
+          return txt;
         }
       }
 
-      // Strategy B: expanded detail row (next sibling without a process number)
+      // C: CDK container text changed but pane scan missed it
+      const cdkNow = limpar(cdkContainer?.innerText || '');
+      if (cdkNow !== snapCdkTotal && cdkNow.length > 5) {
+        fecharOverlay();
+        await aguardar(600);
+        return (cdkNow.length > snapCdkTotal.length
+          ? cdkNow.slice(snapCdkTotal.length).trim()
+          : cdkNow);
+      }
+
+      // D: Angular detail row appeared as next sibling (expandable rows)
       const next = tr.nextElementSibling;
       if (next && next.tagName === 'TR' && !PADRAO_PROCESSO.test(next.innerText || '')) {
         const txt = limpar(next.innerText || '');
-        if (txt) {
-          resultado = txt;
-          clicarElemento(btnVis); // toggle collapse
-          await aguardar(300);
-          break;
-        }
-      }
-
-      // Strategy C: expansion panel within the row
-      const panel = tr.querySelector(
-        '.mat-expansion-panel-content:not([style*="height: 0"]), [class*="expansion-panel-content"]'
-      );
-      if (panel) {
-        const txt = limpar(panel.innerText || '');
-        if (txt) {
-          resultado = txt;
+        if (txt && txt.length > 5) {
           clicarElemento(btnVis);
-          await aguardar(300);
-          break;
+          await aguardar(400);
+          return txt;
         }
       }
     }
 
-    return resultado;
+    return '';
   }
 
   // ── page extraction ───────────────────────────────────────────────────────

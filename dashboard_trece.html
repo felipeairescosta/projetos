@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard PJe – TRE-CE | 30/06/2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #1a3a6b;
+      --accent: #c8392b;
+      --bg: #f4f6fa;
+      --card: #ffffff;
+      --text: #222;
+      --muted: #6b7280;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+    header .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    header .title-block h1 { font-size: 1.15rem; font-weight: 700; }
+    header .title-block p { font-size: 0.78rem; color: #a8c0e0; margin-top: 2px; }
+    header .badge {
+      margin-left: auto;
+      background: var(--accent);
+      border-radius: 6px;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+
+    /* KPI row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .kpi {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1.1rem 1.2rem;
+      border-left: 4px solid var(--primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .kpi.danger { border-left-color: var(--accent); }
+    .kpi.warn   { border-left-color: #d97706; }
+    .kpi.ok     { border-left-color: #16a34a; }
+    .kpi label  { font-size: 0.73rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .kpi .value { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1.1; margin: .2rem 0 .15rem; }
+    .kpi.danger .value { color: var(--accent); }
+    .kpi.warn .value   { color: #d97706; }
+    .kpi.ok .value     { color: #16a34a; }
+    .kpi .sub   { font-size: 0.72rem; color: var(--muted); }
+
+    /* Chart grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .card h2 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: .9rem;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .chart-wrap { position: relative; }
+    .chart-wrap canvas { max-height: 280px; }
+    .chart-tall canvas { max-height: 340px; }
+    .chart-xlarge canvas { max-height: 420px; }
+
+    /* Indicators section */
+    .indicators { margin-top: 1.5rem; }
+    .indicators h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    .ind-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .ind-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      border-top: 3px solid var(--primary);
+    }
+    .ind-card.danger { border-top-color: var(--accent); }
+    .ind-card.warn   { border-top-color: #d97706; }
+    .ind-card.ok     { border-top-color: #16a34a; }
+    .ind-card h3 { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: .4rem; }
+    .ind-card .ind-value { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+    .ind-card.danger .ind-value { color: var(--accent); }
+    .ind-card.warn   .ind-value { color: #d97706; }
+    .ind-card.ok     .ind-value { color: #16a34a; }
+    .ind-card p { font-size: 0.76rem; color: var(--muted); margin-top: .35rem; line-height: 1.4; }
+
+    footer { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">⚖️</div>
+  <div class="title-block">
+    <h1>Dashboard de Processos — TRE-CE</h1>
+    <p>Tribunal Regional Eleitoral do Ceará · PJe · Extração: 30/06/2026</p>
+  </div>
+  <div class="badge">18.104 processos</div>
+</header>
+
+<div class="container">
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <label>Total de Processos</label>
+      <div class="value">18.104</div>
+      <div class="sub">Todas as classes e órgãos</div>
+    </div>
+    <div class="kpi danger">
+      <label>Processos Sigilosos</label>
+      <div class="value">120</div>
+      <div class="sub">0,66% do acervo</div>
+    </div>
+    <div class="kpi warn">
+      <label>Com Prazo em Curso</label>
+      <div class="value">79</div>
+      <div class="sub">Atenção imediata</div>
+    </div>
+    <div class="kpi warn">
+      <label>Urgentes</label>
+      <div class="value">7</div>
+      <div class="sub">Triagem urgente pendente</div>
+    </div>
+    <div class="kpi ok">
+      <label>Arquivados / Baixa</label>
+      <div class="value">12.053</div>
+      <div class="sub">66,6% – encerrados</div>
+    </div>
+    <div class="kpi">
+      <label>Em Andamento</label>
+      <div class="value">6.051</div>
+      <div class="sub">33,4% – ativos</div>
+    </div>
+  </div>
+
+  <!-- Row 1: Linha temporal + Classe -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>Distribuição por Ano de Autuação</h2>
+      <div class="chart-wrap">
+        <canvas id="chartAnos"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Top 10 Classes Judiciais</h2>
+      <div class="chart-wrap chart-tall">
+        <canvas id="chartClasses"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Relatores + Movimentação -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>Carga por Relator (Top 10)</h2>
+      <div class="chart-wrap chart-tall">
+        <canvas id="chartRelatores"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Última Movimentação – Categorias</h2>
+      <div class="chart-wrap">
+        <canvas id="chartMovs"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Status Tarefas + Sigilo donut -->
+  <div class="grid-3">
+    <div class="card">
+      <h2>Status das Tarefas Atuais (Top 8)</h2>
+      <div class="chart-wrap">
+        <canvas id="chartTarefas"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Processos por Sigilo</h2>
+      <div class="chart-wrap">
+        <canvas id="chartSigilo"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Encerrado vs Em Andamento</h2>
+      <div class="chart-wrap">
+        <canvas id="chartStatus"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicators -->
+  <div class="indicators">
+    <h2>📊 Indicadores Sugeridos</h2>
+    <div class="ind-grid">
+
+      <div class="ind-card warn">
+        <h3>Índice de Pendência</h3>
+        <div class="ind-value">33,4%</div>
+        <p>Percentual de processos ainda em andamento sobre o acervo total. Ideal monitorar mês a mês para avaliar a taxa de resolução.</p>
+      </div>
+
+      <div class="ind-card danger">
+        <h3>Prazo em Curso</h3>
+        <div class="ind-value">79 proc.</div>
+        <p>Processos com prazo ativo que demandam ação imediata. Devem ser acompanhados diariamente pela equipe de cartório.</p>
+      </div>
+
+      <div class="ind-card danger">
+        <h3>Processos Urgentes</h3>
+        <div class="ind-value">7 proc.</div>
+        <p>Triagem urgente pendente. Exige atenção prioritária do gabinete na data de extração (30/06/2026).</p>
+      </div>
+
+      <div class="ind-card ok">
+        <h3>Taxa de Arquivamento</h3>
+        <div class="ind-value">66,6%</div>
+        <p>Proporção de processos encerrados (arquivados definitivamente + baixa definitiva) em relação ao acervo total. Indica maturidade do estoque.</p>
+      </div>
+
+      <div class="ind-card">
+        <h3>Concentração por Relator</h3>
+        <div class="ind-value">19,3%</div>
+        <p>O relator com mais processos (Francisco Gladyson Pontes – 3.492) detém 19,3% do acervo total. Indica potencial desequilíbrio de carga.</p>
+      </div>
+
+      <div class="ind-card">
+        <h3>Top Classe Judicial</h3>
+        <div class="ind-value">28,4%</div>
+        <p>Recurso Eleitoral (5.137 proc.) corresponde a mais de 1/4 de todo o acervo. Monitorar prazos recursais e volume de julgamentos.</p>
+      </div>
+
+      <div class="ind-card warn">
+        <h3>Sigilosidade do Acervo</h3>
+        <div class="ind-value">0,66%</div>
+        <p>120 processos em sigilo requerem controle especial de acesso. Proporção baixa, mas deve ser auditada periodicamente.</p>
+      </div>
+
+      <div class="ind-card">
+        <h3>Pico de Autuações</h3>
+        <div class="ind-value">2022</div>
+        <p>O ano de 2022 (eleições gerais) registrou 4.055 autuações — maior volume histórico. Comparar com 2026 (ano eleitoral) ao longo do ano.</p>
+      </div>
+
+      <div class="ind-card ok">
+        <h3>Processos Remetidos ao TSE</h3>
+        <div class="ind-value">411</div>
+        <p>Processos em grau superior de jurisdição. Indicador de recorribilidade e de questões jurídicas complexas no TRE-CE.</p>
+      </div>
+
+      <div class="ind-card">
+        <h3>Distribuição Corregedoria</h3>
+        <div class="ind-value">1.386</div>
+        <p>Processos relatados pelo Corregedor (Emanuel Leite Albuquerque) — 7,6% do acervo, refletindo o volume de inspeções e correições eleitorais.</p>
+      </div>
+
+      <div class="ind-card warn">
+        <h3>Embargos de Declaração</h3>
+        <div class="ind-value">651</div>
+        <p>Percentual de 3,6% do acervo com embargos declaratórios em Recurso Eleitoral. Pode indicar necessidade de maior clareza nas decisões de 1.ª instância.</p>
+      </div>
+
+      <div class="ind-card ok">
+        <h3>Registro de Candidatura</h3>
+        <div class="ind-value">2.082</div>
+        <p>Segunda maior classe (11,5%), com concentração esperada em ano eleitoral. Monitorar aderência ao calendário da Resolução TSE.</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  TRE-CE · Extração PJe · 30/06/2026 · Dashboard gerado automaticamente a partir dos dados da planilha pje_trece_20260630_1.csv
+</footer>
+
+<script>
+const COLORS = [
+  '#1a3a6b','#2563eb','#3b82f6','#60a5fa','#93c5fd',
+  '#c8392b','#e55b4d','#f87171','#fca5a5',
+  '#d97706','#f59e0b','#fbbf24',
+  '#16a34a','#22c55e','#86efac',
+  '#7c3aed','#a78bfa'
+];
+
+// Anos
+new Chart(document.getElementById('chartAnos'), {
+  type: 'bar',
+  data: {
+    labels: ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'],
+    datasets: [{
+      label: 'Processos autuados',
+      data: [131, 3157, 593, 1961, 1391, 4055, 894, 3155, 2090, 557],
+      backgroundColor: '#2563eb',
+      borderRadius: 5
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+      x: { ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// Classes
+new Chart(document.getElementById('chartClasses'), {
+  type: 'bar',
+  data: {
+    labels: [
+      'Recurso Eleitoral','Registro de Candidatura','Direitos Políticos',
+      'Prestação de Contas','Representação','Prest. Contas Eleitorais',
+      'Embargos Decl./REl','Regulariz. Eleitor','Cumprimento Sentença','Inspeção'
+    ],
+    datasets: [{
+      data: [5137, 2082, 1169, 1126, 984, 968, 651, 649, 624, 612],
+      backgroundColor: COLORS,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+      y: { ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// Relatores
+new Chart(document.getElementById('chartRelatores'), {
+  type: 'bar',
+  data: {
+    labels: [
+      'F. Gladyson Pontes','F. Érico C. Silveira','E. Leite Albuquerque',
+      'Gledison M. Fernandes','R. Nonato S. Santos','Kamile M. Castro',
+      'R. Deusdeth R. Jr.','Roberto S. Bulcão','Luciano N. M. Freire','Daniel C. Carneiro'
+    ],
+    datasets: [{
+      data: [3492, 2190, 1386, 1303, 1083, 987, 927, 743, 612, 556],
+      backgroundColor: ['#c8392b','#e55b4d','#1a3a6b','#2563eb','#3b82f6',
+                        '#60a5fa','#d97706','#f59e0b','#16a34a','#7c3aed'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+      y: { ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// Movimentações
+new Chart(document.getElementById('chartMovs'), {
+  type: 'doughnut',
+  data: {
+    labels: [
+      'Arquivado Definitivamente','Baixa Definitiva','Outros',
+      'Remetido à Zona/Origem','Totalização de Eleições','Juntada',
+      'Remetido ao TSE','Distribuído','Recebidos os Autos','Publicado/DJ'
+    ],
+    datasets: [{
+      data: [6415, 5638, 2488, 1024, 915, 438, 411, 353, 207, 46],
+      backgroundColor: COLORS,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 12 } }
+    }
+  }
+});
+
+// Tarefas
+new Chart(document.getElementById('chartTarefas'), {
+  type: 'bar',
+  data: {
+    labels: [
+      'Manter Proc. Arquivado','Manter Proc. Expedidos',
+      'Devolvidos a Origem','Recurso Arquivado',
+      'Ag. Outra Instância – Corr.','Arq. Processo Corregedoria',
+      'Ag. Outra Instância','Processo c/ Prazo'
+    ],
+    datasets: [{
+      data: [7489, 5005, 1469, 1004, 753, 528, 244, 79],
+      backgroundColor: ['#16a34a','#22c55e','#2563eb','#3b82f6',
+                        '#f59e0b','#fbbf24','#7c3aed','#c8392b'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { beginAtZero: true, ticks: { font: { size: 9 } } },
+      y: { ticks: { font: { size: 9 } } }
+    }
+  }
+});
+
+// Sigilo
+new Chart(document.getElementById('chartSigilo'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Públicos', 'Sigilosos'],
+    datasets: [{
+      data: [17984, 120],
+      backgroundColor: ['#2563eb','#c8392b'],
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 } } }
+    }
+  }
+});
+
+// Status
+new Chart(document.getElementById('chartStatus'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Arquivados / Baixa Definitiva', 'Em Andamento'],
+    datasets: [{
+      data: [12053, 6051],
+      backgroundColor: ['#16a34a','#d97706'],
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 } } }
+    }
+  }
+});
+</script>
+</body>
+</html>

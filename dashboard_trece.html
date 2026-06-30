@@ -179,10 +179,15 @@
       <div class="value">12.053</div>
       <div class="sub">66,6% – encerrados</div>
     </div>
+    <div class="kpi warn">
+      <label>Remetidos</label>
+      <div class="value">1.522</div>
+      <div class="sub">8,4% – TSE ou Zona/Origem</div>
+    </div>
     <div class="kpi">
-      <label>Em Andamento</label>
-      <div class="value">6.051</div>
-      <div class="sub">33,4% – ativos</div>
+      <label>Tramitando</label>
+      <div class="value">4.529</div>
+      <div class="sub">25,0% – em andamento real</div>
     </div>
   </div>
 
@@ -233,7 +238,7 @@
       </div>
     </div>
     <div class="card">
-      <h2>Encerrado vs Em Andamento</h2>
+      <h2>Situação do Acervo (Encerrado / Remetido / Tramitando)</h2>
       <div class="chart-wrap">
         <canvas id="chartStatus"></canvas>
       </div>
@@ -246,9 +251,9 @@
     <div class="ind-grid">
 
       <div class="ind-card warn">
-        <h3>Índice de Pendência</h3>
-        <div class="ind-value">33,4%</div>
-        <p>Percentual de processos ainda em andamento sobre o acervo total. Ideal monitorar mês a mês para avaliar a taxa de resolução.</p>
+        <h3>Índice de Tramitação</h3>
+        <div class="ind-value">25,0%</div>
+        <p>Percentual de processos efetivamente tramitando (não arquivados e não remetidos) sobre o acervo total — 4.529 processos. Ideal monitorar mês a mês para avaliar a taxa de resolução.</p>
       </div>
 
       <div class="ind-card danger">
@@ -264,9 +269,15 @@
       </div>
 
       <div class="ind-card ok">
-        <h3>Taxa de Arquivamento</h3>
+        <h3>Taxa de Encerramento</h3>
         <div class="ind-value">66,6%</div>
-        <p>Proporção de processos encerrados (arquivados definitivamente + baixa definitiva) em relação ao acervo total. Indica maturidade do estoque.</p>
+        <p>Processos com Arquivamento Definitivo ou Baixa Definitiva (12.053) sobre o acervo total. Indica o volume já resolvido em definitivo.</p>
+      </div>
+
+      <div class="ind-card">
+        <h3>Processos Remetidos</h3>
+        <div class="ind-value">1.522</div>
+        <p>8,4% do acervo aguarda decisão em outra instância: 1.024 remetidos à Zona/Origem e 413 ao TSE. Não tramitam no TRE-CE mas ainda não foram encerrados.</p>
       </div>
 
       <div class="ind-card">
@@ -484,10 +495,10 @@ new Chart(document.getElementById('chartSigilo'), {
 new Chart(document.getElementById('chartStatus'), {
   type: 'doughnut',
   data: {
-    labels: ['Arquivados / Baixa Definitiva', 'Em Andamento'],
+    labels: ['Encerrados (Arq. + Baixa)', 'Remetidos (TSE / Zona)', 'Tramitando'],
     datasets: [{
-      data: [12053, 6051],
-      backgroundColor: ['#16a34a','#d97706'],
+      data: [12053, 1522, 4529],
+      backgroundColor: ['#16a34a','#2563eb','#d97706'],
       hoverOffset: 6
     }]
   },

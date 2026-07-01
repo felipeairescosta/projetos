@@ -194,7 +194,8 @@
   <!-- Row 1: Linha temporal + Classe -->
   <div class="grid-2">
     <div class="card">
-      <h2>Distribuição por Ano de Autuação</h2>
+      <h2>Distribuição por Ano de Autuação <span id="labelAnoAtivo" style="font-weight:400;color:var(--accent);font-size:.78rem"></span></h2>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.5rem" id="drilltip">Clique em um ano para ver os meses · <span id="btnVoltarAnos" style="color:var(--primary);cursor:pointer;display:none;text-decoration:underline">← Voltar para anos</span></div>
       <div class="chart-wrap">
         <canvas id="chartAnos"></canvas>
       </div>
@@ -367,26 +368,85 @@ const COLORS = [
   '#7c3aed','#a78bfa'
 ];
 
-// Anos
-new Chart(document.getElementById('chartAnos'), {
+// Anos — drill-down para meses
+const dadosPorAnoMes = {
+  "2017": [0,0,4,1,11,7,7,6,21,8,31,35],
+  "2018": [31,86,46,81,91,172,37,1061,1350,90,60,52],
+  "2019": [72,20,23,44,26,30,31,29,39,69,39,171],
+  "2020": [37,29,61,43,45,140,42,66,76,763,546,113],
+  "2021": [63,98,120,128,125,108,120,111,88,113,154,163],
+  "2022": [91,137,177,77,151,219,97,1263,1425,97,213,108],
+  "2023": [55,93,159,99,121,65,65,64,31,50,62,30],
+  "2024": [23,30,108,98,105,126,146,256,1202,730,249,82],
+  "2025": [260,201,281,180,245,168,199,102,134,165,110,45],
+  "2026": [40,56,176,92,71,122,0,0,0,0,0,0]
+};
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const ANOS_LABELS = ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
+const ANOS_DATA   = [131,3157,593,1961,1391,4055,894,3155,2090,557];
+
+const chartAnos = new Chart(document.getElementById('chartAnos'), {
   type: 'bar',
   data: {
-    labels: ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'],
+    labels: ANOS_LABELS,
     datasets: [{
       label: 'Processos autuados',
-      data: [131, 3157, 593, 1961, 1391, 4055, 894, 3155, 2090, 557],
+      data: ANOS_DATA,
       backgroundColor: '#2563eb',
+      hoverBackgroundColor: '#c8392b',
       borderRadius: 5
     }]
   },
   options: {
     responsive: true,
-    plugins: { legend: { display: false } },
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { footer: () => 'Clique para ver meses' } }
+    },
     scales: {
       y: { beginAtZero: true, ticks: { font: { size: 11 } } },
       x: { ticks: { font: { size: 11 } } }
+    },
+    onClick(evt) {
+      const pts = chartAnos.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+      if (!pts.length) return;
+      const ano = ANOS_LABELS[pts[0].index];
+      drillAno(ano);
     }
   }
+});
+
+function drillAno(ano) {
+  const mesesData = dadosPorAnoMes[ano];
+  // filtrar meses com valor > 0
+  const labels = MESES.filter((_,i) => mesesData[i] > 0);
+  const data   = mesesData.filter(v => v > 0);
+  chartAnos.data.labels = labels;
+  chartAnos.data.datasets[0].data = data;
+  chartAnos.data.datasets[0].backgroundColor = data.map((_,i) =>
+    `hsl(${210 + i*8},70%,${45 + i*2}%)`
+  );
+  chartAnos.data.datasets[0].hoverBackgroundColor = '#c8392b';
+  chartAnos.options.plugins.tooltip.callbacks = { footer: () => '' };
+  chartAnos.options.onClick = () => {};
+  chartAnos.update();
+  document.getElementById('labelAnoAtivo').textContent = `— ${ano}`;
+  document.getElementById('btnVoltarAnos').style.display = 'inline';
+}
+
+document.getElementById('btnVoltarAnos').addEventListener('click', () => {
+  chartAnos.data.labels = ANOS_LABELS;
+  chartAnos.data.datasets[0].data = ANOS_DATA;
+  chartAnos.data.datasets[0].backgroundColor = '#2563eb';
+  chartAnos.data.datasets[0].hoverBackgroundColor = '#c8392b';
+  chartAnos.options.plugins.tooltip.callbacks = { footer: () => 'Clique para ver meses' };
+  chartAnos.options.onClick = function(evt) {
+    const pts = chartAnos.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+    if (!pts.length) return;
+    drillAno(ANOS_LABELS[pts[0].index]);
+  };
+  chartAnos.update();
+  document.getElementById('labelAnoAtivo').textContent = '';
+  document.getElementById('btnVoltarAnos').style.display = 'none';
 });
 
 // Classes

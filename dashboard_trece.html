@@ -245,6 +245,27 @@
     </div>
   </div>
 
+  <!-- Recursos Internos -->
+  <div style="margin-bottom:1.2rem">
+    <div class="card">
+      <h2>Recursos Internos — Embargos de Declaração (992) e Agravo Regimental (28) · Total: 1.020</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-top:.4rem">
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Por Tipo</div>
+          <div class="chart-wrap"><canvas id="chartTipoRecurso"></canvas></div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Embargos por Relator</div>
+          <div class="chart-wrap chart-xlarge"><canvas id="chartEmbRelator"></canvas></div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Total Recursos Internos por Relator</div>
+          <div class="chart-wrap chart-xlarge"><canvas id="chartTotalRecRelator"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Indicators -->
   <div class="indicators">
     <h2>📊 Indicadores Sugeridos</h2>
@@ -506,6 +527,119 @@ new Chart(document.getElementById('chartStatus'), {
     responsive: true,
     plugins: {
       legend: { position: 'bottom', labels: { font: { size: 11 } } }
+    }
+  }
+});
+
+// Recursos Internos – por tipo
+new Chart(document.getElementById('chartTipoRecurso'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Embargos de Declaração (992)', 'Agravo Regimental (28)'],
+    datasets: [{
+      data: [992, 28],
+      backgroundColor: ['#1a3a6b', '#c8392b'],
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+  }
+});
+
+// Embargos por relator
+const relEmb = [
+  ['Gledison M. Fernandes', 105],
+  ['F. Gladyson Pontes', 98],
+  ['Luciano N. M. Freire', 97],
+  ['F. Érico C. Silveira', 96],
+  ['Wilker Macedo Lima', 95],
+  ['Daniel C. Carneiro', 77],
+  ['R. Deusdeth R. Jr.', 69],
+  ['E. Leite Albuquerque', 65],
+  ['A. Edilberto O. Lima', 58],
+  ['J.M. Machado Cavalcanti*', 72],
+  ['Roberto S. Bulcão', 42],
+  ['José Cavalcante Jr.', 38],
+  ['L.R.O. Vasconcelos', 34],
+  ['Kamile M. Castro', 25],
+  ['Rogério F. C. Mota', 12],
+  ['M. Iraneide M. Silva', 8],
+  ['Demetrio Saker Neto', 1],
+];
+new Chart(document.getElementById('chartEmbRelator'), {
+  type: 'bar',
+  data: {
+    labels: relEmb.map(x => x[0]),
+    datasets: [{
+      data: relEmb.map(x => x[1]),
+      backgroundColor: '#2563eb',
+      borderRadius: 3
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { footer: () => '* Inclui variações de grafia do nome' } }
+    },
+    scales: {
+      x: { beginAtZero: true, ticks: { font: { size: 9 } } },
+      y: { ticks: { font: { size: 9 } } }
+    }
+  }
+});
+
+// Total recursos internos por relator
+const relTotal = [
+  ['Gledison M. Fernandes', 109],
+  ['F. Gladyson Pontes', 104],
+  ['Wilker Macedo Lima', 100],
+  ['Luciano N. M. Freire', 98],
+  ['F. Érico C. Silveira', 96],
+  ['Daniel C. Carneiro', 78],
+  ['R. Deusdeth R. Jr.', 69],
+  ['E. Leite Albuquerque', 66],
+  ['A. Edilberto O. Lima', 59],
+  ['J.M. Machado Cavalcanti*', 75],
+  ['Roberto S. Bulcão', 43],
+  ['José Cavalcante Jr.', 39],
+  ['L.R.O. Vasconcelos', 34],
+  ['Kamile M. Castro', 25],
+  ['Rogério F. C. Mota', 14],
+  ['M. Iraneide M. Silva', 8],
+  ['R. Nonato S. Santos', 2],
+  ['Demetrio Saker Neto', 1],
+];
+new Chart(document.getElementById('chartTotalRecRelator'), {
+  type: 'bar',
+  data: {
+    labels: relTotal.map(x => x[0]),
+    datasets: [
+      {
+        label: 'Embargos de Declaração',
+        data: relEmb.map(x => x[1]),
+        backgroundColor: '#1a3a6b',
+        borderRadius: 3,
+        stack: 'a'
+      },
+      {
+        label: 'Agravo Regimental',
+        data: [4, 6, 5, 1, 0, 1, 0, 1, 1, 3, 1, 1, 0, 0, 2, 0, 2, 0],
+        backgroundColor: '#c8392b',
+        borderRadius: 3,
+        stack: 'a'
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+    scales: {
+      x: { beginAtZero: true, stacked: true, ticks: { font: { size: 9 } } },
+      y: { stacked: true, ticks: { font: { size: 9 } } }
     }
   }
 });

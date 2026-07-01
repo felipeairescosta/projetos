@@ -226,7 +226,7 @@
   <!-- Row 3: Status Tarefas + Sigilo donut -->
   <div class="grid-3">
     <div class="card">
-      <h2>Status das Tarefas Atuais (Top 8)</h2>
+      <h2>Tarefas Ativas — Processos Tramitando (564 ocorrências)</h2>
       <div class="chart-wrap">
         <canvas id="chartTarefas"></canvas>
       </div>
@@ -465,20 +465,37 @@ new Chart(document.getElementById('chartMovs'), {
   }
 });
 
-// Tarefas
+// Tarefas ativas (tramitando)
 new Chart(document.getElementById('chartTarefas'), {
   type: 'bar',
   data: {
     labels: [
-      'Manter Proc. Arquivado','Manter Proc. Expedidos',
-      'Devolvidos a Origem','Recurso Arquivado',
-      'Ag. Outra Instância – Corr.','Arq. Processo Corregedoria',
-      'Ag. Outra Instância','Processo c/ Prazo'
+      'Processo c/ Prazo em Curso',
+      'Analisar Processo – Corregedoria',
+      'Assinar Ato',
+      'Minutar Ato',
+      'Manter Suspenso/Sobrestado',
+      'Conferir/Revisar Relatório',
+      'Analisar Petição/Determinação',
+      'Minutar Relatório/Voto/Ementa',
+      'Arq. Provisório',
+      'Iniciar Acórdão',
+      'Ag. Julgamento Rec. Interno',
+      'Verificar Pendências',
+      'Aguardando Providências',
+      'Aguarda Julgamento/Pauta',
+      'Realizar Triagem',
+      'Elaborar Documentos',
+      'Outros',
     ],
     datasets: [{
-      data: [7489, 5005, 1469, 1004, 753, 528, 244, 79],
-      backgroundColor: ['#16a34a','#22c55e','#2563eb','#3b82f6',
-                        '#f59e0b','#fbbf24','#7c3aed','#c8392b'],
+      data: [80, 57, 54, 48, 39, 34, 28, 27, 26, 24, 22, 18, 17, 12, 12, 8, 41],
+      backgroundColor: [
+        '#c8392b','#1a3a6b','#2563eb','#3b82f6',
+        '#d97706','#f59e0b','#16a34a','#22c55e',
+        '#86efac','#7c3aed','#a78bfa','#60a5fa',
+        '#93c5fd','#e55b4d','#fbbf24','#34d399','#9ca3af'
+      ],
       borderRadius: 4
     }]
   },

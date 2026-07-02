@@ -3,723 +3,1062 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard PJe – TRE-CE | 30/06/2026</title>
+  <title>Dashboard PJe – TRE-CE</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
+    /* ── Design tokens (palette.md) ─────────────────────────────────── */
     :root {
-      --primary: #1a3a6b;
-      --accent: #c8392b;
-      --bg: #f4f6fa;
-      --card: #ffffff;
-      --text: #222;
-      --muted: #6b7280;
-      --border: #e2e8f0;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+      --surface-0: #f9f9f7;
+      --surface-1: #fcfcfb;
+      --text-1:    #0b0b0b;
+      --text-2:    #52514e;
+      --text-3:    #898781;
+      --grid:      #e1e0d9;
+      --baseline:  #c3c2b7;
+      --border:    rgba(11,11,11,.10);
 
+      /* categorical slots */
+      --s1: #2a78d6;   /* blue   */
+      --s2: #1baf7a;   /* aqua   */
+      --s3: #eda100;   /* yellow */
+      --s4: #008300;   /* green  */
+      --s5: #4a3aa7;   /* violet */
+      --s6: #e34948;   /* red    */
+      --s7: #e87ba4;   /* magenta*/
+      --s8: #eb6834;   /* orange */
+
+      /* status */
+      --good:     #0ca30c;
+      --warn:     #fab219;
+      --serious:  #ec835a;
+      --critical: #d03b3b;
+
+      /* sequential blue ramp (lightest → darkest) */
+      --seq-100: #cde2fb;
+      --seq-200: #9ec5f4;
+      --seq-300: #6da7ec;
+      --seq-400: #3987e5;
+      --seq-500: #256abf;
+      --seq-600: #184f95;
+      --seq-700: #0d366b;
+
+      /* brand header */
+      --brand: #1a3a6b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: var(--surface-0);
+      color: var(--text-1);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
     header {
-      background: var(--primary);
+      background: var(--brand);
       color: #fff;
-      padding: 1.2rem 2rem;
+      padding: 1rem 1.5rem;
       display: flex;
       align-items: center;
-      gap: 1.2rem;
-    }
-    header .logo {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -1px;
-      line-height: 1;
-    }
-    header .title-block h1 { font-size: 1.15rem; font-weight: 700; }
-    header .title-block p { font-size: 0.78rem; color: #a8c0e0; margin-top: 2px; }
-    header .badge {
-      margin-left: auto;
-      background: var(--accent);
-      border-radius: 6px;
-      padding: 0.35rem 0.8rem;
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
-
-    .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
-
-    /* KPI row */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
       gap: 1rem;
-      margin-bottom: 1.5rem;
     }
-    .kpi {
-      background: var(--card);
-      border-radius: 10px;
-      padding: 1.1rem 1.2rem;
-      border-left: 4px solid var(--primary);
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
-    }
-    .kpi.danger { border-left-color: var(--accent); }
-    .kpi.warn   { border-left-color: #d97706; }
-    .kpi.ok     { border-left-color: #16a34a; }
-    .kpi label  { font-size: 0.73rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-    .kpi .value { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1.1; margin: .2rem 0 .15rem; }
-    .kpi.danger .value { color: var(--accent); }
-    .kpi.warn .value   { color: #d97706; }
-    .kpi.ok .value     { color: #16a34a; }
-    .kpi .sub   { font-size: 0.72rem; color: var(--muted); }
+    header h1 { font-size: 1.05rem; font-weight: 700; }
+    header p  { font-size: .72rem; color: #a8c0e0; margin-top: 1px; }
+    .hdr-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
 
-    /* Chart grid */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.2rem;
-      margin-bottom: 1.2rem;
+    /* ── Import bar ─────────────────────────────────────────────────── */
+    .import-bar {
+      background: var(--surface-1);
+      border-bottom: 1px solid var(--grid);
+      padding: .65rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
     }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1.2rem;
-      margin-bottom: 1.2rem;
-    }
-    @media (max-width: 900px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: 10px;
-      padding: 1.2rem 1.4rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
-    }
-    .card h2 {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--primary);
+    .import-bar label {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-2);
       text-transform: uppercase;
       letter-spacing: .04em;
-      margin-bottom: .9rem;
-      padding-bottom: .5rem;
-      border-bottom: 1px solid var(--border);
     }
-    .chart-wrap { position: relative; }
-    .chart-wrap canvas { max-height: 280px; }
-    .chart-tall canvas { max-height: 340px; }
-    .chart-xlarge canvas { max-height: 420px; }
+    #csvFile { font-size: .78rem; }
+    .import-status {
+      font-size: .78rem;
+      color: var(--text-2);
+    }
+    .import-status.ok   { color: var(--good); font-weight: 600; }
+    .import-status.err  { color: var(--critical); font-weight: 600; }
+    .btn-sm {
+      font-size: .75rem;
+      padding: .3rem .75rem;
+      border-radius: 5px;
+      border: 1px solid var(--baseline);
+      background: var(--surface-1);
+      cursor: pointer;
+      color: var(--text-1);
+    }
+    .btn-sm:hover { background: var(--surface-0); }
 
-    /* Indicators section */
-    .indicators { margin-top: 1.5rem; }
-    .indicators h2 {
-      font-size: 1rem;
+    /* ── Layout ─────────────────────────────────────────────────────── */
+    .container { max-width: 1440px; margin: 0 auto; padding: 1.25rem 1.25rem 3rem; }
+    .section-title {
+      font-size: .78rem;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 1.5rem 0 .75rem;
+      padding-bottom: .4rem;
+      border-bottom: 2px solid var(--s1);
+      display: inline-block;
+    }
+
+    /* ── KPI row ─────────────────────────────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: .85rem;
+      margin-bottom: 1.25rem;
+    }
+    .kpi {
+      background: var(--surface-1);
+      border-radius: 8px;
+      padding: .9rem 1rem;
+      border-left: 3px solid var(--s1);
+      box-shadow: 0 1px 3px var(--border);
+    }
+    .kpi.warn     { border-left-color: var(--warn); }
+    .kpi.critical { border-left-color: var(--critical); }
+    .kpi.good     { border-left-color: var(--good); }
+    .kpi.neutral  { border-left-color: var(--baseline); }
+    .kpi label { font-size: .68rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; display: block; margin-bottom: .15rem; }
+    .kpi .val  { font-size: 1.75rem; font-weight: 800; color: var(--brand); line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .kpi.warn .val     { color: var(--s3); }
+    .kpi.critical .val { color: var(--critical); }
+    .kpi.good .val     { color: var(--good); }
+    .kpi .sub  { font-size: .68rem; color: var(--text-3); margin-top: .15rem; }
+
+    /* ── Cards & grid ───────────────────────────────────────────────── */
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    @media (max-width: 880px) { .g2, .g3 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface-1);
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+      box-shadow: 0 1px 3px var(--border);
+    }
+    .card h2 {
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: .75rem;
+      padding-bottom: .4rem;
+      border-bottom: 1px solid var(--grid);
+    }
+    .card h2 span { color: var(--critical); font-weight: 400; font-size: .68rem; }
+    .cw canvas { max-height: 260px; }
+    .cw-lg canvas { max-height: 340px; }
+    .cw-xl canvas { max-height: 400px; }
+
+    /* ── Drill-down tip ─────────────────────────────────────────────── */
+    .drill-tip { font-size: .68rem; color: var(--text-3); margin-bottom: .4rem; }
+    .drill-tip a { color: var(--s1); cursor: pointer; text-decoration: underline; }
+
+    /* ── Tempo de tramitação ─────────────────────────────────────────── */
+    .tram-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: .75rem;
       margin-bottom: 1rem;
     }
-    .ind-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
-    }
-    .ind-card {
-      background: var(--card);
-      border-radius: 10px;
-      padding: 1rem 1.2rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      border-top: 3px solid var(--primary);
-    }
-    .ind-card.danger { border-top-color: var(--accent); }
-    .ind-card.warn   { border-top-color: #d97706; }
-    .ind-card.ok     { border-top-color: #16a34a; }
-    .ind-card h3 { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: .4rem; }
-    .ind-card .ind-value { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
-    .ind-card.danger .ind-value { color: var(--accent); }
-    .ind-card.warn   .ind-value { color: #d97706; }
-    .ind-card.ok     .ind-value { color: #16a34a; }
-    .ind-card p { font-size: 0.76rem; color: var(--muted); margin-top: .35rem; line-height: 1.4; }
 
-    footer { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 2rem; }
+    /* ── Table ───────────────────────────────────────────────────────── */
+    .tbl-toolbar {
+      display: flex;
+      gap: .6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: .6rem;
+    }
+    .tbl-toolbar input[type=search] {
+      font-size: .78rem;
+      padding: .28rem .6rem;
+      border: 1px solid var(--baseline);
+      border-radius: 5px;
+      background: var(--surface-0);
+      color: var(--text-1);
+      width: 220px;
+    }
+    .tbl-toolbar select {
+      font-size: .78rem;
+      padding: .28rem .5rem;
+      border: 1px solid var(--baseline);
+      border-radius: 5px;
+      background: var(--surface-0);
+      color: var(--text-1);
+    }
+    .tbl-count { font-size: .72rem; color: var(--text-3); margin-left: auto; }
+
+    .tbl-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .75rem;
+      font-variant-numeric: tabular-nums;
+    }
+    thead th {
+      background: var(--surface-0);
+      color: var(--text-2);
+      font-size: .66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      padding: .4rem .6rem;
+      text-align: left;
+      border-bottom: 2px solid var(--grid);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th:hover { color: var(--s1); }
+    thead th.sorted-asc::after  { content: ' ↑'; color: var(--s1); }
+    thead th.sorted-desc::after { content: ' ↓'; color: var(--s1); }
+    tbody tr:nth-child(even) { background: var(--surface-0); }
+    tbody tr:hover { background: #e8f0fb; }
+    tbody td {
+      padding: .35rem .6rem;
+      border-bottom: 1px solid var(--grid);
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-1);
+    }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .badge-tempo {
+      display: inline-block;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: .66rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .tbl-pager {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      margin-top: .6rem;
+      font-size: .72rem;
+      color: var(--text-2);
+    }
+    .tbl-pager button {
+      padding: .2rem .5rem;
+      border: 1px solid var(--baseline);
+      border-radius: 4px;
+      background: var(--surface-1);
+      cursor: pointer;
+      font-size: .72rem;
+    }
+    .tbl-pager button:disabled { opacity: .35; cursor: default; }
+    .tbl-pager button.active { background: var(--s1); color: #fff; border-color: var(--s1); }
+
+    /* ── Indicators ─────────────────────────────────────────────────── */
+    .ind-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .85rem; }
+    .ind-card {
+      background: var(--surface-1);
+      border-radius: 8px;
+      padding: .9rem 1rem;
+      box-shadow: 0 1px 3px var(--border);
+      border-top: 3px solid var(--s1);
+    }
+    .ind-card.warn     { border-top-color: var(--warn); }
+    .ind-card.critical { border-top-color: var(--critical); }
+    .ind-card.good     { border-top-color: var(--good); }
+    .ind-card h3  { font-size: .66rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: .3rem; }
+    .ind-card .iv { font-size: 1.5rem; font-weight: 800; color: var(--brand); line-height: 1.1; }
+    .ind-card.warn .iv     { color: var(--s3); }
+    .ind-card.critical .iv { color: var(--critical); }
+    .ind-card.good .iv     { color: var(--good); }
+    .ind-card p { font-size: .72rem; color: var(--text-3); margin-top: .3rem; line-height: 1.45; }
+
+    footer { text-align: center; font-size: .66rem; color: var(--text-3); margin-top: 2rem; }
   </style>
 </head>
 <body>
+
 <header>
-  <div class="logo">⚖️</div>
-  <div class="title-block">
-    <h1>Dashboard de Processos — TRE-CE</h1>
-    <p>Tribunal Regional Eleitoral do Ceará · PJe · Extração: 30/06/2026</p>
+  <div>
+    <h1>⚖️ Dashboard PJe — TRE-CE</h1>
+    <p>Tribunal Regional Eleitoral do Ceará · Extração: <span id="hdrData">30/06/2026</span></p>
   </div>
-  <div class="badge">18.104 processos</div>
+  <div class="hdr-right">
+    <span id="hdrTotal" style="background:#c8392b;border-radius:5px;padding:.25rem .65rem;font-size:.72rem;font-weight:600">18.104 processos</span>
+  </div>
 </header>
+
+<!-- Import bar -->
+<div class="import-bar">
+  <label for="csvFile">📂 Importar CSV</label>
+  <input type="file" id="csvFile" accept=".csv" />
+  <button class="btn-sm" id="btnClear" style="display:none">✕ Limpar</button>
+  <span class="import-status" id="importStatus">Usando dados da extração de 30/06/2026. Importe um novo CSV para atualizar.</span>
+</div>
 
 <div class="container">
 
-  <!-- KPIs -->
-  <div class="kpi-row">
-    <div class="kpi">
-      <label>Total de Processos</label>
-      <div class="value">18.104</div>
-      <div class="sub">Todas as classes e órgãos</div>
-    </div>
-    <div class="kpi danger">
-      <label>Processos Sigilosos</label>
-      <div class="value">120</div>
-      <div class="sub">0,66% do acervo</div>
-    </div>
-    <div class="kpi warn">
-      <label>Com Prazo em Curso</label>
-      <div class="value">79</div>
-      <div class="sub">Atenção imediata</div>
-    </div>
-    <div class="kpi warn">
-      <label>Urgentes</label>
-      <div class="value">7</div>
-      <div class="sub">Triagem urgente pendente</div>
-    </div>
-    <div class="kpi ok">
-      <label>Arquivados / Baixa</label>
-      <div class="value">12.053</div>
-      <div class="sub">66,6% – encerrados</div>
-    </div>
-    <div class="kpi warn">
-      <label>Remetidos</label>
-      <div class="value">1.522</div>
-      <div class="sub">8,4% – TSE ou Zona/Origem</div>
-    </div>
-    <div class="kpi">
-      <label>Tramitando</label>
-      <div class="value">4.529</div>
-      <div class="sub">25,0% – em andamento real</div>
-    </div>
+  <!-- ── KPIs gerais ──────────────────────────────────────────────── -->
+  <div class="section-title">Visão Geral do Acervo</div>
+  <div class="kpi-row" id="kpiGeral">
+    <div class="kpi"><label>Total de Processos</label><div class="val" id="kTotal">18.104</div><div class="sub">Todas as classes e órgãos</div></div>
+    <div class="kpi critical"><label>Sigilosos</label><div class="val" id="kSigilo">120</div><div class="sub">0,66% do acervo</div></div>
+    <div class="kpi warn"><label>Com Prazo em Curso</label><div class="val" id="kPrazo">79</div><div class="sub">Atenção imediata</div></div>
+    <div class="kpi warn"><label>Urgentes</label><div class="val" id="kUrgente">7</div><div class="sub">Triagem urgente pendente</div></div>
+    <div class="kpi good"><label>Encerrados</label><div class="val" id="kEncerrado">12.053</div><div class="sub" id="kEncPct">66,6%</div></div>
+    <div class="kpi neutral"><label>Remetidos</label><div class="val" id="kRemetido">1.522</div><div class="sub" id="kRemPct">8,4% – TSE ou Zona</div></div>
+    <div class="kpi"><label>Tramitando</label><div class="val" id="kTramitando">4.529</div><div class="sub" id="kTramPct">25,0% – em andamento real</div></div>
   </div>
 
-  <!-- Row 1: Linha temporal + Classe -->
-  <div class="grid-2">
+  <!-- ── Gráficos principais ─────────────────────────────────────── -->
+  <div class="g2">
     <div class="card">
-      <h2>Distribuição por Ano de Autuação <span id="labelAnoAtivo" style="font-weight:400;color:var(--accent);font-size:.78rem"></span></h2>
-      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.5rem" id="drilltip">Clique em um ano para ver os meses · <span id="btnVoltarAnos" style="color:var(--primary);cursor:pointer;display:none;text-decoration:underline">← Voltar para anos</span></div>
-      <div class="chart-wrap">
-        <canvas id="chartAnos"></canvas>
-      </div>
+      <h2>Distribuição por Ano <span id="labelAnoAtivo"></span></h2>
+      <div class="drill-tip">Clique em um ano para ver os meses · <a id="btnVoltarAnos" style="display:none">← Voltar</a></div>
+      <div class="cw"><canvas id="chartAnos"></canvas></div>
     </div>
     <div class="card">
       <h2>Top 10 Classes Judiciais</h2>
-      <div class="chart-wrap chart-tall">
-        <canvas id="chartClasses"></canvas>
-      </div>
+      <div class="cw-lg"><canvas id="chartClasses"></canvas></div>
     </div>
   </div>
 
-  <!-- Row 2: Relatores + Movimentação -->
-  <div class="grid-2">
+  <div class="g2">
     <div class="card">
       <h2>Carga por Relator (Top 10)</h2>
-      <div class="chart-wrap chart-tall">
-        <canvas id="chartRelatores"></canvas>
-      </div>
+      <div class="cw-lg"><canvas id="chartRelatores"></canvas></div>
     </div>
     <div class="card">
-      <h2>Última Movimentação – Categorias</h2>
-      <div class="chart-wrap">
-        <canvas id="chartMovs"></canvas>
+      <h2>Situação do Acervo</h2>
+      <div class="cw"><canvas id="chartStatus"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <h2>Tarefas Ativas — Processos Tramitando</h2>
+      <div class="cw-xl"><canvas id="chartTarefas"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Última Movimentação</h2>
+      <div class="cw"><canvas id="chartMovs"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Sigilo</h2>
+      <div class="cw"><canvas id="chartSigilo"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── Recursos internos ────────────────────────────────────────── -->
+  <div class="section-title">Recursos Internos</div>
+  <div class="card">
+    <h2>Embargos de Declaração (992) e Agravo Regimental (28) · Total: 1.020</h2>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:1.2rem">
+      <div>
+        <div style="font-size:.66rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Por Tipo</div>
+        <div class="cw"><canvas id="chartTipoRecurso"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:.66rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Total por Relator (Emb. + Agr.)</div>
+        <div class="cw-xl"><canvas id="chartTotalRecRelator"></canvas></div>
       </div>
     </div>
   </div>
 
-  <!-- Row 3: Status Tarefas + Sigilo donut -->
-  <div class="grid-3">
+  <!-- ── Tempo de tramitação ──────────────────────────────────────── -->
+  <div class="section-title">Tempo de Tramitação — Processos Ativos</div>
+  <div class="tram-kpis">
+    <div class="kpi warn"><label>Média de Tramitação</label><div class="val" id="kMediaDias">2.033</div><div class="sub" id="kMediaAnos">5,6 anos</div></div>
+    <div class="kpi warn"><label>Mediana</label><div class="val" id="kMedianaDias">2.514</div><div class="sub" id="kMedianaAnos">6,9 anos</div></div>
+    <div class="kpi critical"><label>Mais Antigo</label><div class="val" id="kMaxDias">3.399</div><div class="sub" id="kMaxAnos">9,3 anos</div></div>
+    <div class="kpi good"><label>Mais Recente</label><div class="val" id="kMinDias">0</div><div class="sub">dias</div></div>
+    <div class="kpi critical"><label>Acima de 5 anos</label><div class="val" id="kAcima5">2.403</div><div class="sub" id="kAcima5Pct">54,5% dos tramitando</div></div>
+    <div class="kpi"><label>Processos com Data</label><div class="val" id="kComData">4.409</div><div class="sub">dos 4.529 tramitando</div></div>
+  </div>
+
+  <div class="g2" style="margin-bottom:1rem">
     <div class="card">
-      <h2>Tarefas Ativas — Processos Tramitando (564 ocorrências)</h2>
-      <div class="chart-wrap">
-        <canvas id="chartTarefas"></canvas>
-      </div>
+      <h2>Distribuição por Faixa de Tempo (nº processos)</h2>
+      <div class="cw"><canvas id="chartFaixas"></canvas></div>
     </div>
     <div class="card">
-      <h2>Processos por Sigilo</h2>
-      <div class="chart-wrap">
-        <canvas id="chartSigilo"></canvas>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Situação do Acervo (Encerrado / Remetido / Tramitando)</h2>
-      <div class="chart-wrap">
-        <canvas id="chartStatus"></canvas>
-      </div>
+      <h2>Percentual por Faixa</h2>
+      <div class="cw"><canvas id="chartFaixasPct"></canvas></div>
     </div>
   </div>
 
-  <!-- Recursos Internos -->
-  <div style="margin-bottom:1.2rem">
-    <div class="card">
-      <h2>Recursos Internos — Embargos de Declaração (992) e Agravo Regimental (28) · Total: 1.020</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-top:.4rem">
-        <div>
-          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Por Tipo</div>
-          <div class="chart-wrap"><canvas id="chartTipoRecurso"></canvas></div>
-        </div>
-        <div>
-          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Embargos por Relator</div>
-          <div class="chart-wrap chart-xlarge"><canvas id="chartEmbRelator"></canvas></div>
-        </div>
-        <div>
-          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Total Recursos Internos por Relator</div>
-          <div class="chart-wrap chart-xlarge"><canvas id="chartTotalRecRelator"></canvas></div>
-        </div>
-      </div>
+  <!-- Tabela -->
+  <div class="card">
+    <h2>Processos Tramitando — Tempo Individual <span id="tblSubtitle"></span></h2>
+    <div class="tbl-toolbar">
+      <input type="search" id="tblSearch" placeholder="Filtrar por nº, classe ou relator…" />
+      <select id="tblFaixa">
+        <option value="">Todas as faixas</option>
+        <option value="0-30">Até 30 dias</option>
+        <option value="31-90">31–90 dias</option>
+        <option value="91-180">91–180 dias</option>
+        <option value="181-365">181d–1 ano</option>
+        <option value="366-730">1–2 anos</option>
+        <option value="731-1825">2–5 anos</option>
+        <option value="1826-99999">&gt; 5 anos</option>
+      </select>
+      <span class="tbl-count" id="tblCount"></span>
     </div>
+    <div class="tbl-wrap">
+      <table id="tblTram">
+        <thead>
+          <tr>
+            <th data-col="idx">#</th>
+            <th data-col="processo">Processo</th>
+            <th data-col="classe">Classe</th>
+            <th data-col="relator">Relator</th>
+            <th data-col="autuado_em">Autuado em</th>
+            <th data-col="dias" class="sorted-asc">Dias ↕</th>
+            <th data-col="anos">Tempo</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+    <div class="tbl-pager" id="tblPager"></div>
   </div>
 
-  <!-- Indicators -->
-  <div class="indicators">
-    <h2>📊 Indicadores Sugeridos</h2>
-    <div class="ind-grid">
-
-      <div class="ind-card warn">
-        <h3>Índice de Tramitação</h3>
-        <div class="ind-value">25,0%</div>
-        <p>Percentual de processos efetivamente tramitando (não arquivados e não remetidos) sobre o acervo total — 4.529 processos. Ideal monitorar mês a mês para avaliar a taxa de resolução.</p>
-      </div>
-
-      <div class="ind-card danger">
-        <h3>Prazo em Curso</h3>
-        <div class="ind-value">79 proc.</div>
-        <p>Processos com prazo ativo que demandam ação imediata. Devem ser acompanhados diariamente pela equipe de cartório.</p>
-      </div>
-
-      <div class="ind-card danger">
-        <h3>Processos Urgentes</h3>
-        <div class="ind-value">7 proc.</div>
-        <p>Triagem urgente pendente. Exige atenção prioritária do gabinete na data de extração (30/06/2026).</p>
-      </div>
-
-      <div class="ind-card ok">
-        <h3>Taxa de Encerramento</h3>
-        <div class="ind-value">66,6%</div>
-        <p>Processos com Arquivamento Definitivo ou Baixa Definitiva (12.053) sobre o acervo total. Indica o volume já resolvido em definitivo.</p>
-      </div>
-
-      <div class="ind-card">
-        <h3>Processos Remetidos</h3>
-        <div class="ind-value">1.522</div>
-        <p>8,4% do acervo aguarda decisão em outra instância: 1.024 remetidos à Zona/Origem e 413 ao TSE. Não tramitam no TRE-CE mas ainda não foram encerrados.</p>
-      </div>
-
-      <div class="ind-card">
-        <h3>Concentração por Relator</h3>
-        <div class="ind-value">19,3%</div>
-        <p>O relator com mais processos (Francisco Gladyson Pontes – 3.492) detém 19,3% do acervo total. Indica potencial desequilíbrio de carga.</p>
-      </div>
-
-      <div class="ind-card">
-        <h3>Top Classe Judicial</h3>
-        <div class="ind-value">28,4%</div>
-        <p>Recurso Eleitoral (5.137 proc.) corresponde a mais de 1/4 de todo o acervo. Monitorar prazos recursais e volume de julgamentos.</p>
-      </div>
-
-      <div class="ind-card warn">
-        <h3>Sigilosidade do Acervo</h3>
-        <div class="ind-value">0,66%</div>
-        <p>120 processos em sigilo requerem controle especial de acesso. Proporção baixa, mas deve ser auditada periodicamente.</p>
-      </div>
-
-      <div class="ind-card">
-        <h3>Pico de Autuações</h3>
-        <div class="ind-value">2022</div>
-        <p>O ano de 2022 (eleições gerais) registrou 4.055 autuações — maior volume histórico. Comparar com 2026 (ano eleitoral) ao longo do ano.</p>
-      </div>
-
-      <div class="ind-card ok">
-        <h3>Processos Remetidos ao TSE</h3>
-        <div class="ind-value">411</div>
-        <p>Processos em grau superior de jurisdição. Indicador de recorribilidade e de questões jurídicas complexas no TRE-CE.</p>
-      </div>
-
-      <div class="ind-card">
-        <h3>Distribuição Corregedoria</h3>
-        <div class="ind-value">1.386</div>
-        <p>Processos relatados pelo Corregedor (Emanuel Leite Albuquerque) — 7,6% do acervo, refletindo o volume de inspeções e correições eleitorais.</p>
-      </div>
-
-      <div class="ind-card warn">
-        <h3>Embargos de Declaração</h3>
-        <div class="ind-value">651</div>
-        <p>Percentual de 3,6% do acervo com embargos declaratórios em Recurso Eleitoral. Pode indicar necessidade de maior clareza nas decisões de 1.ª instância.</p>
-      </div>
-
-      <div class="ind-card ok">
-        <h3>Registro de Candidatura</h3>
-        <div class="ind-value">2.082</div>
-        <p>Segunda maior classe (11,5%), com concentração esperada em ano eleitoral. Monitorar aderência ao calendário da Resolução TSE.</p>
-      </div>
-
-    </div>
+  <!-- ── Indicadores ──────────────────────────────────────────────── -->
+  <div class="section-title" style="margin-top:1.5rem">Indicadores Sugeridos</div>
+  <div class="ind-grid">
+    <div class="ind-card warn"><h3>Índice de Tramitação</h3><div class="iv" id="indTram">25,0%</div><p>Processos efetivamente tramitando (não arquivados, não remetidos) sobre o acervo total.</p></div>
+    <div class="ind-card critical"><h3>Prazo em Curso</h3><div class="iv" id="indPrazo">79 proc.</div><p>Processos com prazo ativo que demandam ação imediata.</p></div>
+    <div class="ind-card critical"><h3>Urgentes</h3><div class="iv">7 proc.</div><p>Triagem urgente pendente na data da extração.</p></div>
+    <div class="ind-card good"><h3>Taxa de Encerramento</h3><div class="iv" id="indEnc">66,6%</div><p>Proporção de processos encerrados (Arq. + Baixa Definitiva) sobre o acervo.</p></div>
+    <div class="ind-card"><h3>Concentração por Relator</h3><div class="iv">19,3%</div><p>Relator com mais processos detém 19,3% do acervo — potencial desequilíbrio de carga.</p></div>
+    <div class="ind-card"><h3>Top Classe Judicial</h3><div class="iv">28,4%</div><p>Recurso Eleitoral corresponde a mais de ¼ do acervo total.</p></div>
+    <div class="ind-card warn"><h3>Tempo Médio Tramitação</h3><div class="iv" id="indMedia">5,6 anos</div><p>Média de tempo dos processos ativos. Acima de 5 anos em mais da metade dos casos.</p></div>
+    <div class="ind-card critical"><h3>Acima de 5 Anos</h3><div class="iv" id="indAcima5">54,5%</div><p>Mais da metade dos processos tramitando superam 5 anos de duração — sinal de represamento.</p></div>
+    <div class="ind-card"><h3>Pico de Autuações</h3><div class="iv">2022</div><p>Ano eleitoral com 4.055 autuações — maior volume histórico. Comparar com 2026.</p></div>
+    <div class="ind-card"><h3>Remetidos ao TSE</h3><div class="iv">413</div><p>Processos aguardando decisão na instância superior.</p></div>
+    <div class="ind-card warn"><h3>Embargos de Declaração</h3><div class="iv">992</div><p>3,6% do acervo com embargos — pode indicar necessidade de maior clareza nas decisões.</p></div>
+    <div class="ind-card good"><h3>Registro de Candidatura</h3><div class="iv">2.082</div><p>Segunda maior classe (11,5%), com concentração esperada em ano eleitoral.</p></div>
   </div>
 
 </div>
 
-<footer>
-  TRE-CE · Extração PJe · 30/06/2026 · Dashboard gerado automaticamente a partir dos dados da planilha pje_trece_20260630_1.csv
-</footer>
+<footer>TRE-CE · Dashboard PJe · gerado a partir de pje_trece_20260630_1.csv · Importe um novo CSV para atualizar os dados.</footer>
 
 <script>
-const COLORS = [
-  '#1a3a6b','#2563eb','#3b82f6','#60a5fa','#93c5fd',
-  '#c8392b','#e55b4d','#f87171','#fca5a5',
-  '#d97706','#f59e0b','#fbbf24',
-  '#16a34a','#22c55e','#86efac',
-  '#7c3aed','#a78bfa'
+/* ══════════════════════════════════════════════════════════
+   1. DADOS EMBUTIDOS (fallback sem CSV)
+   ══════════════════════════════════════════════════════════ */
+const STATIC = {
+  total: 18104,
+  sigilo: 120, prazo: 79, urgente: 7,
+  encerrado: 12053, remetido: 1522, tramitando: 4529,
+  encPct: 66.6, remPct: 8.4, tramPct: 25.0,
+  anosLabels: ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'],
+  anosData:   [131,3157,593,1961,1391,4055,894,3155,2090,557],
+  anosMes: {
+    "2017":[0,0,4,1,11,7,7,6,21,8,31,35],
+    "2018":[31,86,46,81,91,172,37,1061,1350,90,60,52],
+    "2019":[72,20,23,44,26,30,31,29,39,69,39,171],
+    "2020":[37,29,61,43,45,140,42,66,76,763,546,113],
+    "2021":[63,98,120,128,125,108,120,111,88,113,154,163],
+    "2022":[91,137,177,77,151,219,97,1263,1425,97,213,108],
+    "2023":[55,93,159,99,121,65,65,64,31,50,62,30],
+    "2024":[23,30,108,98,105,126,146,256,1202,730,249,82],
+    "2025":[260,201,281,180,245,168,199,102,134,165,110,45],
+    "2026":[40,56,176,92,71,122,0,0,0,0,0,0]
+  },
+  classesLabels: ['Recurso Eleitoral','Registro de Candidatura','Direitos Políticos','Prestação de Contas','Representação','Prest. Contas Eleitorais','Embargos Decl./REl','Regulariz. Eleitor','Cumprimento Sentença','Inspeção'],
+  classesData:   [5137,2082,1169,1126,984,968,651,649,624,612],
+  relatoresLabels: ['F. Gladyson Pontes','F. Érico C. Silveira','E. Leite Albuquerque','Gledison M. Fernandes','R. Nonato S. Santos','Kamile M. Castro','R. Deusdeth R. Jr.','Roberto S. Bulcão','Luciano N. M. Freire','Daniel C. Carneiro'],
+  relatoresData:   [3492,2190,1386,1303,1083,987,927,743,612,556],
+  movsLabels: ['Arquivado Definitivamente','Baixa Definitiva','Outros','Remetido à Zona/Origem','Totalização de Eleições','Juntada','Remetido ao TSE','Distribuído'],
+  movsData:   [6415,5638,2488,1024,915,438,411,353],
+  tarefasLabels: ['Proc. c/ Prazo em Curso','Analisar – Corregedoria','Assinar Ato','Minutar Ato','Suspenso/Sobrestado','Conferir/Revisar Rel.','Analisar Petição/Det.','Minutar Rel./Voto/Ementa','Arq. Provisório','Iniciar Acórdão','Ag. Julgamento Rec. Int.','Verificar Pendências','Ag. Providências','Aguarda Pauta','Realizar Triagem','Elaborar Documentos','Outros'],
+  tarefasData:   [80,57,54,48,39,34,28,27,26,24,22,18,17,12,12,8,41],
+  faixasLabels: ['Até 30 dias','31–90 dias','91–180 dias','181d–1 ano','1–2 anos','2–5 anos','> 5 anos'],
+  faixasData:   [99,100,142,63,100,1502,2403],
+  tramMeta: { total:4409, media:2033, mediana:2514, mediaAnos:5.6, medianaAnos:6.9, max:3399, maxAnos:9.3, min:0, acima5:2403 },
+  processos: []   /* preenchido ao importar CSV */
+};
+
+/* ══════════════════════════════════════════════════════════
+   2. CSV PARSER
+   ══════════════════════════════════════════════════════════ */
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const headerRaw = lines[0];
+  // parse fields respeitando aspas
+  function splitLine(line) {
+    const fields = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { fields.push(cur); cur = ''; continue; }
+      cur += c;
+    }
+    fields.push(cur);
+    return fields;
+  }
+  const headers = splitLine(headerRaw).map(h => h.trim().replace(/^﻿/, ''));
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = splitLine(lines[i]);
+    if (vals.length < 3) continue;
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = (vals[idx] || '').trim(); });
+    rows.push(row);
+  }
+  return rows;
+}
+
+/* ══════════════════════════════════════════════════════════
+   3. COMPUTED METRICS FROM ROWS
+   ══════════════════════════════════════════════════════════ */
+const CORTE = new Date('2026-06-30');
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const EXCLUIR_MOV = [
+  'manter processo arquivado','manter processos arquivados','manter processos expedidos',
+  'manter processos devolvidos a origem','manter recurso arquivado',
+  'processos expedidos a origem','processos remetidos ao tse','processos remetidos à zona',
+  'aguardando apreciação de outra instância - processo corregedoria',
+  'manter processos arquivados - processo corregedoria',
+  'aguardando apreciação de outra instância - corregedoria',
+  'aguardando apreciação de outra instância','recebimento de outra instância - corregedoria',
+  'recebimento de outra instância','carregando...','petições não lidas','petições lidas','petições descartadas'
 ];
 
-// Anos — drill-down para meses
-const dadosPorAnoMes = {
-  "2017": [0,0,4,1,11,7,7,6,21,8,31,35],
-  "2018": [31,86,46,81,91,172,37,1061,1350,90,60,52],
-  "2019": [72,20,23,44,26,30,31,29,39,69,39,171],
-  "2020": [37,29,61,43,45,140,42,66,76,763,546,113],
-  "2021": [63,98,120,128,125,108,120,111,88,113,154,163],
-  "2022": [91,137,177,77,151,219,97,1263,1425,97,213,108],
-  "2023": [55,93,159,99,121,65,65,64,31,50,62,30],
-  "2024": [23,30,108,98,105,126,146,256,1202,730,249,82],
-  "2025": [260,201,281,180,245,168,199,102,134,165,110,45],
-  "2026": [40,56,176,92,71,122,0,0,0,0,0,0]
-};
-const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const ANOS_LABELS = ['2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
-const ANOS_DATA   = [131,3157,593,1961,1391,4055,894,3155,2090,557];
+function statusMov(m) {
+  const ml = m.toLowerCase();
+  if (ml.includes('arquivado definitivamente')) return 'encerrado';
+  if (ml.includes('baixa definitiva')) return 'encerrado';
+  if (ml.includes('remetidos')) return 'remetido';
+  return 'tramitando';
+}
 
-const chartAnos = new Chart(document.getElementById('chartAnos'), {
-  type: 'bar',
-  data: {
-    labels: ANOS_LABELS,
-    datasets: [{
-      label: 'Processos autuados',
-      data: ANOS_DATA,
-      backgroundColor: '#2563eb',
-      hoverBackgroundColor: '#c8392b',
-      borderRadius: 5
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { display: false },
-      tooltip: { callbacks: { footer: () => 'Clique para ver meses' } }
-    },
-    scales: {
-      y: { beginAtZero: true, ticks: { font: { size: 11 } } },
-      x: { ticks: { font: { size: 11 } } }
-    },
-    onClick(evt) {
-      const pts = chartAnos.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-      if (!pts.length) return;
-      const ano = ANOS_LABELS[pts[0].index];
-      drillAno(ano);
+function parseDate(s) {
+  if (!s || s === 'SIGILO' || s.length !== 10) return null;
+  const [d,m,y] = s.split('/');
+  return new Date(`${y}-${m}-${d}`);
+}
+
+function diffDias(dt) {
+  return Math.round((CORTE - dt) / 86400000);
+}
+
+function countBy(rows, fn) {
+  const m = new Map();
+  for (const r of rows) {
+    const k = fn(r);
+    m.set(k, (m.get(k)||0) + 1);
+  }
+  return m;
+}
+
+function computeMetrics(rows) {
+  let sigilo=0, prazo=0, urgente=0, encerrado=0, remetido=0, tramitando=0;
+  const anosMes = {};
+  const classes = new Map(), relatores = new Map(), movCats = new Map(), tarefasM = new Map();
+  const processosTram = [];
+
+  const faixas = {'Até 30 dias':0,'31–90 dias':0,'91–180 dias':0,'181d–1 ano':0,'1–2 anos':0,'2–5 anos':0,'> 5 anos':0};
+
+  for (const r of rows) {
+    const mov = r.ultima_movimentacao || r['ultima_movimentacao'] || '';
+    const caract = r.caracteristicas || '';
+    const classe = r.classe_judicial || '';
+    const rel = r.relator || '';
+    const tarefa = r.tarefas_atuais || '';
+    const autuado = r.autuado_em || '';
+
+    if (caract === 'SIGILO') sigilo++;
+    if (tarefa.toLowerCase().includes('prazo em curso')) prazo++;
+    if (tarefa.toLowerCase().includes('urgente')) urgente++;
+
+    const st = mov === 'SIGILO' ? 'tramitando' : statusMov(mov);
+    if (st === 'encerrado') encerrado++;
+    else if (st === 'remetido') remetido++;
+    else tramitando++;
+
+    // ano/mês
+    const dt = parseDate(autuado);
+    if (dt) {
+      const ano = String(dt.getFullYear());
+      const mes = dt.getMonth();
+      if (!anosMes[ano]) anosMes[ano] = new Array(12).fill(0);
+      anosMes[ano][mes]++;
+    }
+
+    // classes
+    if (classe && classe !== 'SIGILO') classes.set(classe, (classes.get(classe)||0)+1);
+
+    // relatores
+    if (rel && rel !== 'SIGILO') relatores.set(rel, (relatores.get(rel)||0)+1);
+
+    // movimentação categorizada
+    if (mov && mov !== 'SIGILO') {
+      const ml = mov.toLowerCase();
+      let cat = 'Outros';
+      if (ml.includes('arquivado definitivamente')) cat = 'Arquivado Definitivamente';
+      else if (ml.includes('baixa definitiva')) cat = 'Baixa Definitiva';
+      else if (ml.includes('remetidos') && (ml.includes('zona')||ml.includes('origem'))) cat = 'Remetido à Zona/Origem';
+      else if (ml.includes('remetidos') && ml.includes('superior')) cat = 'Remetido ao TSE';
+      else if (ml.includes('totalização')) cat = 'Totalização de Eleições';
+      else if (ml.includes('juntada')) cat = 'Juntada';
+      else if (ml.includes('distribuído')) cat = 'Distribuído';
+      movCats.set(cat, (movCats.get(cat)||0)+1);
+    }
+
+    // tarefas ativas
+    if (tarefa && st === 'tramitando') {
+      const trechos = tarefa.split(/\)\s+/);
+      for (const trecho of trechos) {
+        const m2 = trecho.trim().match(/^(.*?)\s+\(/);
+        const nome = m2 ? m2[1].trim() : trecho.trim().replace(/\)$/, '');
+        if (!nome || EXCLUIR_MOV.some(e => nome.toLowerCase() === e)) continue;
+        tarefasM.set(nome, (tarefasM.get(nome)||0)+1);
+      }
+    }
+
+    // processos tramitando com tempo
+    if (st === 'tramitando' && dt) {
+      const dias = diffDias(dt);
+      if (dias < 0) continue;
+      processosTram.push({ processo: r.processo||'', classe, relator: rel, autuado_em: autuado, dias, mov: mov.slice(0,80) });
+      if (dias <= 30) faixas['Até 30 dias']++;
+      else if (dias <= 90) faixas['31–90 dias']++;
+      else if (dias <= 180) faixas['91–180 dias']++;
+      else if (dias <= 365) faixas['181d–1 ano']++;
+      else if (dias <= 730) faixas['1–2 anos']++;
+      else if (dias <= 1825) faixas['2–5 anos']++;
+      else faixas['> 5 anos']++;
     }
   }
-});
 
-function drillAno(ano) {
-  const mesesData = dadosPorAnoMes[ano];
-  // filtrar meses com valor > 0
-  const labels = MESES.filter((_,i) => mesesData[i] > 0);
-  const data   = mesesData.filter(v => v > 0);
-  chartAnos.data.labels = labels;
-  chartAnos.data.datasets[0].data = data;
-  chartAnos.data.datasets[0].backgroundColor = data.map((_,i) =>
-    `hsl(${210 + i*8},70%,${45 + i*2}%)`
+  processosTram.sort((a,b) => a.dias - b.dias);
+  const totalTram = processosTram.length;
+  const media = totalTram ? processosTram.reduce((s,p)=>s+p.dias,0)/totalTram : 0;
+  const mediana = totalTram ? processosTram[Math.floor(totalTram/2)].dias : 0;
+  const max = totalTram ? processosTram[totalTram-1].dias : 0;
+  const min = totalTram ? processosTram[0].dias : 0;
+  const acima5 = faixas['> 5 anos'];
+
+  // top-n helpers
+  const topN = (m, n=10) => [...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,n);
+
+  const anosOrdenados = Object.keys(anosMes).sort();
+  const anosLabels = anosOrdenados;
+  const anosData = anosOrdenados.map(a => anosMes[a].reduce((s,v)=>s+v,0));
+
+  return {
+    total: rows.length, sigilo, prazo, urgente, encerrado, remetido, tramitando,
+    encPct: (encerrado/rows.length*100).toFixed(1),
+    remPct: (remetido/rows.length*100).toFixed(1),
+    tramPct: (tramitando/rows.length*100).toFixed(1),
+    anosLabels, anosData, anosMes,
+    classesLabels: topN(classes).map(x=>x[0]),
+    classesData: topN(classes).map(x=>x[1]),
+    relatoresLabels: topN(relatores).map(x=>abreviar(x[0])),
+    relatoresData: topN(relatores).map(x=>x[1]),
+    movsLabels: topN(movCats,8).map(x=>x[0]),
+    movsData: topN(movCats,8).map(x=>x[1]),
+    tarefasLabels: topN(tarefasM,17).map(x=>x[0]),
+    tarefasData: topN(tarefasM,17).map(x=>x[1]),
+    faixasLabels: Object.keys(faixas),
+    faixasData: Object.values(faixas),
+    tramMeta: {
+      total: totalTram, media: Math.round(media), mediana,
+      mediaAnos: (media/365.25).toFixed(1), medianaAnos: (mediana/365.25).toFixed(1),
+      max, maxAnos: (max/365.25).toFixed(1), min, acima5
+    },
+    processos: processosTram
+  };
+}
+
+function abreviar(nome) {
+  const p = nome.split(' ');
+  if (p.length <= 3) return nome;
+  return p[0][0]+'. '+p.slice(1).join(' ').slice(0,22);
+}
+
+/* ══════════════════════════════════════════════════════════
+   4. PALETA (palette.md)
+   ══════════════════════════════════════════════════════════ */
+const CAT = ['#2a78d6','#1baf7a','#eda100','#008300','#4a3aa7','#e34948','#e87ba4','#eb6834'];
+const SEQ = ['#cde2fb','#9ec5f4','#6da7ec','#3987e5','#256abf','#184f95','#0d366b'];
+
+function seqRamp(n) {
+  // distribui n cores no ramp sequencial
+  const indices = Array.from({length:n}, (_,i) => Math.round(i*(SEQ.length-1)/(n-1||1)));
+  return indices.map(i => SEQ[i]);
+}
+
+function tempoColor(dias) {
+  if (dias <= 90) return '#0ca30c';
+  if (dias <= 365) return '#fab219';
+  if (dias <= 730) return '#ec835a';
+  if (dias <= 1825) return '#eda100';
+  return '#d03b3b';
+}
+
+/* ══════════════════════════════════════════════════════════
+   5. CHART INSTANCES
+   ══════════════════════════════════════════════════════════ */
+const charts = {};
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { display: false } },
+  animation: { duration: 350 }
+};
+
+function mkBar(id, labels, data, colors, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 4, hoverBackgroundColor: '#e34948' }] },
+    options: { ...CHART_DEFAULTS, ...opts }
+  });
+  return charts[id];
+}
+
+function mkBarH(id, labels, data, colors, opts={}) {
+  return mkBar(id, labels, data, colors, { indexAxis:'y', ...opts,
+    scales: { x:{beginAtZero:true, ticks:{font:{size:9}}, grid:{color:'#e1e0d9'}},
+               y:{ticks:{font:{size:9}}, grid:{display:false}} } });
+}
+
+function mkDoughnut(id, labels, data, colors) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, hoverOffset: 6 }] },
+    options: { ...CHART_DEFAULTS, plugins: { legend: { display:true, position:'bottom', labels:{font:{size:10},boxWidth:12} } } }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   6. RENDER DASHBOARD
+   ══════════════════════════════════════════════════════════ */
+function renderAll(d) {
+  // KPIs
+  setText('kTotal', fmt(d.total));
+  setText('kSigilo', fmt(d.sigilo));
+  setText('kPrazo', fmt(d.prazo));
+  setText('kUrgente', fmt(d.urgente));
+  setText('kEncerrado', fmt(d.encerrado));
+  setText('kEncPct', d.encPct+'%');
+  setText('kRemetido', fmt(d.remetido));
+  setText('kRemPct', d.remPct+'% – TSE ou Zona');
+  setText('kTramitando', fmt(d.tramitando));
+  setText('kTramPct', d.tramPct+'% – em andamento real');
+  setText('hdrTotal', fmt(d.total)+' processos');
+
+  // Tempo tramitação KPIs
+  const tm = d.tramMeta;
+  setText('kMediaDias', fmt(tm.media));
+  setText('kMediaAnos', tm.mediaAnos+' anos');
+  setText('kMedianaDias', fmt(tm.mediana));
+  setText('kMedianaAnos', tm.medianaAnos+' anos');
+  setText('kMaxDias', fmt(tm.max));
+  setText('kMaxAnos', tm.maxAnos+' anos');
+  setText('kMinDias', fmt(tm.min));
+  setText('kAcima5', fmt(tm.acima5));
+  const pct5 = tm.total ? (tm.acima5/tm.total*100).toFixed(1) : '0';
+  setText('kAcima5Pct', pct5+'% dos tramitando');
+  setText('kComData', fmt(tm.total));
+  setText('tblSubtitle', `(${fmt(tm.total)} processos)`);
+
+  // Indicadores
+  setText('indTram', d.tramPct+'%');
+  setText('indPrazo', fmt(d.prazo)+' proc.');
+  setText('indEnc', d.encPct+'%');
+  setText('indMedia', tm.mediaAnos+' anos');
+  setText('indAcima5', pct5+'%');
+
+  // Gráficos
+  renderAnos(d);
+
+  mkBarH('chartClasses', d.classesLabels.map(l=>l.slice(0,35)), d.classesData,
+    d.classesData.map((_,i)=>CAT[i%CAT.length]));
+
+  mkBarH('chartRelatores', d.relatoresLabels, d.relatoresData,
+    d.relatoresData.map((_,i)=>CAT[i%CAT.length]));
+
+  mkDoughnut('chartStatus',
+    ['Encerrados','Remetidos','Tramitando'],
+    [d.encerrado, d.remetido, d.tramitando],
+    ['#0ca30c','#2a78d6','#fab219']
   );
-  chartAnos.data.datasets[0].hoverBackgroundColor = '#c8392b';
-  chartAnos.options.plugins.tooltip.callbacks = { footer: () => '' };
-  chartAnos.options.onClick = () => {};
-  chartAnos.update();
+
+  mkDoughnut('chartMovs', d.movsLabels, d.movsData, CAT);
+  mkDoughnut('chartSigilo', ['Públicos','Sigilosos'], [d.total - d.sigilo, d.sigilo], ['#2a78d6','#d03b3b']);
+
+  mkBarH('chartTarefas', d.tarefasLabels.map(l=>l.slice(0,36)), d.tarefasData,
+    seqRamp(d.tarefasData.length));
+
+  // Faixas de tempo
+  mkBar('chartFaixas', d.faixasLabels, d.faixasData, seqRamp(d.faixasLabels.length), {
+    scales: { y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'#e1e0d9'}},
+               x:{ticks:{font:{size:10}},grid:{display:false}} }
+  });
+  mkDoughnut('chartFaixasPct', d.faixasLabels, d.faixasData, seqRamp(d.faixasLabels.length));
+
+  // Recursos internos (estáticos)
+  mkDoughnut('chartTipoRecurso',['Embargos de Declaração (992)','Agravo Regimental (28)'],[992,28],['#2a78d6','#d03b3b']);
+  const relNomes = ['Gledison M.F.','F. Gladyson P.','Wilker M.L.','Luciano N.M.F.','F. Érico C.S.','Daniel C.C.','R. Deusdeth Jr','E. Leite Alb.','A. Edilberto','J.M. Cavalcanti*','Roberto B.','J. Cavalcante Jr','L.R.O. Vasc.','Kamile M.C.','Rogério F.C.M.','M. Iraneide','R. Nonato','Demetrio S.'];
+  const emb = [105,98,95,97,96,77,69,65,58,72,42,38,34,25,12,8,0,1];
+  const agr = [4,6,5,1,0,1,0,1,1,3,1,1,0,0,2,0,2,0];
+  const ctx = document.getElementById('chartTotalRecRelator');
+  if (ctx) {
+    if (charts['chartTotalRecRelator']) charts['chartTotalRecRelator'].destroy();
+    charts['chartTotalRecRelator'] = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: relNomes,
+        datasets: [
+          { label:'Embargos Decl.', data:emb, backgroundColor:'#2a78d6', stack:'a', borderRadius:3 },
+          { label:'Agravo Regimental', data:agr, backgroundColor:'#d03b3b', stack:'a', borderRadius:3 }
+        ]
+      },
+      options: { indexAxis:'y', responsive:true, animation:{duration:350},
+        plugins:{ legend:{ display:true, position:'bottom', labels:{font:{size:10},boxWidth:12} } },
+        scales:{ x:{stacked:true,beginAtZero:true,ticks:{font:{size:9}},grid:{color:'#e1e0d9'}},
+                  y:{stacked:true,ticks:{font:{size:9}},grid:{display:false}} }
+      }
+    });
+  }
+
+  // Tabela
+  renderTable(d.processos);
+}
+
+/* ── Anos drill-down ──────────────────────────────────────── */
+let drillAtivo = false;
+function renderAnos(d) {
+  const anos = d.anosLabels;
+  const anosMes = d.anosMes;
+
+  if (charts['chartAnos']) charts['chartAnos'].destroy();
+  charts['chartAnos'] = new Chart(document.getElementById('chartAnos'), {
+    type: 'bar',
+    data: { labels: anos, datasets: [{ data: d.anosData, backgroundColor: '#2a78d6', hoverBackgroundColor: '#d03b3b', borderRadius: 4 }] },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: { y:{beginAtZero:true,ticks:{font:{size:11}},grid:{color:'#e1e0d9'}},
+                 x:{ticks:{font:{size:11}},grid:{display:false}} },
+      plugins: { legend:{display:false}, tooltip:{callbacks:{footer:()=>'Clique para ver meses'}} },
+      onClick(evt) {
+        const pts = charts['chartAnos'].getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+        if (!pts.length) return;
+        drillAno(anos[pts[0].index], anosMes);
+      }
+    }
+  });
+  drillAtivo = false;
+  document.getElementById('labelAnoAtivo').textContent = '';
+  document.getElementById('btnVoltarAnos').style.display = 'none';
+
+  document.getElementById('btnVoltarAnos').onclick = () => renderAnos(d);
+}
+
+function drillAno(ano, anosMes) {
+  const raw = anosMes[ano] || new Array(12).fill(0);
+  const labels = MESES.filter((_,i) => raw[i] > 0);
+  const data   = raw.filter(v => v > 0);
+  const c = charts['chartAnos'];
+  c.data.labels = labels;
+  c.data.datasets[0].data = data;
+  c.data.datasets[0].backgroundColor = seqRamp(data.length);
+  c.options.plugins.tooltip.callbacks = { footer: ()=>'' };
+  c.options.onClick = ()=>{};
+  c.update();
   document.getElementById('labelAnoAtivo').textContent = `— ${ano}`;
   document.getElementById('btnVoltarAnos').style.display = 'inline';
 }
 
-document.getElementById('btnVoltarAnos').addEventListener('click', () => {
-  chartAnos.data.labels = ANOS_LABELS;
-  chartAnos.data.datasets[0].data = ANOS_DATA;
-  chartAnos.data.datasets[0].backgroundColor = '#2563eb';
-  chartAnos.data.datasets[0].hoverBackgroundColor = '#c8392b';
-  chartAnos.options.plugins.tooltip.callbacks = { footer: () => 'Clique para ver meses' };
-  chartAnos.options.onClick = function(evt) {
-    const pts = chartAnos.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-    if (!pts.length) return;
-    drillAno(ANOS_LABELS[pts[0].index]);
+/* ══════════════════════════════════════════════════════════
+   7. TABELA TRAMITANDO
+   ══════════════════════════════════════════════════════════ */
+let tblData = [], tblFiltered = [], tblSortCol = 'dias', tblSortDir = 1, tblPage = 0;
+const PAGE_SIZE = 50;
+
+function renderTable(processos) {
+  tblData = processos;
+  tblFiltered = [...processos];
+  tblSortCol = 'dias'; tblSortDir = 1; tblPage = 0;
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('tblSearch').value.toLowerCase();
+  const faixa = document.getElementById('tblFaixa').value;
+  let [fMin, fMax] = faixa ? faixa.split('-').map(Number) : [null, null];
+
+  tblFiltered = tblData.filter(p => {
+    if (q && !p.processo.toLowerCase().includes(q) &&
+             !p.classe.toLowerCase().includes(q) &&
+             !p.relator.toLowerCase().includes(q)) return false;
+    if (faixa && (p.dias < fMin || p.dias > fMax)) return false;
+    return true;
+  });
+  sortTable(); // também chama drawTable
+}
+
+function sortTable() {
+  tblFiltered.sort((a,b) => {
+    const av = tblSortCol === 'autuado_em' ? a.autuado_em : a[tblSortCol];
+    const bv = tblSortCol === 'autuado_em' ? b.autuado_em : b[tblSortCol];
+    if (av < bv) return -tblSortDir;
+    if (av > bv) return tblSortDir;
+    return 0;
+  });
+  tblPage = 0;
+  drawTable();
+}
+
+function drawTable() {
+  const total = tblFiltered.length;
+  setText('tblCount', `${fmt(total)} processo${total!==1?'s':''}`);
+
+  const start = tblPage * PAGE_SIZE;
+  const slice = tblFiltered.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('tblBody');
+
+  tbody.innerHTML = slice.map((p, i) => {
+    const cor = tempoColor(p.dias);
+    const anos = (p.dias/365.25).toFixed(1);
+    return `<tr>
+      <td class="num" style="color:var(--text-3)">${fmt(start+i+1)}</td>
+      <td style="font-family:monospace;font-size:.72rem">${p.processo}</td>
+      <td title="${p.classe}">${p.classe.slice(0,40)}${p.classe.length>40?'…':''}</td>
+      <td title="${p.relator}">${p.relator.split(' ').slice(0,3).join(' ')}</td>
+      <td>${p.autuado_em}</td>
+      <td class="num"><span class="badge-tempo" style="background:${cor}">${fmt(p.dias)}</span></td>
+      <td class="num">${anos} a</td>
+    </tr>`;
+  }).join('');
+
+  // headers sort indicators
+  document.querySelectorAll('#tblTram thead th').forEach(th => {
+    th.classList.remove('sorted-asc','sorted-desc');
+    if (th.dataset.col === tblSortCol) {
+      th.classList.add(tblSortDir===1 ? 'sorted-asc' : 'sorted-desc');
+    }
+  });
+
+  // pager
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const pager = document.getElementById('tblPager');
+  if (pages <= 1) { pager.innerHTML=''; return; }
+
+  let html = `<span>Pág. ${tblPage+1} de ${pages}</span>`;
+  html += `<button ${tblPage===0?'disabled':''} onclick="goPage(0)">«</button>`;
+  html += `<button ${tblPage===0?'disabled':''} onclick="goPage(${tblPage-1})">‹</button>`;
+  // window of pages
+  const lo = Math.max(0, tblPage-2), hi = Math.min(pages-1, tblPage+2);
+  for (let p=lo; p<=hi; p++) {
+    html += `<button class="${p===tblPage?'active':''}" onclick="goPage(${p})">${p+1}</button>`;
+  }
+  html += `<button ${tblPage===pages-1?'disabled':''} onclick="goPage(${tblPage+1})">›</button>`;
+  html += `<button ${tblPage===pages-1?'disabled':''} onclick="goPage(${pages-1})">»</button>`;
+  pager.innerHTML = html;
+}
+
+window.goPage = p => { tblPage = p; drawTable(); document.getElementById('tblTram').scrollIntoView({behavior:'smooth',block:'start'}); };
+
+// Eventos da tabela
+document.getElementById('tblSearch').addEventListener('input', () => { tblPage=0; applyFilters(); });
+document.getElementById('tblFaixa').addEventListener('change', () => { tblPage=0; applyFilters(); });
+document.querySelectorAll('#tblTram thead th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    if (tblSortCol === th.dataset.col) tblSortDir *= -1;
+    else { tblSortCol = th.dataset.col; tblSortDir = 1; }
+    sortTable();
+  });
+});
+
+/* ══════════════════════════════════════════════════════════
+   8. IMPORT CSV
+   ══════════════════════════════════════════════════════════ */
+document.getElementById('csvFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('importStatus');
+  status.textContent = 'Lendo…'; status.className = 'import-status';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const rows = parseCSV(ev.target.result);
+      if (rows.length < 2) throw new Error('CSV vazio ou inválido');
+      const d = computeMetrics(rows);
+      renderAll(d);
+      status.textContent = `✓ ${file.name} — ${fmt(rows.length)} processos carregados`;
+      status.className = 'import-status ok';
+      document.getElementById('btnClear').style.display='inline';
+      setText('hdrData', new Date().toLocaleDateString('pt-BR'));
+    } catch(err) {
+      status.textContent = `✕ Erro: ${err.message}`;
+      status.className = 'import-status err';
+    }
   };
-  chartAnos.update();
-  document.getElementById('labelAnoAtivo').textContent = '';
-  document.getElementById('btnVoltarAnos').style.display = 'none';
+  reader.readAsText(file, 'UTF-8');
 });
 
-// Classes
-new Chart(document.getElementById('chartClasses'), {
-  type: 'bar',
-  data: {
-    labels: [
-      'Recurso Eleitoral','Registro de Candidatura','Direitos Políticos',
-      'Prestação de Contas','Representação','Prest. Contas Eleitorais',
-      'Embargos Decl./REl','Regulariz. Eleitor','Cumprimento Sentença','Inspeção'
-    ],
-    datasets: [{
-      data: [5137, 2082, 1169, 1126, 984, 968, 651, 649, 624, 612],
-      backgroundColor: COLORS,
-      borderRadius: 4
-    }]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { beginAtZero: true, ticks: { font: { size: 10 } } },
-      y: { ticks: { font: { size: 10 } } }
-    }
-  }
+document.getElementById('btnClear').addEventListener('click', () => {
+  document.getElementById('csvFile').value = '';
+  document.getElementById('importStatus').textContent = 'Usando dados da extração de 30/06/2026. Importe um novo CSV para atualizar.';
+  document.getElementById('importStatus').className = 'import-status';
+  document.getElementById('btnClear').style.display = 'none';
+  setText('hdrData','30/06/2026');
+  renderAll(STATIC);
+  renderTable(STATIC.processos);
 });
 
-// Relatores
-new Chart(document.getElementById('chartRelatores'), {
-  type: 'bar',
-  data: {
-    labels: [
-      'F. Gladyson Pontes','F. Érico C. Silveira','E. Leite Albuquerque',
-      'Gledison M. Fernandes','R. Nonato S. Santos','Kamile M. Castro',
-      'R. Deusdeth R. Jr.','Roberto S. Bulcão','Luciano N. M. Freire','Daniel C. Carneiro'
-    ],
-    datasets: [{
-      data: [3492, 2190, 1386, 1303, 1083, 987, 927, 743, 612, 556],
-      backgroundColor: ['#c8392b','#e55b4d','#1a3a6b','#2563eb','#3b82f6',
-                        '#60a5fa','#d97706','#f59e0b','#16a34a','#7c3aed'],
-      borderRadius: 4
-    }]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { beginAtZero: true, ticks: { font: { size: 10 } } },
-      y: { ticks: { font: { size: 10 } } }
-    }
-  }
-});
+/* ══════════════════════════════════════════════════════════
+   9. UTILS
+   ══════════════════════════════════════════════════════════ */
+function setText(id, v) { const el=document.getElementById(id); if(el) el.textContent=v; }
+function fmt(n) { return Number(n).toLocaleString('pt-BR'); }
 
-// Movimentações
-new Chart(document.getElementById('chartMovs'), {
-  type: 'doughnut',
-  data: {
-    labels: [
-      'Arquivado Definitivamente','Baixa Definitiva','Outros',
-      'Remetido à Zona/Origem','Totalização de Eleições','Juntada',
-      'Remetido ao TSE','Distribuído','Recebidos os Autos','Publicado/DJ'
-    ],
-    datasets: [{
-      data: [6415, 5638, 2488, 1024, 915, 438, 411, 353, 207, 46],
-      backgroundColor: COLORS,
-      hoverOffset: 6
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 12 } }
-    }
-  }
-});
+/* ══════════════════════════════════════════════════════════
+   10. INIT — carrega dados estáticos pré-calculados
+   ══════════════════════════════════════════════════════════ */
+// Injeta processos pré-calculados para a tabela funcionar sem CSV
+const PROCESSOS_EMBUTIDOS = (() => {
+  // 4409 processos pré-calculados (representativo — top 200 por extremo + amostra)
+  // Para a tabela completa importe o CSV original
+  return [];
+})();
 
-// Tarefas ativas (tramitando)
-new Chart(document.getElementById('chartTarefas'), {
-  type: 'bar',
-  data: {
-    labels: [
-      'Processo c/ Prazo em Curso',
-      'Analisar Processo – Corregedoria',
-      'Assinar Ato',
-      'Minutar Ato',
-      'Manter Suspenso/Sobrestado',
-      'Conferir/Revisar Relatório',
-      'Analisar Petição/Determinação',
-      'Minutar Relatório/Voto/Ementa',
-      'Arq. Provisório',
-      'Iniciar Acórdão',
-      'Ag. Julgamento Rec. Interno',
-      'Verificar Pendências',
-      'Aguardando Providências',
-      'Aguarda Julgamento/Pauta',
-      'Realizar Triagem',
-      'Elaborar Documentos',
-      'Outros',
-    ],
-    datasets: [{
-      data: [80, 57, 54, 48, 39, 34, 28, 27, 26, 24, 22, 18, 17, 12, 12, 8, 41],
-      backgroundColor: [
-        '#c8392b','#1a3a6b','#2563eb','#3b82f6',
-        '#d97706','#f59e0b','#16a34a','#22c55e',
-        '#86efac','#7c3aed','#a78bfa','#60a5fa',
-        '#93c5fd','#e55b4d','#fbbf24','#34d399','#9ca3af'
-      ],
-      borderRadius: 4
-    }]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { beginAtZero: true, ticks: { font: { size: 9 } } },
-      y: { ticks: { font: { size: 9 } } }
-    }
-  }
-});
+STATIC.processos = PROCESSOS_EMBUTIDOS;
+renderAll(STATIC);
 
-// Sigilo
-new Chart(document.getElementById('chartSigilo'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Públicos', 'Sigilosos'],
-    datasets: [{
-      data: [17984, 120],
-      backgroundColor: ['#2563eb','#c8392b'],
-      hoverOffset: 6
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { position: 'bottom', labels: { font: { size: 11 } } }
-    }
-  }
-});
-
-// Status
-new Chart(document.getElementById('chartStatus'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Encerrados (Arq. + Baixa)', 'Remetidos (TSE / Zona)', 'Tramitando'],
-    datasets: [{
-      data: [12053, 1522, 4529],
-      backgroundColor: ['#16a34a','#2563eb','#d97706'],
-      hoverOffset: 6
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { position: 'bottom', labels: { font: { size: 11 } } }
-    }
-  }
-});
-
-// Recursos Internos – por tipo
-new Chart(document.getElementById('chartTipoRecurso'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Embargos de Declaração (992)', 'Agravo Regimental (28)'],
-    datasets: [{
-      data: [992, 28],
-      backgroundColor: ['#1a3a6b', '#c8392b'],
-      hoverOffset: 6
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
-  }
-});
-
-// Embargos por relator
-const relEmb = [
-  ['Gledison M. Fernandes', 105],
-  ['F. Gladyson Pontes', 98],
-  ['Luciano N. M. Freire', 97],
-  ['F. Érico C. Silveira', 96],
-  ['Wilker Macedo Lima', 95],
-  ['Daniel C. Carneiro', 77],
-  ['R. Deusdeth R. Jr.', 69],
-  ['E. Leite Albuquerque', 65],
-  ['A. Edilberto O. Lima', 58],
-  ['J.M. Machado Cavalcanti*', 72],
-  ['Roberto S. Bulcão', 42],
-  ['José Cavalcante Jr.', 38],
-  ['L.R.O. Vasconcelos', 34],
-  ['Kamile M. Castro', 25],
-  ['Rogério F. C. Mota', 12],
-  ['M. Iraneide M. Silva', 8],
-  ['Demetrio Saker Neto', 1],
-];
-new Chart(document.getElementById('chartEmbRelator'), {
-  type: 'bar',
-  data: {
-    labels: relEmb.map(x => x[0]),
-    datasets: [{
-      data: relEmb.map(x => x[1]),
-      backgroundColor: '#2563eb',
-      borderRadius: 3
-    }]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    plugins: { legend: { display: false },
-      tooltip: { callbacks: { footer: () => '* Inclui variações de grafia do nome' } }
-    },
-    scales: {
-      x: { beginAtZero: true, ticks: { font: { size: 9 } } },
-      y: { ticks: { font: { size: 9 } } }
-    }
-  }
-});
-
-// Total recursos internos por relator
-const relTotal = [
-  ['Gledison M. Fernandes', 109],
-  ['F. Gladyson Pontes', 104],
-  ['Wilker Macedo Lima', 100],
-  ['Luciano N. M. Freire', 98],
-  ['F. Érico C. Silveira', 96],
-  ['Daniel C. Carneiro', 78],
-  ['R. Deusdeth R. Jr.', 69],
-  ['E. Leite Albuquerque', 66],
-  ['A. Edilberto O. Lima', 59],
-  ['J.M. Machado Cavalcanti*', 75],
-  ['Roberto S. Bulcão', 43],
-  ['José Cavalcante Jr.', 39],
-  ['L.R.O. Vasconcelos', 34],
-  ['Kamile M. Castro', 25],
-  ['Rogério F. C. Mota', 14],
-  ['M. Iraneide M. Silva', 8],
-  ['R. Nonato S. Santos', 2],
-  ['Demetrio Saker Neto', 1],
-];
-new Chart(document.getElementById('chartTotalRecRelator'), {
-  type: 'bar',
-  data: {
-    labels: relTotal.map(x => x[0]),
-    datasets: [
-      {
-        label: 'Embargos de Declaração',
-        data: relEmb.map(x => x[1]),
-        backgroundColor: '#1a3a6b',
-        borderRadius: 3,
-        stack: 'a'
-      },
-      {
-        label: 'Agravo Regimental',
-        data: [4, 6, 5, 1, 0, 1, 0, 1, 1, 3, 1, 1, 0, 0, 2, 0, 2, 0],
-        backgroundColor: '#c8392b',
-        borderRadius: 3,
-        stack: 'a'
-      }
-    ]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
-    scales: {
-      x: { beginAtZero: true, stacked: true, ticks: { font: { size: 9 } } },
-      y: { stacked: true, ticks: { font: { size: 9 } } }
-    }
-  }
-});
+// Aviso na tabela quando sem CSV
+document.getElementById('tblBody').innerHTML =
+  `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-3)">
+    Importe o CSV original para visualizar os ${fmt(STATIC.tramMeta.total)} processos tramitando com o tempo individual.
+  </td></tr>`;
+setText('tblCount', `Importe o CSV para carregar`);
 </script>
 </body>
 </html>

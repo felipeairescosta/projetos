@@ -1,5 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { api } from '../lib/api'
+import {
+  createEscala,
+  deleteEscala,
+  extractErrorMessage,
+  listColaboradores,
+  listEscalas,
+  listZonas,
+} from '../lib/dataClient'
 import {
   ESCALA_TIPO_LABELS,
   TURNO_LABELS,
@@ -30,14 +37,10 @@ export function EscalasPage() {
 
   async function load() {
     setLoading(true)
-    const [e, c, z] = await Promise.all([
-      api.get<Escala[]>('/escalas'),
-      api.get<Colaborador[]>('/colaboradores'),
-      api.get<ZonaEleitoral[]>('/zonas'),
-    ])
-    setEscalas(e.data)
-    setColaboradores(c.data)
-    setZonas(z.data)
+    const [e, c, z] = await Promise.all([listEscalas(), listColaboradores(), listZonas()])
+    setEscalas(e)
+    setColaboradores(c)
+    setZonas(z)
     setLoading(false)
   }
 
@@ -49,7 +52,7 @@ export function EscalasPage() {
     e.preventDefault()
     setError(null)
     try {
-      await api.post('/escalas', {
+      await createEscala({
         colaborador_id: form.colaborador_id,
         zona_eleitoral_id: form.zona_eleitoral_id,
         data: form.data,
@@ -60,14 +63,14 @@ export function EscalasPage() {
       setForm(emptyForm)
       setShowForm(false)
       await load()
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? 'Erro ao salvar escala.')
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Erro ao salvar escala.'))
     }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Remover esta escala?')) return
-    await api.delete(`/escalas/${id}`)
+    await deleteEscala(id)
     await load()
   }
 

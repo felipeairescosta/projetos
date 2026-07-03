@@ -1,5 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { api } from '../lib/api'
+import {
+  createColaborador,
+  deleteColaborador,
+  extractErrorMessage,
+  listCargos,
+  listColaboradores,
+  listZonas,
+} from '../lib/dataClient'
 import {
   STATUS_LABELS,
   VINCULO_LABELS,
@@ -38,15 +45,13 @@ export function ColaboradoresPage() {
   async function load() {
     setLoading(true)
     const [c, z, cg] = await Promise.all([
-      api.get<Colaborador[]>('/colaboradores', {
-        params: filtroStatus ? { status: filtroStatus } : {},
-      }),
-      api.get<ZonaEleitoral[]>('/zonas'),
-      api.get<Cargo[]>('/cargos'),
+      listColaboradores(filtroStatus ? { status: filtroStatus as ColaboradorStatus } : undefined),
+      listZonas(),
+      listCargos(),
     ])
-    setColaboradores(c.data)
-    setZonas(z.data)
-    setCargos(cg.data)
+    setColaboradores(c)
+    setZonas(z)
+    setCargos(cg)
     setLoading(false)
   }
 
@@ -59,7 +64,7 @@ export function ColaboradoresPage() {
     e.preventDefault()
     setError(null)
     try {
-      await api.post('/colaboradores', {
+      await createColaborador({
         nome_completo: form.nome_completo,
         cpf: form.cpf.replace(/\D/g, ''),
         matricula: form.matricula || null,
@@ -75,14 +80,14 @@ export function ColaboradoresPage() {
       setForm(emptyForm)
       setShowForm(false)
       await load()
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? 'Erro ao salvar colaborador.')
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Erro ao salvar colaborador.'))
     }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Remover este colaborador?')) return
-    await api.delete(`/colaboradores/${id}`)
+    await deleteColaborador(id)
     await load()
   }
 

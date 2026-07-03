@@ -12,41 +12,20 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { api } from '../lib/api'
+import {
+  getAfastamentosPorTipo,
+  getQuadroPorCargo,
+  getQuadroPorVinculo,
+  getQuadroPorZona,
+  getResumo,
+  type AfastamentoPorTipo,
+  type QuadroCargo,
+  type QuadroVinculo,
+  type QuadroZona,
+  type Resumo,
+} from '../lib/dataClient'
 import { StatCard } from '../components/StatCard'
 import { AFASTAMENTO_TIPO_LABELS, VINCULO_LABELS, type AfastamentoTipo, type Vinculo } from '../types'
-
-interface Resumo {
-  total_colaboradores: number
-  colaboradores_ativos: number
-  colaboradores_inativos: number
-  colaboradores_afastados: number
-  total_zonas_eleitorais: number
-  afastamentos_em_andamento_hoje: number
-  escalas_hoje: number
-}
-
-interface QuadroZona {
-  zona: string
-  total: number
-  ativos: number
-}
-
-interface QuadroCargo {
-  cargo: string
-  total: number
-  ativos: number
-}
-
-interface QuadroVinculo {
-  vinculo: Vinculo
-  total: number
-}
-
-interface AfastamentoPorTipo {
-  tipo: AfastamentoTipo
-  total: number
-}
 
 const PALETTE = ['#1e3a8a', '#3b82f6', '#6366f1', '#06b6d4', '#f59e0b', '#10b981', '#ef4444']
 
@@ -63,17 +42,17 @@ export function DashboardPage() {
     async function load() {
       try {
         const [r1, r2, r3, r4, r5] = await Promise.all([
-          api.get<Resumo>('/relatorios/resumo'),
-          api.get<QuadroZona[]>('/relatorios/quadro-por-zona'),
-          api.get<QuadroCargo[]>('/relatorios/quadro-por-cargo'),
-          api.get<QuadroVinculo[]>('/relatorios/quadro-por-vinculo'),
-          api.get<AfastamentoPorTipo[]>('/relatorios/afastamentos-por-tipo'),
+          getResumo(),
+          getQuadroPorZona(),
+          getQuadroPorCargo(),
+          getQuadroPorVinculo(),
+          getAfastamentosPorTipo(),
         ])
-        setResumo(r1.data)
-        setPorZona(r2.data)
-        setPorCargo(r3.data)
-        setPorVinculo(r4.data)
-        setAfastamentosPorTipo(r5.data)
+        setResumo(r1)
+        setPorZona(r2)
+        setPorCargo(r3)
+        setPorVinculo(r4 as QuadroVinculo[])
+        setAfastamentosPorTipo(r5 as AfastamentoPorTipo[])
       } catch {
         setError('Não foi possível carregar os dados do dashboard.')
       } finally {

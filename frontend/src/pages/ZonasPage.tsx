@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { api } from '../lib/api'
+import { createZona, deleteZona, extractErrorMessage, listZonas } from '../lib/dataClient'
 import type { ZonaEleitoral } from '../types'
 
 const emptyForm = { numero_zona: '', nome: '', municipio: '', endereco: '', telefone: '', email: '' }
@@ -13,8 +13,7 @@ export function ZonasPage() {
 
   async function load() {
     setLoading(true)
-    const { data } = await api.get<ZonaEleitoral[]>('/zonas')
-    setZonas(data)
+    setZonas(await listZonas())
     setLoading(false)
   }
 
@@ -26,7 +25,7 @@ export function ZonasPage() {
     e.preventDefault()
     setError(null)
     try {
-      await api.post('/zonas', {
+      await createZona({
         numero_zona: Number(form.numero_zona),
         nome: form.nome,
         municipio: form.municipio,
@@ -37,14 +36,14 @@ export function ZonasPage() {
       setForm(emptyForm)
       setShowForm(false)
       await load()
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? 'Erro ao salvar zona eleitoral.')
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Erro ao salvar zona eleitoral.'))
     }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Remover esta zona eleitoral?')) return
-    await api.delete(`/zonas/${id}`)
+    await deleteZona(id)
     await load()
   }
 

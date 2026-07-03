@@ -35,3 +35,26 @@ via SQL, e o perfil (`admin`, `gestor` ou `colaborador`) é definido na tabela
 
 React 19 · TypeScript · Vite · Tailwind CSS v4 · React Router · Recharts ·
 Axios · Supabase JS
+
+## Publicando como site estático (sem backend)
+
+O frontend tem dois modos de acesso a dados (`src/lib/dataClient.ts`):
+
+- **Com backend**: se `VITE_API_URL` estiver definido, todas as chamadas vão
+  para a API FastAPI (`../backend`).
+- **Direto ao Supabase**: se `VITE_API_URL` estiver vazio/ausente, o
+  frontend usa `@supabase/supabase-js` diretamente no navegador. A
+  autorização continua sendo aplicada pelas políticas de RLS do banco, então
+  é seguro publicar assim.
+
+Isso permite publicar o frontend como site estático (Vercel, Netlify, GitHub
+Pages) sem precisar hospedar o backend em lugar nenhum:
+
+1. No painel da Vercel/Netlify, importe o repositório e aponte o **Root
+   Directory** para `frontend`.
+2. Build command: `npm run build` · Output directory: `dist`.
+3. Configure as variáveis de ambiente `VITE_SUPABASE_URL` e
+   `VITE_SUPABASE_ANON_KEY` (valores em `.env.example`) — e **não** defina
+   `VITE_API_URL`.
+4. Deploy. `vercel.json` e `public/_redirects` já cuidam do fallback de
+   rotas do React Router (SPA) tanto na Vercel quanto na Netlify.

@@ -1,5 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { api } from '../lib/api'
+import {
+  createAfastamento,
+  deleteAfastamento,
+  extractErrorMessage,
+  listAfastamentos,
+  listColaboradores,
+} from '../lib/dataClient'
 import {
   AFASTAMENTO_STATUS_LABELS,
   AFASTAMENTO_TIPO_LABELS,
@@ -28,12 +34,9 @@ export function AfastamentosPage() {
 
   async function load() {
     setLoading(true)
-    const [a, c] = await Promise.all([
-      api.get<Afastamento[]>('/afastamentos'),
-      api.get<Colaborador[]>('/colaboradores'),
-    ])
-    setAfastamentos(a.data)
-    setColaboradores(c.data)
+    const [a, c] = await Promise.all([listAfastamentos(), listColaboradores()])
+    setAfastamentos(a)
+    setColaboradores(c)
     setLoading(false)
   }
 
@@ -45,7 +48,7 @@ export function AfastamentosPage() {
     e.preventDefault()
     setError(null)
     try {
-      await api.post('/afastamentos', {
+      await createAfastamento({
         colaborador_id: form.colaborador_id,
         tipo: form.tipo,
         data_inicio: form.data_inicio,
@@ -56,14 +59,14 @@ export function AfastamentosPage() {
       setForm(emptyForm)
       setShowForm(false)
       await load()
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? 'Erro ao salvar afastamento.')
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Erro ao salvar afastamento.'))
     }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Remover este afastamento?')) return
-    await api.delete(`/afastamentos/${id}`)
+    await deleteAfastamento(id)
     await load()
   }
 

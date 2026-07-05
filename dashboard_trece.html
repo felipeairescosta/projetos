@@ -308,8 +308,11 @@
 <div class="import-bar">
   <label for="csvFile">📂 Importar CSV</label>
   <input type="file" id="csvFile" accept=".csv" />
-  <button class="btn-sm" id="btnClear" style="display:none">✕ Limpar</button>
-  <span class="import-status" id="importStatus">Usando dados da extração de 30/06/2026. Importe um novo CSV para atualizar.</span>
+  <button class="btn-sm" id="btnClear" style="display:none">✕ Limpar tudo</button>
+  <span class="import-status" id="importStatus">Nenhum CSV carregado. Importe o primeiro arquivo para iniciar.</span>
+  <div id="importSources" style="display:none;font-size:.72rem;color:var(--text-2);margin-left:.5rem">
+    Fontes: <span id="sourceList"></span>
+  </div>
 </div>
 
 <div class="container">
@@ -998,26 +1001,87 @@ document.querySelectorAll('#tblTram thead th[data-col]').forEach(th => {
 });
 
 /* ══════════════════════════════════════════════════════════
-   8. IMPORT CSV
+   8. IMPORT CSV — merge com deduplicação pelo mais recente
    ══════════════════════════════════════════════════════════ */
+
+// allRows: Map<numero_processo → row> — chave de verdade do acervo consolidado
+// sources: lista de arquivos carregados na ordem de importação
+let allRows = new Map();
+let sources  = [];
+
+/**
+ * Extrai o número limpo do processo (campo processo, sem espaços extras).
+ * Usado como chave de deduplicação.
+ */
+function keyProc(row) {
+  return (row.processo || row['﻿processo'] || '').trim();
+}
+
+/**
+ * Mescla `newRows` no `allRows` global.
+ * Para processos duplicados, o registro do arquivo mais recente (newRows) vence,
+ * pois a tarefa atual estará mais condizente com a situação real.
+ * Retorna { adicionados, atualizados }.
+ */
+function mergeRows(newRows) {
+  let adicionados = 0, atualizados = 0;
+  for (const row of newRows) {
+    const k = keyProc(row);
+    if (!k) continue;
+    if (allRows.has(k)) atualizados++;
+    else adicionados++;
+    allRows.set(k, row);   // novo sempre sobrepõe (mais recente ganha)
+  }
+  return { adicionados, atualizados };
+}
+
+function refreshDashboard(filename) {
+  const rows = [...allRows.values()];
+  const d = computeMetrics(rows);
+  renderAll(d);
+
+  // Barra de status
+  const totalSrc = sources.length;
+  const status = document.getElementById('importStatus');
+  status.className = 'import-status ok';
+  status.textContent = `✓ ${fmt(rows.length)} processos consolidados de ${totalSrc} arquivo${totalSrc>1?'s':''}`;
+
+  document.getElementById('importSources').style.display = 'block';
+  document.getElementById('sourceList').textContent = sources.map(s=>s.name).join(' + ');
+  document.getElementById('btnClear').style.display = 'inline';
+  setText('hdrData', new Date().toLocaleDateString('pt-BR'));
+}
+
 document.getElementById('csvFile').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
+
   const status = document.getElementById('importStatus');
-  status.textContent = 'Lendo…'; status.className = 'import-status';
+  status.textContent = `Lendo ${file.name}…`;
+  status.className = 'import-status';
+
   const reader = new FileReader();
   reader.onload = ev => {
     try {
-      const rows = parseCSV(ev.target.result);
-      if (rows.length < 2) throw new Error('CSV vazio ou inválido');
-      const d = computeMetrics(rows);
-      renderAll(d);
-      status.textContent = `✓ ${file.name} — ${fmt(rows.length)} processos carregados`;
+      const newRows = parseCSV(ev.target.result);
+      if (newRows.length < 2) throw new Error('CSV vazio ou inválido');
+
+      const { adicionados, atualizados } = mergeRows(newRows);
+      sources.push({ name: file.name, count: newRows.length, adicionados, atualizados });
+
+      // Detalhe do merge para o usuário
+      const detalhe = sources.length > 1
+        ? ` (+${fmt(adicionados)} novos, ${fmt(atualizados)} atualizados)`
+        : '';
+      status.textContent = `✓ ${file.name} — ${fmt(newRows.length)} processos${detalhe}`;
       status.className = 'import-status ok';
-      document.getElementById('btnClear').style.display='inline';
-      setText('hdrData', new Date().toLocaleDateString('pt-BR'));
+
+      refreshDashboard(file.name);
+
+      // Limpa o input para permitir reimportar o mesmo arquivo
+      e.target.value = '';
     } catch(err) {
-      status.textContent = `✕ Erro: ${err.message}`;
+      status.textContent = `✕ Erro ao ler ${file.name}: ${err.message}`;
       status.className = 'import-status err';
     }
   };
@@ -1025,13 +1089,21 @@ document.getElementById('csvFile').addEventListener('change', e => {
 });
 
 document.getElementById('btnClear').addEventListener('click', () => {
+  allRows.clear();
+  sources = [];
   document.getElementById('csvFile').value = '';
-  document.getElementById('importStatus').textContent = 'Usando dados da extração de 30/06/2026. Importe um novo CSV para atualizar.';
+  document.getElementById('importStatus').textContent = 'Nenhum CSV carregado. Importe o primeiro arquivo para iniciar.';
   document.getElementById('importStatus').className = 'import-status';
+  document.getElementById('importSources').style.display = 'none';
   document.getElementById('btnClear').style.display = 'none';
-  setText('hdrData','30/06/2026');
+  setText('hdrData', '—');
   renderAll(STATIC);
-  renderTable(STATIC.processos);
+  // Aviso na tabela
+  document.getElementById('tblBody').innerHTML =
+    `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-3)">
+      Importe o CSV para visualizar os processos tramitando.
+    </td></tr>`;
+  setText('tblCount', '');
 });
 
 /* ══════════════════════════════════════════════════════════
@@ -1041,24 +1113,18 @@ function setText(id, v) { const el=document.getElementById(id); if(el) el.textCo
 function fmt(n) { return Number(n).toLocaleString('pt-BR'); }
 
 /* ══════════════════════════════════════════════════════════
-   10. INIT — carrega dados estáticos pré-calculados
+   10. INIT — dashboard aguarda importação de CSV
    ══════════════════════════════════════════════════════════ */
-// Injeta processos pré-calculados para a tabela funcionar sem CSV
-const PROCESSOS_EMBUTIDOS = (() => {
-  // 4409 processos pré-calculados (representativo — top 200 por extremo + amostra)
-  // Para a tabela completa importe o CSV original
-  return [];
-})();
-
-STATIC.processos = PROCESSOS_EMBUTIDOS;
+STATIC.processos = [];
 renderAll(STATIC);
 
-// Aviso na tabela quando sem CSV
+// Aviso inicial na tabela
 document.getElementById('tblBody').innerHTML =
   `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-3)">
-    Importe o CSV original para visualizar os ${fmt(STATIC.tramMeta.total)} processos tramitando com o tempo individual.
+    Importe o CSV para visualizar os processos tramitando com o tempo individual.
+    Múltiplos arquivos são mesclados — processos duplicados mantêm os dados do mais recente.
   </td></tr>`;
-setText('tblCount', `Importe o CSV para carregar`);
+setText('tblCount', '');
 </script>
 </body>
 </html>

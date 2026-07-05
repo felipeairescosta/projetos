@@ -577,6 +577,7 @@ function countBy(rows, fn) {
 function computeMetrics(rows) {
   let sigilo=0, prazo=0, urgente=0, encerrado=0, remetido=0, tramitando=0;
   const anosMes = {};
+  const anosMesDia = {};   // { "2022": { "8": { "1": 5, "2": 3, … } } }
   const classes = new Map(), relatores = new Map(), movCats = new Map(), tarefasM = new Map();
   const processosTram = [];
 
@@ -599,13 +600,17 @@ function computeMetrics(rows) {
     else if (st === 'remetido') remetido++;
     else tramitando++;
 
-    // ano/mês
+    // ano/mês/dia
     const dt = parseDate(autuado);
     if (dt) {
       const ano = String(dt.getFullYear());
       const mes = dt.getMonth();
+      const dia = dt.getDate();
       if (!anosMes[ano]) anosMes[ano] = new Array(12).fill(0);
       anosMes[ano][mes]++;
+      if (!anosMesDia[ano]) anosMesDia[ano] = {};
+      if (!anosMesDia[ano][mes]) anosMesDia[ano][mes] = {};
+      anosMesDia[ano][mes][dia] = (anosMesDia[ano][mes][dia] || 0) + 1;
     }
 
     // classes
@@ -674,7 +679,7 @@ function computeMetrics(rows) {
     encPct: (encerrado/rows.length*100).toFixed(1),
     remPct: (remetido/rows.length*100).toFixed(1),
     tramPct: (tramitando/rows.length*100).toFixed(1),
-    anosLabels, anosData, anosMes,
+    anosLabels, anosData, anosMes, anosMesDia,
     classesLabels: topN(classes).map(x=>x[0]),
     classesData: topN(classes).map(x=>x[1]),
     relatoresLabels: topN(relatores).map(x=>abreviar(x[0])),
@@ -860,6 +865,7 @@ let drillAtivo = false;
 function renderAnos(d) {
   const anos = d.anosLabels;
   const anosMes = d.anosMes;
+  const anosMesDia = d.anosMesDia || {};
 
   if (charts['chartAnos']) charts['chartAnos'].destroy();
   charts['chartAnos'] = new Chart(document.getElementById('chartAnos'), {
@@ -873,7 +879,7 @@ function renderAnos(d) {
       onClick(evt) {
         const pts = charts['chartAnos'].getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
         if (!pts.length) return;
-        drillAno(anos[pts[0].index], anosMes);
+        drillAno(anos[pts[0].index], anosMes, anosMesDia, d);
       }
     }
   });
@@ -884,19 +890,43 @@ function renderAnos(d) {
   document.getElementById('btnVoltarAnos').onclick = () => renderAnos(d);
 }
 
-function drillAno(ano, anosMes) {
+function drillAno(ano, anosMes, anosMesDia, d) {
   const raw = anosMes[ano] || new Array(12).fill(0);
-  const labels = MESES.filter((_,i) => raw[i] > 0);
-  const data   = raw.filter(v => v > 0);
+  const mesIndices = MESES.map((_,i) => i).filter(i => raw[i] > 0);
+  const labels = mesIndices.map(i => MESES[i]);
+  const data   = mesIndices.map(i => raw[i]);
   const c = charts['chartAnos'];
   c.data.labels = labels;
   c.data.datasets[0].data = data;
   c.data.datasets[0].backgroundColor = seqRamp(data.length);
-  c.options.plugins.tooltip.callbacks = { footer: ()=>'' };
-  c.options.onClick = ()=>{};
+  c.options.plugins.tooltip.callbacks = { footer: ()=>'Clique para ver dias' };
+  c.options.onClick = (evt) => {
+    const pts = c.getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+    if (!pts.length) return;
+    const mesIdx = mesIndices[pts[0].index];
+    drillMes(ano, mesIdx, anosMesDia, anosMes, d);
+  };
   c.update();
   document.getElementById('labelAnoAtivo').textContent = `— ${ano}`;
   document.getElementById('btnVoltarAnos').style.display = 'inline';
+  document.getElementById('btnVoltarAnos').onclick = () => renderAnos(d);
+}
+
+function drillMes(ano, mesIdx, anosMesDia, anosMes, d) {
+  const diasMap = (anosMesDia[ano] && anosMesDia[ano][mesIdx]) || {};
+  const diasOrdenados = Object.keys(diasMap).map(Number).sort((a,b)=>a-b);
+  const labels = diasOrdenados.map(dia => `${dia}/${mesIdx+1}`);
+  const data   = diasOrdenados.map(dia => diasMap[dia]);
+  const c = charts['chartAnos'];
+  c.data.labels = labels;
+  c.data.datasets[0].data = data;
+  c.data.datasets[0].backgroundColor = seqRamp(data.length || 1);
+  c.options.plugins.tooltip.callbacks = { footer: ()=>'' };
+  c.options.onClick = ()=>{};
+  c.update();
+  document.getElementById('labelAnoAtivo').textContent = `— ${ano} › ${MESES[mesIdx]}`;
+  document.getElementById('btnVoltarAnos').style.display = 'inline';
+  document.getElementById('btnVoltarAnos').onclick = () => drillAno(ano, anosMes, anosMesDia, d);
 }
 
 /* ══════════════════════════════════════════════════════════

@@ -861,32 +861,39 @@ function renderAll(d) {
 }
 
 /* ── Anos drill-down ──────────────────────────────────────── */
-let drillAtivo = false;
+function mkAnosChart(labels, data, colors, footerTip, onClickFn) {
+  if (charts['chartAnos']) charts['chartAnos'].destroy();
+  charts['chartAnos'] = new Chart(document.getElementById('chartAnos'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 4, hoverBackgroundColor: '#e34948' }] },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: { y:{beginAtZero:true,ticks:{font:{size:11}},grid:{color:'#e1e0d9'}},
+                 x:{ticks:{font:{size:11}},grid:{display:false}} },
+      plugins: { legend:{display:false}, tooltip:{callbacks:{footer: footerTip ? ()=>footerTip : undefined}} },
+      onClick: onClickFn || null
+    }
+  });
+}
+
 function renderAnos(d) {
   const anos = d.anosLabels;
   const anosMes = d.anosMes;
   const anosMesDia = d.anosMesDia || {};
 
-  if (charts['chartAnos']) charts['chartAnos'].destroy();
-  charts['chartAnos'] = new Chart(document.getElementById('chartAnos'), {
-    type: 'bar',
-    data: { labels: anos, datasets: [{ data: d.anosData, backgroundColor: '#2a78d6', hoverBackgroundColor: '#d03b3b', borderRadius: 4 }] },
-    options: {
-      ...CHART_DEFAULTS,
-      scales: { y:{beginAtZero:true,ticks:{font:{size:11}},grid:{color:'#e1e0d9'}},
-                 x:{ticks:{font:{size:11}},grid:{display:false}} },
-      plugins: { legend:{display:false}, tooltip:{callbacks:{footer:()=>'Clique para ver meses'}} },
-      onClick(evt) {
-        const pts = charts['chartAnos'].getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
-        if (!pts.length) return;
-        drillAno(anos[pts[0].index], anosMes, anosMesDia, d);
-      }
+  mkAnosChart(
+    anos, d.anosData,
+    Array(anos.length).fill('#2a78d6'),
+    'Clique para ver meses',
+    (evt) => {
+      const pts = charts['chartAnos'].getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+      if (!pts.length) return;
+      drillAno(anos[pts[0].index], anosMes, anosMesDia, d);
     }
-  });
-  drillAtivo = false;
+  );
+
   document.getElementById('labelAnoAtivo').textContent = '';
   document.getElementById('btnVoltarAnos').style.display = 'none';
-
   document.getElementById('btnVoltarAnos').onclick = () => renderAnos(d);
 }
 
@@ -895,18 +902,18 @@ function drillAno(ano, anosMes, anosMesDia, d) {
   const mesIndices = MESES.map((_,i) => i).filter(i => raw[i] > 0);
   const labels = mesIndices.map(i => MESES[i]);
   const data   = mesIndices.map(i => raw[i]);
-  const c = charts['chartAnos'];
-  c.data.labels = labels;
-  c.data.datasets[0].data = data;
-  c.data.datasets[0].backgroundColor = seqRamp(data.length);
-  c.options.plugins.tooltip.callbacks = { footer: ()=>'Clique para ver dias' };
-  c.options.onClick = (evt) => {
-    const pts = c.getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
-    if (!pts.length) return;
-    const mesIdx = mesIndices[pts[0].index];
-    drillMes(ano, mesIdx, anosMesDia, anosMes, d);
-  };
-  c.update();
+
+  mkAnosChart(
+    labels, data,
+    seqRamp(data.length),
+    'Clique para ver dias',
+    (evt) => {
+      const pts = charts['chartAnos'].getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+      if (!pts.length) return;
+      drillMes(ano, mesIndices[pts[0].index], anosMesDia, anosMes, d);
+    }
+  );
+
   document.getElementById('labelAnoAtivo').textContent = `— ${ano}`;
   document.getElementById('btnVoltarAnos').style.display = 'inline';
   document.getElementById('btnVoltarAnos').onclick = () => renderAnos(d);
@@ -917,13 +924,9 @@ function drillMes(ano, mesIdx, anosMesDia, anosMes, d) {
   const diasOrdenados = Object.keys(diasMap).map(Number).sort((a,b)=>a-b);
   const labels = diasOrdenados.map(dia => `${dia}/${mesIdx+1}`);
   const data   = diasOrdenados.map(dia => diasMap[dia]);
-  const c = charts['chartAnos'];
-  c.data.labels = labels;
-  c.data.datasets[0].data = data;
-  c.data.datasets[0].backgroundColor = seqRamp(data.length || 1);
-  c.options.plugins.tooltip.callbacks = { footer: ()=>'' };
-  c.options.onClick = ()=>{};
-  c.update();
+
+  mkAnosChart(labels, data, seqRamp(data.length || 1), '', null);
+
   document.getElementById('labelAnoAtivo').textContent = `— ${ano} › ${MESES[mesIdx]}`;
   document.getElementById('btnVoltarAnos').style.display = 'inline';
   document.getElementById('btnVoltarAnos').onclick = () => drillAno(ano, anosMes, anosMesDia, d);

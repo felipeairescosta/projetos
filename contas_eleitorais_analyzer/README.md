@@ -41,9 +41,40 @@ os parâmetros no topo de `src/regras.py`.
    que recebe a prestação de contas e devolve uma lista de `Achado`
    (severidade `INFO`/`ALERTA`/`IRREGULARIDADE`/`GRAVE`, referência
    normativa, descrição).
-3. **Análise** (`src/analisador.py`): roda todas as regras e monta um
-   `Relatorio` com os achados e um parecer sugerido.
-4. **Relatório** (`src/relatorio.py`): renderiza o resultado em Markdown.
+3. **Análise** (`src/analisador.py`): roda todas as regras e separa os
+   achados em três grupos, conforme o fluxo dos arts. 66, 69, 72 e 74 da
+   resolução (ver seção abaixo).
+4. **Relatório** (`src/relatorio.py`): renderiza o resultado em Markdown —
+   ou um relatório de diligências, ou o parecer conclusivo, nunca os dois.
+
+## Diligência antes do parecer conclusivo (arts. 66, 69, 72 e 74)
+
+O parecer conclusivo (aprovação / aprovação com ressalvas / desaprovação /
+não prestação) **só deve ser elaborado depois que todo achado passou por
+diligência/oportunidade de manifestação da prestadora ou do prestador de
+contas**. Isso é modelado assim:
+
+- Cada achado gerado pelas regras tem uma chave (`achados.chave_diligencia`,
+  formada por regra + item relacionado).
+- `PrestacaoContas.diligencias_respondidas` é um dicionário opcional que
+  mapeia essa chave para `StatusDiligencia.SANADA` (a prestadora/o prestador
+  esclareceu ou corrigiu o ponto) ou `StatusDiligencia.NAO_SANADA` (houve
+  manifestação, mas o ponto persiste).
+- Ao analisar, todo achado cuja chave **não** aparece nesse dicionário vai
+  para `Relatorio.achados_pendentes_diligencia` — enquanto essa lista não
+  estiver vazia, `Relatorio.pronto_para_parecer_conclusivo` é `False` e
+  `Relatorio.parecer_sugerido` é `None`. Nesse caso, o relatório gerado
+  recomenda a **intimação da prestadora/do prestador de contas** para se
+  manifestar (arts. 66, 69 e 72), em vez de um parecer.
+- Só quando não há mais nenhum achado pendente é que o parecer conclusivo é
+  calculado, com base nos achados marcados como `NAO_SANADA`
+  (`Relatorio.achados_confirmados`) — os `SANADA` ficam registrados em
+  `Relatorio.achados_sanados`, mas não pesam no parecer.
+
+Ou seja: a primeira análise de um caso novo (sem `diligencias_respondidas`)
+sempre resulta em relatório de diligências, se houver qualquer achado. Depois
+que a diligência for cumprida no processo real, informe o resultado em
+`diligencias_respondidas` e rode a análise de novo para obter o parecer.
 
 ## Regras implementadas
 

@@ -13,6 +13,14 @@ class Severidade(str, Enum):
     GRAVE = "GRAVE"  # risco de desaprovação das contas / art. 30-A Lei 9.504
 
 
+class StatusDiligencia(str, Enum):
+    """Resultado do ciclo de diligência/manifestação (Res. 23.607/2019, arts.
+    66, 69 e 72) já realizado sobre um achado específico."""
+
+    SANADA = "SANADA"  # a prestadora/o prestador esclareceu ou corrigiu o ponto
+    NAO_SANADA = "NAO_SANADA"  # houve oportunidade de manifestação, mas o ponto persiste
+
+
 @dataclass
 class Achado:
     severidade: Severidade
@@ -21,3 +29,10 @@ class Achado:
     titulo: str
     descricao: str
     item_relacionado_id: str | None = None
+
+
+def chave_diligencia(achado: Achado) -> str:
+    """Chave usada para casar um achado com uma entrada de
+    `PrestacaoContas.diligencias_respondidas` (regra + item específico, quando
+    houver, já que a mesma regra pode ser disparada por vários lançamentos)."""
+    return f"{achado.regra}:{achado.item_relacionado_id or ''}"

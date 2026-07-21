@@ -14,6 +14,8 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 
+from .achados import StatusDiligencia
+
 
 class TipoDoador(str, Enum):
     PESSOA_FISICA = "PESSOA_FISICA"
@@ -106,6 +108,11 @@ class PrestacaoContas:
     receitas: list[Receita] = field(default_factory=list)
     despesas: list[Despesa] = field(default_factory=list)
     houve_segundo_turno: bool = False  # muda o prazo de apresentação (Res. 23.607/2019, art. 49, §1º)
+    # Achados sobre os quais já houve diligência/oportunidade de manifestação
+    # (arts. 66, 69 e 72), chaveados por `achados.chave_diligencia(achado)`.
+    # Achados cuja chave não aparece aqui são tratados como pendentes de
+    # diligência e impedem a elaboração do parecer conclusivo.
+    diligencias_respondidas: dict[str, StatusDiligencia] = field(default_factory=dict)
 
     @property
     def total_receitas(self) -> Decimal:

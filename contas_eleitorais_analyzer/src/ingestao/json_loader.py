@@ -16,6 +16,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from ..achados import StatusDiligencia
 from ..modelos import (
     CandidatoOuComite,
     Cargo,
@@ -90,6 +91,10 @@ def carregar_prestacao_de_dict(dados: dict[str, Any]) -> PrestacaoContas:
         receitas=[_parse_receita(r) for r in dados.get("receitas", [])],
         despesas=[_parse_despesa(d) for d in dados.get("despesas", [])],
         houve_segundo_turno=dados.get("houve_segundo_turno", False),
+        diligencias_respondidas={
+            chave: StatusDiligencia(status)
+            for chave, status in dados.get("diligencias_respondidas", {}).items()
+        },
     )
 
 

@@ -89,6 +89,7 @@ def carregar_prestacao_de_dict(dados: dict[str, Any]) -> PrestacaoContas:
         data_apresentacao=_parse_data(dados.get("data_apresentacao")),
         receitas=[_parse_receita(r) for r in dados.get("receitas", [])],
         despesas=[_parse_despesa(d) for d in dados.get("despesas", [])],
+        houve_segundo_turno=dados.get("houve_segundo_turno", False),
     )
 
 

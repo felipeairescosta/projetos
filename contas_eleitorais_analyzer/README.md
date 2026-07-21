@@ -11,15 +11,27 @@ um analista humano.
 
 ## ⚠️ Aviso sobre a base normativa
 
-As regras em `src/regras.py` foram escritas a partir do conhecimento geral do
-conteúdo da Resolução TSE 23.607/2019. Não foi possível, no ambiente em que
-este projeto foi criado, acessar ao vivo o texto compilado em tse.jus.br para
-conferir a numeração exata dos artigos e os valores/parâmetros vigentes na
-versão mais atual (a resolução ganha anexos e ajustes a cada eleição, com
-tetos de gastos específicos por cargo/UF). **Antes de usar isto para
-qualquer decisão real, confira cada regra contra o texto compilado vigente**
-e ajuste os parâmetros marcados como `PARAMETRIZÁVEL` no topo de
-`src/regras.py`.
+As regras em `src/regras.py` foram codificadas a partir do **texto compilado
+oficial** da Resolução TSE nº 23.607/2019 (com as alterações das Resoluções
+23.665/2021, 23.709/2022, 23.731/2024 e 23.752/2026), cada uma citando o
+artigo correspondente. Ainda assim, alguns pontos exigem conferência manual
+a cada eleição:
+
+- o **teto de gastos de campanha** (art. 4º) é fixado por portaria do TSE a
+  cada eleição — não há valor fixo na resolução; deve ser informado em
+  `CandidatoOuComite.teto_gastos_campanha`;
+- valores em reais citados na resolução (R$ 1.064,10 — art. 21, §1º;
+  R$ 4.000,00 — art. 7º, §6º, I; R$ 40.000,00 — art. 27, §3º; R$ 20.000,00 —
+  art. 62) são atualizados monetariamente a cada eleição; os valores em
+  `src/regras.py` são os do texto compilado na data em que este módulo foi
+  escrito;
+- não são modeladas a exceção do art. 27, §3º (doações estimáveis em bens ou
+  serviços próprios até R$ 40.000,00, fora do limite de 10% do rendimento)
+  nem a soma de recursos próprios de vice/suplente ao do titular para o
+  limite de autofinanciamento (art. 27, §1º-A).
+
+Sempre que a resolução for atualizada por nova Res.-TSE, revise as regras e
+os parâmetros no topo de `src/regras.py`.
 
 ## Como funciona
 
@@ -32,6 +44,24 @@ e ajuste os parâmetros marcados como `PARAMETRIZÁVEL` no topo de
 3. **Análise** (`src/analisador.py`): roda todas as regras e monta um
    `Relatorio` com os achados e um parecer sugerido.
 4. **Relatório** (`src/relatorio.py`): renderiza o resultado em Markdown.
+
+## Regras implementadas
+
+| Regra | Artigo | Severidade |
+|---|---|---|
+| Fonte vedada (PJ, origem estrangeira, PF permissionária de serviço público) | art. 31 | GRAVE |
+| Origem não identificada | art. 32 | GRAVE |
+| Doação de PF acima de 10% do rendimento do ano anterior | art. 27, caput | IRREGULARIDADE |
+| Autofinanciamento acima de 10% do teto de gastos | art. 27, §1º | IRREGULARIDADE |
+| Recibo eleitoral ausente (fora das dispensas do art. 7º) | art. 7º | IRREGULARIDADE |
+| Doação ≥ R$ 1.064,10 sem meio bancário rastreável | art. 21, §1º | IRREGULARIDADE |
+| Receita arrecadada em espécie | art. 21, caput | IRREGULARIDADE |
+| Gasto pago por forma não autorizada (fora cheque cruzado/transferência/débito/Pix) | art. 38 | IRREGULARIDADE |
+| Despesa sem documento fiscal idôneo | art. 60 | IRREGULARIDADE |
+| Teto de gastos de campanha excedido | arts. 4º-6º | GRAVE |
+| Prazo de apresentação das contas excedido / contas não apresentadas | art. 49; art. 74, IV | IRREGULARIDADE / GRAVE |
+| CNPJ específico ausente | art. 3º, I, b; art. 8º | ALERTA |
+| Conta bancária específica ausente | art. 3º, I, c; art. 8º | ALERTA |
 
 ## Fontes de dados de entrada
 

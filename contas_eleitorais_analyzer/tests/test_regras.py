@@ -17,14 +17,24 @@ def _analisar_exemplo():
 
 def test_detecta_doacao_pessoa_juridica():
     relatorio = _analisar_exemplo()
-    regras_disparadas = {a.regra for a in relatorio.achados}
-    assert "RES23607_DOACAO_PJ_VEDADA" in regras_disparadas
+    achados = [a for a in relatorio.achados if a.regra == "RES23607_ORIGEM_VEDADA"]
+    assert len(achados) == 1
+    assert achados[0].item_relacionado_id == "REC-003"
 
 
 def test_detecta_origem_nao_identificada():
     relatorio = _analisar_exemplo()
-    regras_disparadas = {a.regra for a in relatorio.achados}
-    assert "RES23607_ORIGEM_VEDADA" in regras_disparadas
+    achados = [a for a in relatorio.achados if a.regra == "RES23607_ORIGEM_NAO_IDENTIFICADA"]
+    assert len(achados) == 1
+    assert achados[0].item_relacionado_id == "REC-004"
+
+
+def test_detecta_autofinanciamento_acima_do_limite():
+    # Res.-TSE 23.607/2019, art. 27, §1º: recursos próprios limitados a 10% do
+    # teto de gastos, não ao teto integral.
+    relatorio = _analisar_exemplo()
+    achados = [a for a in relatorio.achados if a.regra == "RES23607_AUTOFINANCIAMENTO_ACIMA_LIMITE"]
+    assert len(achados) == 1
 
 
 def test_detecta_limite_pessoa_fisica_excedido():

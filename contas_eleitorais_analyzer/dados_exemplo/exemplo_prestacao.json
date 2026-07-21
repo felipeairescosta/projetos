@@ -1,0 +1,98 @@
+{
+  "candidato_ou_comite": {
+    "nome": "Fulano de Tal (exemplo)",
+    "numero_ou_identificacao": "12345",
+    "cargo": "VEREADOR",
+    "uf": "CE",
+    "municipio": "Fortaleza",
+    "cnpj_especifico": null,
+    "possui_conta_bancaria_especifica": false,
+    "teto_gastos_campanha": 50000.00
+  },
+  "data_eleicao": "2024-10-06",
+  "data_apresentacao": "2024-12-01",
+  "receitas": [
+    {
+      "id": "REC-001",
+      "data": "2024-08-10",
+      "valor": 2000.00,
+      "forma_arrecadacao": "TRANSFERENCIA_ELETRONICA",
+      "tem_recibo_eleitoral": true,
+      "doador": {
+        "nome": "Maria da Silva",
+        "cpf_cnpj": "000.000.000-00",
+        "tipo": "PESSOA_FISICA",
+        "rendimento_bruto_ano_anterior": 60000.00
+      }
+    },
+    {
+      "id": "REC-002",
+      "data": "2024-08-15",
+      "valor": 15000.00,
+      "forma_arrecadacao": "TRANSFERENCIA_ELETRONICA",
+      "tem_recibo_eleitoral": true,
+      "doador": {
+        "nome": "João Pereira",
+        "cpf_cnpj": "111.111.111-11",
+        "tipo": "PESSOA_FISICA",
+        "rendimento_bruto_ano_anterior": 60000.00
+      }
+    },
+    {
+      "id": "REC-003",
+      "data": "2024-08-20",
+      "valor": 5000.00,
+      "forma_arrecadacao": "TRANSFERENCIA_ELETRONICA",
+      "tem_recibo_eleitoral": false,
+      "doador": {
+        "nome": "Comércio Exemplo LTDA",
+        "cpf_cnpj": "00.000.000/0001-00",
+        "tipo": "PESSOA_JURIDICA"
+      }
+    },
+    {
+      "id": "REC-004",
+      "data": "2024-09-01",
+      "valor": 800.00,
+      "forma_arrecadacao": "ESPECIE",
+      "tem_recibo_eleitoral": true,
+      "doador": {
+        "nome": "Doador Anônimo",
+        "cpf_cnpj": "",
+        "tipo": "ORIGEM_NAO_IDENTIFICADA"
+      }
+    },
+    {
+      "id": "REC-005",
+      "data": "2024-09-05",
+      "valor": 10000.00,
+      "forma_arrecadacao": "TRANSFERENCIA_ELETRONICA",
+      "tem_recibo_eleitoral": true,
+      "doador": {
+        "nome": "Fulano de Tal (exemplo)",
+        "cpf_cnpj": "000.000.000-00",
+        "tipo": "RECURSOS_PROPRIOS"
+      }
+    }
+  ],
+  "despesas": [
+    {
+      "id": "DESP-001",
+      "data": "2024-09-10",
+      "valor": 3000.00,
+      "fornecedor_nome": "Gráfica Exemplo",
+      "fornecedor_cpf_cnpj": "11.111.111/0001-11",
+      "categoria": "Material gráfico",
+      "tem_documento_fiscal": true
+    },
+    {
+      "id": "DESP-002",
+      "data": "2024-09-12",
+      "valor": 1200.00,
+      "fornecedor_nome": "Transporte Exemplo",
+      "fornecedor_cpf_cnpj": "22.222.222/0001-22",
+      "categoria": "Transporte",
+      "tem_documento_fiscal": false
+    }
+  ]
+}
